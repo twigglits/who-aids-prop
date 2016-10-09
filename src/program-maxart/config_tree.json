@@ -437,7 +437,7 @@
                 ["population.numwomen", 100],
                 ["population.simtime", 15],
                 ["population.maxevents", -1],
-                ["population.agedistfile", null] ],
+                ["population.agedistfile", "${SIMPACT_DATA_DIR}sa_2003.csv"] ],
             "info": [
                 "By default, the 'maxevents' parameter is negative, causing it to be",
                 "ignored. Set this to a positive value to make sure the simulation stops",
