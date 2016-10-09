@@ -1,0 +1,6 @@
+First thing to check if there's a difference between the basic version
+and the optimized version: are these compatible?
+
+	double calculateInternalTimeInterval(const SimpactPopulation &population, double t0, double dt);
+	double solveForRealTimeInterval(const SimpactPopulation &population, double Tdiff, double t0);
+
