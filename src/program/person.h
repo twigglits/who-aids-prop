@@ -4,6 +4,7 @@
 
 #include "personbase.h"
 #include "util.h"
+#include "aidstodutil.h"
 #include <stdlib.h>
 #include <iostream>
 #include <vector>
@@ -64,12 +65,15 @@ public:
 	void setInChronicStage()							{ assert(m_infectionStage == Acute); m_infectionStage = Chronic; }
 	void setInAIDSStage()								{ assert(m_infectionStage == Chronic); m_infectionStage = AIDS; }
 	void setInFinalAIDSStage()							{ assert(m_infectionStage == AIDS); m_infectionStage = AIDSFinal; }
+	double getAIDSMortalityTime() const						{ return m_aidsTodUtil.getTimeOfDeath(); }
 
 	double getSetPointViralLoad() const						{ assert(m_infectionStage != NoInfection); return m_Vsp; }
 	double getViralLoad() const;
 	void lowerViralLoad(double fractionOnLogscale, double treatmentTime);
-	bool hasLoweredViralLoad() const						{ assert(m_infectionStage != NoInfection); assert(m_Vsp > 0); return m_VspLowered; }
-	double getTreatmentTime() const							{ assert(m_infectionStage != NoInfection); assert(m_Vsp > 0); assert(m_VspLowered); assert(m_treatmentTime >= 0); return m_treatmentTime; }
+	bool hasLoweredViralLoad() const						{ assert(isInfected()); assert(m_Vsp > 0); return m_VspLowered; }
+	double getLastTreatmentStartTime() const					{ assert(isInfected()); assert(m_Vsp > 0); assert(m_VspLowered); assert(m_lastTreatmentStartTime >= 0); return m_lastTreatmentStartTime; }
+	void resetViralLoad(double dropoutTime);
+	int getNumberTreatmentStarted() const						{ assert(isInfected()); return m_treatmentCount; }
 
 	double getFormationEagernessParameter() const					{ return m_formationEagerness; }
 	double getPreferredAgeDifference() const					{ assert(m_preferredAgeDiff < 200.0 && m_preferredAgeDiff > -200.0); return m_preferredAgeDiff; }
@@ -91,14 +95,18 @@ public:
 	int getNumberOfPersonsOfInterest() const						{ return m_personsOfInterest.size(); }
 	Person *getPersonOfInterest(int idx) const						{ assert(idx >= 0 && idx < m_personsOfInterest.size()); Person *pPerson = m_personsOfInterest[idx]; assert(pPerson); return pPerson; }
 
+	double getCD4Count(double t) const;
+
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
 
 	static void writeToRelationLog(const Person *pMan, const Person *pWoman, double formationTime, double dissolutionTime);
 	void writeToPersonLog();
+	void writeToTreatmentLog(double dropoutTime, bool justDied);
 private:
 	double initializeEagerness();
 	double getViralLoadFromSetPointViralLoad(double x) const;
+	void initializeCD4Counts();
 	static double pickSeedSetPointViralLoad();
 	static double pickInheritedSetPointViralLoad(const Person *pOrigin);
 
@@ -141,7 +149,8 @@ private:
 
 	double m_Vsp, m_VspOriginal;
 	bool m_VspLowered;
-	double m_treatmentTime;
+	double m_lastTreatmentStartTime;
+	int m_treatmentCount;
 
 	Man *m_pFather;
 	Woman *m_pMother;
@@ -151,6 +160,10 @@ private:
 
 	std::vector<Person *> m_children;
 	std::vector<Person *> m_personsOfInterest;
+
+	AIDSTimeOfDeathUtility m_aidsTodUtil;
+
+	double m_cd4AtStart, m_cd4AtDeath;
 
 	static double m_hivSeedWeibullShape;
 	static double m_hivSeedWeibullScale;
@@ -164,6 +177,9 @@ private:
 	static ProbabilityDistribution *m_pMaleAgeGapDistribution;
 	static ProbabilityDistribution *m_pFemaleAgeGapDistribution;
 	static VspModel *m_pVspModel;
+
+	static ProbabilityDistribution *m_pCD4StartDistribution;
+	static ProbabilityDistribution *m_pCD4EndDistribution;
 };
 
 inline double Person::getViralLoad() const

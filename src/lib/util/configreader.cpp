@@ -45,6 +45,8 @@ bool ConfigReader::read(const string &fileName)
 			string value = line.substr(s+1);
 
 			key = trim(key);
+
+			value = substituteEnvironmentVariables(value);
 			value = trim(value);
 
 			if (key.length() == 0)
@@ -60,11 +62,13 @@ bool ConfigReader::read(const string &fileName)
 				fclose(pFile);
 				return false;
 			}
+
 			m_keyValues[key] = value;
 		}
 	}
 
 	fclose(pFile);
+
 	return true;
 }
 
@@ -100,49 +104,6 @@ void ConfigReader::clear()
 	m_keyValues.clear();
 }
 
-string ConfigReader::trim(const string &s)
-{
-	int startPos = 0;
-	bool done = false;
-
-	while (!done && startPos < s.length())
-	{
-		char c = s[startPos];
-
-		if (c != '\t' && c != ' ')
-			done = true;
-		else
-			startPos++;
-	}
-
-	int endPos = s.size() - 1;
-	done = false;
-
-	while (!done && endPos >= startPos)
-	{
-		char c = s[endPos];
-
-		if (c != '\t' && c != ' ')
-			done = true;
-		else
-			endPos--;
-	}
-
-	//cerr << "input: '" << s << "'" << endl;
-	//cerr << "startPos: " << startPos << endl;
-	//cerr << "endPos: " << endPos << endl;
-
-	if (startPos >= s.size())
-		return string("");
-
-	int len = endPos+1 - startPos;
-	string trimmed = s.substr(startPos, len);
-
-	//cerr << "trimmed: '" << trimmed << "'" << endl << endl;
-
-	return trimmed;
-}
-
 void ConfigReader::getKeys(vector<string> &keys) const
 {
 	map<string,string>::const_iterator it = m_keyValues.begin();
@@ -155,3 +116,47 @@ void ConfigReader::getKeys(vector<string> &keys) const
 	}
 }
 
+string ConfigReader::substituteEnvironmentVariables(const string &s)
+{
+	bool done = false;
+	size_t startPos = 0;
+	string resultStr;
+	
+	while (!done)
+	{
+		size_t idx = s.find("${", startPos);
+
+		if (idx == string::npos) // Not found
+		{
+			done = true;
+			resultStr += s.substr(startPos);
+		}
+		else
+		{
+			size_t idx2 = s.find("}", idx);
+
+			if (idx2 == string::npos) // End not found
+			{
+				done = true;
+				resultStr += s.substr(startPos);
+			}
+			else
+			{
+				resultStr += s.substr(startPos, idx - startPos);
+
+				string envName = s.substr(idx+2, idx2-idx-2);
+
+				//cerr << "ENV: '" << envName << "'" << endl;
+
+				char *pEnvCont = getenv(envName.c_str());
+
+				if (pEnvCont)
+					resultStr += string(pEnvCont);
+
+				startPos = idx2+1;
+			}
+		}
+	}
+
+	return resultStr;
+}

@@ -35,7 +35,8 @@ Person::Person(double dateOfBirth, Gender g) : PersonBase(g, dateOfBirth)
 	m_Vsp = 0;
 	m_VspOriginal = 0;
 	m_VspLowered = false;
-	m_treatmentTime = -1;
+	m_lastTreatmentStartTime = -1;
+	m_treatmentCount = 0;
 
 	m_relationshipsIterator = m_relationshipsSet.begin();
 #ifndef NDEBUG
@@ -57,6 +58,9 @@ Person::Person(double dateOfBirth, Gender g) : PersonBase(g, dateOfBirth)
 	}
 	else
 		abortWithMessage("Person::Person: invalid gender type");
+
+	m_cd4AtStart = -1;
+	m_cd4AtDeath = -1;
 
 	assert(m_pPopDist);
 
@@ -100,6 +104,11 @@ void Person::setInfected(double t, Person *pOrigin, InfectionType iType)
 		abortWithMessage("ERROR: got invalid value for the viral load");
 
 	m_VspLowered = false;
+
+	// Calculate AIDS based time of death for this person
+	m_aidsTodUtil.changeTimeOfDeath(t, this);
+
+	initializeCD4Counts();
 }
 
 double Person::pickSeedSetPointViralLoad()
@@ -163,6 +172,8 @@ ProbabilityDistribution *Person::m_pEagernessDistribution = 0; // This will be a
 ProbabilityDistribution *Person::m_pMaleAgeGapDistribution = 0; // This will be a tiny memory leak
 ProbabilityDistribution *Person::m_pFemaleAgeGapDistribution = 0; // This will be a tiny memory leak
 VspModel *Person::m_pVspModel = 0;
+ProbabilityDistribution *Person::m_pCD4StartDistribution = 0;
+ProbabilityDistribution *Person::m_pCD4EndDistribution = 0;
 
 DiscreteDistribution2D *Person::m_pPopDist = 0;
 double Person::m_popDistWidth = 0;
@@ -243,27 +254,20 @@ void Person::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRn
 	else
 		abortWithMessage("ERROR: unexpected Vsp model name " + VspModelName);
 
-	if (m_pEagernessDistribution != 0)
-	{
-		delete m_pEagernessDistribution;
-		m_pEagernessDistribution = 0;
-	}
+	delete m_pEagernessDistribution;
 	m_pEagernessDistribution = getDistributionFromConfig(config, pRndGen, "person.eagerness");
 
-	if (m_pMaleAgeGapDistribution != 0)
-	{
-		delete m_pMaleAgeGapDistribution;
-		m_pMaleAgeGapDistribution = 0;
-	}
+	delete m_pMaleAgeGapDistribution;
 	m_pMaleAgeGapDistribution = getDistributionFromConfig(config, pRndGen, "person.agegap.man");
 
-	if (m_pFemaleAgeGapDistribution != 0)
-	{
-		delete m_pFemaleAgeGapDistribution;
-		m_pFemaleAgeGapDistribution = 0;
-	}
+	delete m_pFemaleAgeGapDistribution;
 	m_pFemaleAgeGapDistribution = getDistributionFromConfig(config, pRndGen, "person.agegap.woman");
 
+	delete m_pCD4StartDistribution;
+	m_pCD4StartDistribution = getDistributionFromConfig(config, pRndGen, "person.cd4.start");
+
+	delete m_pCD4EndDistribution;
+	m_pCD4EndDistribution = getDistributionFromConfig(config, pRndGen, "person.cd4.end");
 	
 	// Population distribution
 
@@ -331,6 +335,8 @@ void Person::obtainConfig(ConfigWriter &config)
 	addDistributionToConfig(m_pEagernessDistribution, config, "person.eagerness");
 	addDistributionToConfig(m_pMaleAgeGapDistribution, config, "person.agegap.man");
 	addDistributionToConfig(m_pFemaleAgeGapDistribution, config, "person.agegap.woman");
+	addDistributionToConfig(m_pCD4StartDistribution, config, "person.cd4.start");
+	addDistributionToConfig(m_pCD4EndDistribution, config, "person.cd4.end");
 
 	{
 		VspModelLogWeibullWithRandomNoise *pDist = 0;
@@ -498,13 +504,25 @@ void Person::writeToPersonLog()
 	}
 
 	double log10SPVLoriginal = (isInfected()) ? std::log10(m_VspOriginal) : -infinity;
-	double treatmentTime = (isInfected() && hasLoweredViralLoad()) ? getTreatmentTime() : infinity;
+	double treatmentTime = (isInfected() && hasLoweredViralLoad()) ? getLastTreatmentStartTime() : infinity;
 
 	LogPerson.print("%d,%d,%10.10f,%10.10f,%d,%d,%10.10f,%10.10f,%10.10f,%d,%d,%10.10f,%10.10f,%10.10f,%10.10f",
 		        id, gender, timeOfBirth, timeOfDeath, fatherID, motherID, debutTime,
 		        formationEagerness,
 		        infectionTime, origin, infectionType, log10SPVLoriginal, treatmentTime,
 			m_location.x, m_location.y);
+}
+
+void Person::writeToTreatmentLog(double dropoutTime, bool justDied)
+{
+	int id = (int)getPersonID(); // TODO: should fit in an 'int' (easier for output)
+	int gender = (isMan())?0:1;
+	int justDiedInt = (justDied)?1:0;
+
+	assert(hasLoweredViralLoad());
+	assert(m_lastTreatmentStartTime >= 0);
+
+	LogTreatment.print("%d,%d,%10.10f,%10.10f,%d", id, gender, m_lastTreatmentStartTime, dropoutTime, justDiedInt);
 }
 
 void Person::startRelationshipIteration()
@@ -550,7 +568,26 @@ void Person::lowerViralLoad(double fractionOnLogscale, double treatmentTime)
 	assert(m_Vsp > 0);
 	
 	assert(treatmentTime >= 0); 
-	m_treatmentTime = treatmentTime; 
+	m_lastTreatmentStartTime = treatmentTime;
+
+	// This has changed the time of death
+	m_aidsTodUtil.changeTimeOfDeath(treatmentTime, this);
+
+	m_treatmentCount++;
+}
+
+void Person::resetViralLoad(double dropoutTime)
+{
+	assert(m_infectionStage != NoInfection); 
+	assert(m_Vsp > 0 && m_VspOriginal > 0); 
+	assert(m_VspLowered); 
+
+	m_VspLowered = false;
+	m_Vsp = m_VspOriginal;
+	m_lastTreatmentStartTime = -1; // Not currently in treatment
+
+	// This has changed the time of death
+	m_aidsTodUtil.changeTimeOfDeath(dropoutTime, this);
 }
 
 void Person::addPersonOfInterest(Person *pPerson)
@@ -589,6 +626,38 @@ void Person::removePersonOfInterest(Person *pPerson)
 	}
  
 	abortWithMessage("Specified person of interest " + pPerson->getName() + " was not found in list of " + getName());
+}
+
+void Person::initializeCD4Counts()
+{
+	assert(m_cd4AtStart < 0 && m_cd4AtDeath < 0);
+	assert(m_pCD4StartDistribution && m_pCD4EndDistribution);
+
+	m_cd4AtStart = m_pCD4StartDistribution->pickNumber();
+	m_cd4AtDeath = m_pCD4EndDistribution->pickNumber();
+	
+	assert(m_cd4AtStart >= 0);
+	assert(m_cd4AtDeath >= 0);
+}
+
+double Person::getCD4Count(double t) const
+{
+	// This uses a simple linear interpolation between the count at the start and at the end.
+	// Once the person has been treated, this probably won't make much sense anymore, but
+	// it is currently mainly a way to determine when someone should get treatment
+	
+	assert(m_infectionStage != NoInfection); 
+	assert(m_cd4AtStart >= 0);
+	assert(m_cd4AtDeath >= 0);
+
+	double tod = m_aidsTodUtil.getTimeOfDeath();
+	
+	assert(t >= m_infectionTime && t <= tod);
+
+	double frac = (t-m_infectionTime)/(tod - m_infectionTime);
+	double CD4 = m_cd4AtStart + frac*(m_cd4AtDeath-m_cd4AtStart);
+
+	return CD4;
 }
 
 Man::Man(double dateOfBirth) : Person(dateOfBirth, Male)

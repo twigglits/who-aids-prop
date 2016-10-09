@@ -15,12 +15,13 @@ set(SOURCES_SIMPACT
 	../program-common/eventdebut.cpp
 	../program-common/eventtransmission.cpp
 	../program-common/eventchronicstage.cpp
-	../program-common/eventtreatment.cpp
 	../program-common/eventhivseed.cpp
 	../program-common/eventintervention.cpp
 	../program-common/eventaidsstage.cpp
 	../program-common/eventconception.cpp
 	../program-common/eventbirth.cpp
+	../program-common/eventtest.cpp
+	../program-common/eventdropout.cpp
 	../program-common/vspmodellogweibullwithnoise.cpp
 	../program-common/vspmodellogbinormal.cpp
 	../program-common/simpactevent.cpp
@@ -31,6 +32,7 @@ set(SOURCES_SIMPACT
 	../program-common/main_hazardtest.cpp
 	../program-common/main.cpp
 	../program-common/configutil.cpp
+	../program-common/aidstodutil.cpp
 	)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../program-common/)

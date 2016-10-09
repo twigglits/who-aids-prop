@@ -22,7 +22,6 @@ public:
 	static void obtainConfig(ConfigWriter &config);
 
 	static double getExpectedSurvivalTime(const Person *pPerson);
-	static double getExpectedTimeOfDeath(const Person *pPerson);
 private:
 	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
 	double calculateInternalTimeInterval(const State *pState, double t0, double dt);
@@ -46,16 +45,6 @@ inline double EventAIDSMortality::getExpectedSurvivalTime(const Person *pPerson)
 	assert(tSurvival > 0);
 
 	return tSurvival;
-}
-
-inline double EventAIDSMortality::getExpectedTimeOfDeath(const Person *pPerson)
-{
-	assert(pPerson);
-	assert(pPerson->isInfected());
-
-	double expectedTimeOfDeath = getExpectedSurvivalTime(pPerson) + pPerson->getInfectionTime();
-	
-	return expectedTimeOfDeath;
 }
 
 #endif // EVENTMORTALITY_H

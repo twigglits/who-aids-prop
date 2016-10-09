@@ -1,8 +1,8 @@
 #include "eventhivseed.h"
-#include "eventtreatment.h"
 #include "eventaidsmortality.h"
 #include "eventtransmission.h"
 #include "eventchronicstage.h"
+#include "eventtest.h"
 #include "gslrandomnumbergenerator.h"
 #include <stdio.h>
 #include <iostream>
@@ -51,7 +51,7 @@ void EventHIVSeed::fire(State *pState, double t)
 
 	assert(initialInfectionFraction >= 0 && initialInfectionFraction <= 1.0);
 
-	// First: mark a fraction of the population as infected
+	// Mark a fraction of the population as infected
 
 	for (int i = 0 ; i < numPeople ; i++)
 	{
@@ -59,67 +59,8 @@ void EventHIVSeed::fire(State *pState, double t)
 		assert(!pPerson->isInfected()); // No-one should be infected before seeding!
 
 		if (pRngGen->pickRandomDouble() < initialInfectionFraction)
-		{
-			pPerson->setInfected(t, 0, Person::Seed);
-
-			// introduce AIDS based mortality
-
-			EventAIDSMortality *pAidsEvt = new EventAIDSMortality(pPerson);
-			population.onNewEvent(pAidsEvt);
-			
-			// we're still in the acute stage and should schedule
-			// an event to mark the transition to the chronic stage
-
-			EventChronicStage *pEvtChronic = new EventChronicStage(pPerson);
-			population.onNewEvent(pEvtChronic);
-
-			// Schedule a treatment event
-			
-			if (EventTreatment::isTreatmentEnabled())
-			{
-				EventTreatment *pEvt = new EventTreatment(pPerson);
-				population.onNewEvent(pEvt);
-			}
-		}
+			EventTransmission::infectPerson(population, 0, pPerson, t); // 0 means seed
 	}
-
-	// We also have to check current relationships: for formed relationships, transmission
-	// events may become possible
-	
-	for (int i = 0 ; i < numPeople ; i++)
-	{
-		Person *pPerson = ppPeople[i];
-
-		// For a transmission to make sense, this person should be infected and a partner
-		// should not
-
-		if (pPerson->isInfected())
-		{
-			int numRelations = pPerson->getNumberOfRelationships();
-
-			pPerson->startRelationshipIteration();
-			for (int i = 0 ; i < numRelations ; i++)
-			{
-				double tRelation = 0;
-				Person *pPartner = pPerson->getNextRelationshipPartner(tRelation);
-				assert(pPartner != 0);
-
-				if (!pPartner->isInfected())
-				{
-					// Ok, pPerson is infected but pPartner isn't
-					// Schedule a transmission event
-					
-					EventTransmission *pEvtTrans = new EventTransmission(pPerson, pPartner);
-					population.onNewEvent(pEvtTrans);
-				}
-			}
-
-			// Just to make sure that we've covered everyone
-			double tDummy = 0;
-			assert(pPerson->getNextRelationshipPartner(tDummy) == 0);
-		}
-	}
-
 }
 
 double EventHIVSeed::m_seedTime = -1;

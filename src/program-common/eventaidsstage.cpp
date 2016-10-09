@@ -92,7 +92,7 @@ double EventAIDSStage::getNewStageTime(double currentTime) const
 {
 	const Person *pPerson = getPerson(0);
 
-	double expectedTimeOfDeath = EventAIDSMortality::getExpectedTimeOfDeath(pPerson);
+	double expectedTimeOfDeath = pPerson->getAIDSMortalityTime();
 	double newStageTime = expectedTimeOfDeath;
 
 	if (m_finalStage)

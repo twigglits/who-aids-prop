@@ -67,6 +67,9 @@ void EventMortalityBase::fire(State *pState, double t)
 	double tDummy;
 	assert(pPerson->getNextRelationshipPartner(tDummy) == 0); // make sure the iteration is done
 
+	if (pPerson->isInfected() && pPerson->hasLoweredViralLoad())
+		pPerson->writeToTreatmentLog(t, true);
+
 	population.setPersonDied(pPerson);
 }
 

@@ -52,7 +52,7 @@ public:
 	/** Clears the stored key/value pairs. */
 	void clear();
 private:
-	static std::string trim(const std::string &s);
+	static std::string substituteEnvironmentVariables(const std::string &s);
 
 	std::map<std::string, std::string> m_keyValues;
 };

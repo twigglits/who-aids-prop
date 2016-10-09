@@ -4,7 +4,6 @@
 #include "eventformation.h"
 #include "eventdebut.h"
 #include "eventchronicstage.h"
-#include "eventtreatment.h"
 #include "eventtransmission.h"
 #include "eventhivseed.h"
 #include "eventintervention.h"

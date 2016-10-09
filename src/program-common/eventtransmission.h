@@ -27,6 +27,8 @@ public:
 	static double m_c;
 	static double m_d1;
 	static double m_d2;
+
+	static void infectPerson(SimpactPopulation &population, Person *pOrigin, Person *pTarget, double t);
 protected:
 	double calculateInternalTimeInterval(const State *pState, double t0, double dt);
 	double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);

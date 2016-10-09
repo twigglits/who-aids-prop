@@ -4,6 +4,7 @@
 #include "fixedvaluedistribution.h"
 #include "lognormaldistribution.h"
 #include "normaldistribution.h"
+#include "exponentialdistribution.h"
 #include "configsettings.h"
 #include "configwriter.h"
 #include <vector>
@@ -22,6 +23,7 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	supportedDistributions.push_back("gamma");
 	supportedDistributions.push_back("lognormal");
 	supportedDistributions.push_back("normal");
+	supportedDistributions.push_back("exponential");
 	
 	if (!config.getKeyValue(prefix + ".dist.type", distName, supportedDistributions))
 		abortWithMessage(config.getErrorString());
@@ -87,6 +89,15 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 			abortWithMessage(config.getErrorString());
 
 		pDist = new NormalDistribution(mu, sigma, pRndGen);
+	}
+	else if (distName == "exponential")
+	{
+		double lambda;
+
+		if (!config.getKeyValue(prefix + ".dist.exponential.lambda", lambda, 0))
+			abortWithMessage(config.getErrorString());
+
+		pDist = new ExponentialDistribution(lambda, pRndGen);
 	}
 	else
 		abortWithMessage("ERROR: distribution name for " + prefix + ".dist.type:" + distName);
@@ -183,6 +194,19 @@ void addDistributionToConfig(ProbabilityDistribution *pSrcDist, ConfigWriter &co
 			if (!config.addKey(prefix + ".dist.type", "normal") ||
 			    !config.addKey(prefix + ".dist.normal.mu", pDist->getMu()) ||
 			    !config.addKey(prefix + ".dist.normal.sigma", pDist->getSigma()))
+				abortWithMessage(config.getErrorString());
+
+			return;
+		}
+	}
+
+	// Just some curly braces to limite the name scope
+	{
+		ExponentialDistribution *pDist = 0;
+		if ((pDist = dynamic_cast<ExponentialDistribution *>(pSrcDist)) != 0)
+		{
+			if (!config.addKey(prefix + ".dist.type", "exponential") ||
+			    !config.addKey(prefix + ".dist.exponential.lambda", pDist->getA()) )
 				abortWithMessage(config.getErrorString());
 
 			return;

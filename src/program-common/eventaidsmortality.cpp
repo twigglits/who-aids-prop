@@ -18,7 +18,7 @@ string EventAIDSMortality::getDescription(double tNow) const
 	Person *pPerson = getPerson(0);
 	char str[1024];
 
-	sprintf(str, "AIDS death of %s (current age %g, treated: %d)", pPerson->getName().c_str(), pPerson->getAgeAt(tNow), (int)pPerson->hasLoweredViralLoad());
+	sprintf(str, "AIDS death of %s (current age %g, in treatment: %d)", pPerson->getName().c_str(), pPerson->getAgeAt(tNow), (int)pPerson->hasLoweredViralLoad());
 	return string(str);
 }
 
@@ -27,7 +27,7 @@ void EventAIDSMortality::writeLogs(double tNow) const
 	Person *pPerson = getPerson(0);
 	writeEventLogStart(false, "aidsmortality", tNow, pPerson, 0);
 
-	LogEvent.print(",treated,%d", (int)pPerson->hasLoweredViralLoad());
+	LogEvent.print(",intreatment,%d", (int)pPerson->hasLoweredViralLoad());
 }
 
 double EventAIDSMortality::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
@@ -38,7 +38,7 @@ double EventAIDSMortality::getNewInternalTimeDifference(GslRandomNumberGenerator
 	assert(pPerson->isInfected());
 	assert(!pPerson->hasLoweredViralLoad());
 
-	double expectedTimeOfDeath = getExpectedTimeOfDeath(pPerson);
+	double expectedTimeOfDeath = pPerson->getAIDSMortalityTime();
 
 	m_eventHelper.setFireTime(expectedTimeOfDeath);
 	return m_eventHelper.getNewInternalTimeDifference(pRndGen, pState);
@@ -64,7 +64,7 @@ void EventAIDSMortality::checkFireTime(double t0)
 	Person *pPerson = getPerson(0);
 	assert(pPerson->isInfected());
 
-	double expectedTimeOfDeath = getExpectedTimeOfDeath(pPerson);
+	double expectedTimeOfDeath = pPerson->getAIDSMortalityTime();
 	double scheduledFireTime = m_eventHelper.getFireTime();
 
 	assert(expectedTimeOfDeath > t0);
@@ -85,7 +85,7 @@ void EventAIDSMortality::fire(State *pState, double t)
 	// time, and it's possible that the mortality fires before this is done)
 	//assert(pPerson->getInfectionStage() == Person::AIDSFinal); // Should be in final aids stage by now
 
-	double expectedTimeOfDeath = getExpectedTimeOfDeath(pPerson);
+	double expectedTimeOfDeath = pPerson->getAIDSMortalityTime();
 
 	assert(std::abs(expectedTimeOfDeath - t) < 1e-8);
 	m_eventHelper.checkFireTime(t);

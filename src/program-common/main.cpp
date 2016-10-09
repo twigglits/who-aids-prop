@@ -144,7 +144,13 @@ int real_main(int argc, char **argv)
 	Person **ppPersons = pop.getAllPeople();
 
 	for (int i = 0 ; i < numPeople ; i++)
-		ppPersons[i]->writeToPersonLog();
+	{
+		Person *pPerson = ppPersons[i];
+
+		pPerson->writeToPersonLog();
+		if (pPerson->isInfected() && pPerson->hasLoweredViralLoad())
+			pPerson->writeToTreatmentLog(infinity, false);
+	}
 
 	// deceased
 	numPeople = pop.getNumberOfDeceasedPeople();

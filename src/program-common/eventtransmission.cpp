@@ -2,7 +2,7 @@
 #include "eventmortality.h"
 #include "eventaidsmortality.h"
 #include "eventchronicstage.h"
-#include "eventtreatment.h"
+#include "eventtest.h"
 #include <stdio.h>
 #include <cmath>
 #include <iostream>
@@ -76,6 +76,56 @@ bool EventTransmission::isUseless()
 	return false;
 }
 
+void EventTransmission::infectPerson(SimpactPopulation &population, Person *pOrigin, Person *pTarget, double t)
+{
+	if (pOrigin == 0) // Seeding
+		pTarget->setInfected(t, 0, Person::Seed);
+	else
+		pTarget->setInfected(t, pOrigin, Person::Partner);
+
+	// introduce AIDS based mortality
+
+	// Schedule an AIDS mortality event for person2
+	// TODO: should this be moved to the firing code of the final aids stage?
+	//
+	//       -> NOTE! It is currently best to do it this way: because of the fixed
+	//                time interval of the Acute stage, it is possible that the
+	//                mortality event fires already when in the acute stage. It
+	//                would not be possible if the AIDS mortality event is scheduled
+	EventAIDSMortality *pAidsEvt = new EventAIDSMortality(pTarget);
+	population.onNewEvent(pAidsEvt);
+	
+	// we're still in the acute stage and should schedule
+	// an event to mark the transition to the chronic stage
+
+	EventChronicStage *pEvtChronic = new EventChronicStage(pTarget);
+	population.onNewEvent(pEvtChronic);
+
+	// Once infected, a HIV test event will be scheduled, which can cause treatment of the person
+	EventTest *pTestEvent = new EventTest(pTarget);
+	population.onNewEvent(pTestEvent);
+
+	// Check relationships pTarget is in, and if the partner is not yet infected, schedule
+	// a transmission event.
+	int numRelations = pTarget->getNumberOfRelationships();
+	pTarget->startRelationshipIteration();
+	
+	for (int i = 0 ; i < numRelations ; i++)
+	{
+		double formationTime = -1;
+		Person *pPartner = pTarget->getNextRelationshipPartner(formationTime);
+
+		if (!pPartner->isInfected())
+		{
+			EventTransmission *pEvtTrans = new EventTransmission(pTarget, pPartner);
+			population.onNewEvent(pEvtTrans);
+		}
+	}
+
+	double tDummy;
+	assert(pTarget->getNextRelationshipPartner(tDummy) == 0);
+}
+
 void EventTransmission::fire(State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
@@ -87,49 +137,7 @@ void EventTransmission::fire(State *pState, double t)
 	assert(pPerson1->isInfected() && pPerson1->getInfectionStage() != Person::AIDSFinal);
 	assert(!pPerson2->isInfected());
 
-	// Make pPerson2 infected
-	pPerson2->setInfected(t, pPerson1, Person::Partner);
-
-	// An event to mark the transition to the chronic stage
-	EventChronicStage *pEvtChronic = new EventChronicStage(pPerson2);
-	population.onNewEvent(pEvtChronic);
-
-	// Schedule an AIDS mortality event for person2
-	// TODO: should this be moved to the firing code of the final aids stage?
-	//
-	//       -> NOTE! It is currently best to do it this way: because of the fixed
-	//                time interval of the Acute stage, it is possible that the
-	//                mortality event fires already when in the acute stage. It
-	//                would not be possible if the AIDS mortality event is scheduled
-	EventAIDSMortality *pEvtMort = new EventAIDSMortality(pPerson2);
-	population.onNewEvent(pEvtMort);
-
-	// Check relationships pPerson2 is in, and if the partner is not yet infected, schedule
-	// a transmission event.
-	int numRelations = pPerson2->getNumberOfRelationships();
-	pPerson2->startRelationshipIteration();
-	
-	for (int i = 0 ; i < numRelations ; i++)
-	{
-		double formationTime = -1;
-		Person *pPartner = pPerson2->getNextRelationshipPartner(formationTime);
-
-		if (!pPartner->isInfected())
-		{
-			EventTransmission *pEvtTrans = new EventTransmission(pPerson2, pPartner);
-			population.onNewEvent(pEvtTrans);
-		}
-	}
-
-	double tDummy;
-	assert(pPerson2->getNextRelationshipPartner(tDummy) == 0);
-
-	// If desired, schedule a treatment event for person2, the newly infected one
-	if (EventTreatment::isTreatmentEnabled())
-	{
-		EventTreatment *pEvtTreatment = new EventTreatment(pPerson2);
-		population.onNewEvent(pEvtTreatment);
-	}
+	infectPerson(population, pPerson1, pPerson2, t);
 }
 
 double EventTransmission::m_a = 0;

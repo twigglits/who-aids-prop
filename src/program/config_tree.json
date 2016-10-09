@@ -36,6 +36,13 @@
                 "Parameters for a normal distribution",
                 "prob(x) = 1.0/(s*sqrt(2.0*pi)) * exp(- (x-m)^2 / (2.0*s^2))"
             ]
+        },
+        "exponential": {
+            "params": [ [ "lambda", null ] ],
+            "info": [
+                "Parameters for an exponential distribution",
+                "prob(x) = lambda * exp(-lambda * x)"
+            ]
         }
     },
 
@@ -129,6 +136,16 @@
             ]
         },
         
+        "EventDropout_Timing": {
+            "depends": null,
+            "params": [ 
+                [ "dropout.interval.dist", "distTypes", [ "uniform", [ [ "min", 0.25  ], [ "max", 10.0 ] ] ] ]
+            ],
+            "info": [
+                "Distribution to schedule dropout events."
+            ]
+        },
+
         "EventFormationTypes": { 
             "depends": null,
             "params": [ ["formation.hazard.type", "agegap", [ "simple", "agegap" ] ] ],
@@ -260,16 +277,27 @@
             ]
         },
 
-        "EventTreatment": { 
+        "EventTest": {
+            "depends": null,
+            "params": [
+                [ "hivtest.cd4.threshold", 350.0 ],
+                [ "hivtest.fraction.log_viralload", 0.7 ]
+            ],
+            "info": [
+                "When an HIV testing event fires and the CD4 count is below the treshold, the",
+                "individual will start treatment. The effect of treatment will be to lower the",
+                "set-point viral load in such a way that on a log scale the Vsp value will be",
+                "multiplied by the specified fraction."
+            ]
+        },
+
+        "EventTest_Timing": {
             "depends": null,
             "params": [ 
-                ["treatment.fraction.time", 0.8],
-                ["treatment.fraction.log_viralload", 0.7],
-                ["treatment.enabled", "yes", ["yes", "no"] ] ],
-            "info": [ 
-                "A person receives treatment after a certain fraction of t_surv has passed.",
-                "The effect will be to lower the set-point viral load in such a way that",
-                "on a log scale the Vsp value will be multiplied by the specified fraction."
+                [ "hivtest.interval.dist", "distTypes", [ "uniform", [ [ "min", 0.25  ], [ "max", 5.0 ] ] ] ]
+            ],
+            "info": [
+                "Distribution to schedule HIV test events."
             ]
         },
 
@@ -297,6 +325,18 @@
                 "   V = [ max(ln(x)/b + Vsp^(-c), maxvalue^(-c)) ]^(-1/c)",
                 "The b and c parameters are specified in the parameters from the transmission",
                 "event."
+            ]
+        },
+
+        "PersonCD4": {
+            "depends": null,
+            "params": [ 
+                [ "person.cd4.start.dist", "distTypes", [ "uniform", [ [ "min", 700  ], [ "max", 1300 ] ] ] ],
+                [ "person.cd4.end.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 100 ] ] ] ]
+            ],
+            "info": [
+                "These distributions control the initial CD4 count when first getting infected",
+                "and the final CD4 count at the time the person dies from AIDS."
             ]
         },
 
@@ -410,7 +450,9 @@
             "params": [ 
                 ["logsystem.filename.events", null],
                 ["logsystem.filename.persons", null],
-                ["logsystem.filename.relations", null] ],
+                ["logsystem.filename.relations", null], 
+                ["logsystem.filename.treatments", null]
+            ],
             "info": null                          
         }
     }

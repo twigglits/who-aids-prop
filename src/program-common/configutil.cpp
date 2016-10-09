@@ -7,12 +7,13 @@
 #include "eventmortality.h"
 #include "eventmortalitybase.h"
 #include "eventtransmission.h"
-#include "eventtreatment.h"
 #include "eventhivseed.h"
 #include "eventaidsstage.h"
 #include "eventintervention.h"
 #include "eventconception.h"
 #include "eventbirth.h"
+#include "eventtest.h"
+#include "eventdropout.h"
 #include "logsystem.h"
 #include "util.h"
 #include "populationdistributioncsv.h"
@@ -30,11 +31,12 @@ void processNonInterventionEventConfig(ConfigSettings &config, GslRandomNumberGe
 	EventFormation::processConfig(config);
 	EventMortality::processConfig(config);
 	EventTransmission::processConfig(config);
-	EventTreatment::processConfig(config);
 	EventHIVSeed::processConfig(config);
 	EventAIDSStage::processConfig(config);
 	EventConception::processConfig(config, pRndGen);
 	EventBirth::processConfig(config, pRndGen);
+	EventTest::processConfig(config, pRndGen);
+	EventDropout::processConfig(config, pRndGen);
 }
 
 bool configure(ConfigSettings &config, SimpactPopulationConfig &populationConfig, PopulationDistributionCSV &ageDist,
@@ -160,11 +162,12 @@ void checkConfiguration(const ConfigSettings &loadedConfig, const SimpactPopulat
 	EventFormation::obtainConfig(config);
 	EventMortality::obtainConfig(config);
 	EventTransmission::obtainConfig(config);
-	EventTreatment::obtainConfig(config);
 	EventHIVSeed::obtainConfig(config);
 	EventAIDSStage::obtainConfig(config);
 	EventConception::obtainConfig(config);
 	EventBirth::obtainConfig(config);
+	EventTest::obtainConfig(config);
+	EventDropout::obtainConfig(config);
 	EventIntervention::obtainConfig(config);
 	Person::obtainConfig(config);
 
