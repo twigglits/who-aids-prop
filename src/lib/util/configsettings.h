@@ -46,6 +46,13 @@ public:
 	bool getKeyValue(const std::string &key, double &value, double minValue = -std::numeric_limits<double>::max(), 
 	                 double maxValue = std::numeric_limits<double>::max());
 
+	/** Interprets the value for the specified key as a list of double precision floating point numbers,
+	 *  checking that each lies withing the bounds if specified. */
+	// std::numeric_limits<double>::min() is the smallest in absolute value, can't use that here!
+	bool getKeyValue(const std::string &key, std::vector<double> &values, 
+			 double minValue = -std::numeric_limits<double>::max(), 
+	                 double maxValue = std::numeric_limits<double>::max());
+
 	/** Interprets the value for the specified key as an integer number,
 	 *  checking that it lies withing the bounds if specified. */
 	bool getKeyValue(const std::string &key, int &value, int minValue = std::numeric_limits<int>::min(),
@@ -55,6 +62,9 @@ public:
 	 *  checking that it lies withing the bounds if specified. */
 	bool getKeyValue(const std::string &key, int64_t &value, int64_t minValue = std::numeric_limits<int64_t>::min(),
 	                 int64_t maxValue = std::numeric_limits<int64_t>::max());
+
+	/** Interprets the value for the specified key as a boolean, possible values can be 'yes' or 'no'. */
+	bool getKeyValue(const std::string &key, bool &value);
 
 	bool getStringKeyValue(const std::string &key, std::string &value, bool &used) const;
 	

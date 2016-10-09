@@ -67,6 +67,7 @@ macro(simpact_setup)
 		${PROJECT_SOURCE_DIR}/src/lib/util/logfile.cpp 
 		${PROJECT_SOURCE_DIR}/src/lib/util/tiffdensityfile.cpp 
 		${PROJECT_SOURCE_DIR}/src/lib/util/configwriter.cpp 
+		${PROJECT_SOURCE_DIR}/src/lib/util/piecewiselinearfunction.cpp 
 		)
 	set(SOURCES_MRNM
 		${PROJECT_SOURCE_DIR}/src/lib/mnrm/gslrandomnumbergenerator.cpp

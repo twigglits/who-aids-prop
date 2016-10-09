@@ -1,6 +1,7 @@
 #include "discretefunction.h"
 #include "gslrandomnumbergenerator.h"
 #include "util.h"
+#include "piecewiselinearfunction.h"
 #include <iostream>
 
 using namespace std;
@@ -62,7 +63,7 @@ int main1(void)
 	return 0;
 }
 
-int main(void)
+int main2(void)
 {
 	string s = " \t abc  \n\r  \t";
 	string t = trim(s);
@@ -80,3 +81,21 @@ int main(void)
 	cout << replace("%%%bla amaiamai x%%%", "%", "BLA") << endl;
 	return 0;
 }
+
+int main(void)
+{
+	vector<Point2D> points;
+
+	points.push_back(Point2D(1,0.1));
+	//points.push_back(Point2D(2,0.11));
+	//points.push_back(Point2D(3,0.2));
+	//points.push_back(Point2D(4,0.24));
+
+	PieceWiseLinearFunction f(points, -2, 10);
+
+	for (int x = 0 ; x < 5 ; x += 1)
+		cout << x << " " << f.evaluate(x) << endl;
+
+	return 0;
+}
+

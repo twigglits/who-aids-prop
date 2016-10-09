@@ -27,6 +27,11 @@ private:
 	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
 
 	static double m_seedTime, m_seedFraction;
+	static double m_seedMinAge, m_seedMaxAge;
+	static int m_seedAmount;
+	static bool m_stopOnShort;
+	static bool m_useFraction;
+
 	static bool m_seeded;
 };
 

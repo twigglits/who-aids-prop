@@ -15,6 +15,7 @@ public:
 	~ConfigWriter();
 
 	bool addKey(const std::string &key, double value);
+	bool addKey(const std::string &key, const std::vector<double> &values);
 	bool addKey(const std::string &key, int value);
 	bool addKey(const std::string &key, int64_t value);
 	bool addKey(const std::string &key, bool value);

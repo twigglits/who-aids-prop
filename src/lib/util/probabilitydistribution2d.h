@@ -7,16 +7,9 @@
  */
 
 #include <assert.h>
+#include "point2d.h"
 
 class GslRandomNumberGenerator;
-
-struct Point2D
-{
-	Point2D() 										{ }
-	Point2D(double x0, double y0) 								{ x = x0; y = y0; }
-
-	double x, y;
-};
 
 /** Abstract base class for 2D probability distribution implementations so that they can
  *  be used interchangeably. */

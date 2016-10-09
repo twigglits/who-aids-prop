@@ -231,3 +231,53 @@ void ConfigSettings::merge(const ConfigSettings &src)
 	}
 }
 
+bool ConfigSettings::getKeyValue(const string &key, vector<double> &values, double minValue, double maxValue)
+{
+	string valueStr;
+
+	if (!getKeyValue(key, valueStr))
+		return false;
+
+	string badField;
+
+	if (!parseAsDoubleVector(valueStr, values, badField))
+	{
+		setErrorString("Can't interpret value for key '" + key + "' as a list of floating point numbers (field '" + badField + "' is bad)");
+		return false;
+	}
+
+	for (size_t i = 0 ; i < values.size() ; i++)
+	{
+		double value = values[i];
+		if (value < minValue || value > maxValue)
+		{
+			char str[1024];
+
+			sprintf(str, "Each value for '%s' must lie between %g and %g, but one is %g", key.c_str(), minValue, maxValue, value);
+			setErrorString(str);
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool ConfigSettings::getKeyValue(const std::string &key, bool &value)
+{
+	vector<string> yesNoOptions;
+	string yesNo;
+
+	yesNoOptions.push_back("yes");
+	yesNoOptions.push_back("no");
+
+	if (!getKeyValue(key, yesNo, yesNoOptions))
+		return false;
+
+	if (yesNo == "yes")
+		value = true;
+	else
+		value = false;
+
+	return true;
+}
+

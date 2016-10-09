@@ -20,8 +20,10 @@ set(SOURCES_SIMPACT
 	../program-common/eventaidsstage.cpp
 	../program-common/eventconception.cpp
 	../program-common/eventbirth.cpp
-	../program-common/eventtest.cpp
+	../program-common/eventdiagnosis.cpp
+	../program-common/eventmonitoring.cpp
 	../program-common/eventdropout.cpp
+	../program-common/eventperiodiclogging.cpp
 	../program-common/vspmodellogweibullwithnoise.cpp
 	../program-common/vspmodellogbinormal.cpp
 	../program-common/simpactevent.cpp

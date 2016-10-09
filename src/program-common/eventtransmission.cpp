@@ -2,7 +2,7 @@
 #include "eventmortality.h"
 #include "eventaidsmortality.h"
 #include "eventchronicstage.h"
-#include "eventtest.h"
+#include "eventdiagnosis.h"
 #include <stdio.h>
 #include <cmath>
 #include <iostream>
@@ -101,9 +101,10 @@ void EventTransmission::infectPerson(SimpactPopulation &population, Person *pOri
 	EventChronicStage *pEvtChronic = new EventChronicStage(pTarget);
 	population.onNewEvent(pEvtChronic);
 
-	// Once infected, a HIV test event will be scheduled, which can cause treatment of the person
-	EventTest *pTestEvent = new EventTest(pTarget);
-	population.onNewEvent(pTestEvent);
+	// Once infected, a HIV diagnosis event will be scheduled, which can cause 
+	// treatment of the person later on
+	EventDiagnosis *pEvtDiag = new EventDiagnosis(pTarget);
+	population.onNewEvent(pEvtDiag);
 
 	// Check relationships pTarget is in, and if the partner is not yet infected, schedule
 	// a transmission event.

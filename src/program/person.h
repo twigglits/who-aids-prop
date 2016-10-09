@@ -44,6 +44,7 @@ public:
 	int getNumberOfRelationships() const						{ return m_relationshipsSet.size(); }
 	void startRelationshipIteration();
 	Person *getNextRelationshipPartner(double &formationTime);
+	int getNumberOfDiagnosedPartners();
 
 	bool hasRelationshipWith(Person *pPerson) const;
 
@@ -66,6 +67,10 @@ public:
 	void setInAIDSStage()								{ assert(m_infectionStage == Chronic); m_infectionStage = AIDS; }
 	void setInFinalAIDSStage()							{ assert(m_infectionStage == AIDS); m_infectionStage = AIDSFinal; }
 	double getAIDSMortalityTime() const						{ return m_aidsTodUtil.getTimeOfDeath(); }
+
+	bool isDiagnosed() const							{ return (m_diagnoseCount > 0); }
+	void increaseDiagnoseCount()							{ m_diagnoseCount++; }
+	int getDiagnoseCount() const							{ return m_diagnoseCount; }
 
 	double getSetPointViralLoad() const						{ assert(m_infectionStage != NoInfection); return m_Vsp; }
 	double getViralLoad() const;
@@ -96,6 +101,7 @@ public:
 	Person *getPersonOfInterest(int idx) const						{ assert(idx >= 0 && idx < m_personsOfInterest.size()); Person *pPerson = m_personsOfInterest[idx]; assert(pPerson); return pPerson; }
 
 	double getCD4Count(double t) const;
+	double getARTAcceptanceThreshold() const						{ return m_artAcceptanceThreshold; }
 
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
@@ -146,6 +152,7 @@ private:
 	Person *m_pInfectionOrigin;
 	InfectionType m_infectionType;
 	InfectionStage m_infectionStage;
+	int m_diagnoseCount;
 
 	double m_Vsp, m_VspOriginal;
 	bool m_VspLowered;
@@ -164,6 +171,7 @@ private:
 	AIDSTimeOfDeathUtility m_aidsTodUtil;
 
 	double m_cd4AtStart, m_cd4AtDeath;
+	double m_artAcceptanceThreshold;
 
 	static double m_hivSeedWeibullShape;
 	static double m_hivSeedWeibullScale;
@@ -180,6 +188,7 @@ private:
 
 	static ProbabilityDistribution *m_pCD4StartDistribution;
 	static ProbabilityDistribution *m_pCD4EndDistribution;
+	static ProbabilityDistribution *m_pARTAcceptDistribution;
 };
 
 inline double Person::getViralLoad() const

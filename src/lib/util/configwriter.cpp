@@ -1,4 +1,5 @@
 #include "configwriter.h"
+#include "util.h"
 #include <stdio.h>
 
 #define __STDC_FORMAT_MACROS // Need this for PRId64
@@ -16,10 +17,7 @@ ConfigWriter::~ConfigWriter()
 
 bool ConfigWriter::addKey(const std::string &key, double value)
 {
-	char str[1024];
-
-	sprintf(str, "%.15g", value);
-	return addKey(key, str);
+	return addKey(key, doubleToString(value));
 }
 
 bool ConfigWriter::addKey(const std::string &key, int value)
@@ -90,5 +88,19 @@ bool ConfigWriter::getKeyValue(const std::string &key, std::string &value) const
 	value = it->second;
 
 	return true;
+}
+
+bool ConfigWriter::addKey(const std::string &key, const std::vector<double> &values)
+{
+	string str;
+
+	if (values.size() > 0)
+	{
+		str = doubleToString(values[0]);
+		for (size_t i = 1 ; i < values.size() ; i++)
+			str += "," + doubleToString(values[i]);
+	}
+
+	return addKey(key, str);
 }
 

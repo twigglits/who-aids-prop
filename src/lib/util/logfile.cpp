@@ -56,7 +56,7 @@ void LogFile::close()
 void LogFile::print(const char *format, ...)
 {
 	if (m_pFile == 0)
-		abortWithMessage("Trying to write a log message '" + string(format) + "' but no log file has been opened");
+		return;
 
 	va_list ap;
 
@@ -70,7 +70,7 @@ void LogFile::print(const char *format, ...)
 void LogFile::printNoNewLine(const char *format, ...)
 {
 	if (m_pFile == 0)
-		abortWithMessage("Trying to write a log message '" + string(format) + "' but no log file has been opened");
+		return;
 
 	va_list ap;
 

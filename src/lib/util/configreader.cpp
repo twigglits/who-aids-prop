@@ -36,7 +36,7 @@ bool ConfigReader::read(const string &fileName)
 
 			if (s == string::npos)
 			{
-				setErrorString("Can't find '=' in line");
+				setErrorString("Can't find '=' in line: " + line);
 				fclose(pFile);
 				return false;
 			}
@@ -46,24 +46,40 @@ bool ConfigReader::read(const string &fileName)
 
 			key = trim(key);
 
-			value = substituteEnvironmentVariables(value);
+			value = substituteVariables(value);
 			value = trim(value);
 
 			if (key.length() == 0)
 			{
-				setErrorString("Detected an empty key");
+				setErrorString("Detected an empty key in line: " + line);
 				fclose(pFile);
 				return false;
 			}
 
-			if (m_keyValues.find(key) != m_keyValues.end())
+			if (key[0] == '$')
 			{
-				setErrorString("Key '" + key + "' was found more than once");
-				fclose(pFile);
-				return false;
-			}
+				key = key.substr(1);
 
-			m_keyValues[key] = value;
+				if (key.length() == 0)
+				{
+					setErrorString("Detected empty variable assignment in line: " + line);
+					fclose(pFile);
+					return false;
+				}
+
+				m_variables[key] = value;
+			}
+			else
+			{
+				if (m_keyValues.find(key) != m_keyValues.end())
+				{
+					setErrorString("Key '" + key + "' was found more than once");
+					fclose(pFile);
+					return false;
+				}
+
+				m_keyValues[key] = value;
+			}
 		}
 	}
 
@@ -116,7 +132,10 @@ void ConfigReader::getKeys(vector<string> &keys) const
 	}
 }
 
-string ConfigReader::substituteEnvironmentVariables(const string &s)
+// Note: environment variables take precedence over internal variables
+//       to make it easier to override the output prefix set by the
+//       Python/R bindings
+string ConfigReader::substituteVariables(const string &s)
 {
 	bool done = false;
 	size_t startPos = 0;
@@ -144,15 +163,19 @@ string ConfigReader::substituteEnvironmentVariables(const string &s)
 			{
 				resultStr += s.substr(startPos, idx - startPos);
 
-				string envName = s.substr(idx+2, idx2-idx-2);
+				string varName = s.substr(idx+2, idx2-idx-2);
+				string substStr;
 
-				//cerr << "ENV: '" << envName << "'" << endl;
-
-				char *pEnvCont = getenv(envName.c_str());
-
+				char *pEnvCont = getenv(varName.c_str());
 				if (pEnvCont)
-					resultStr += string(pEnvCont);
+					substStr = string(pEnvCont);
+				else
+				{
+					if (m_variables.find(varName) != m_variables.end())
+						substStr = m_variables[varName];
+				}
 
+				resultStr += substStr;
 				startPos = idx2+1;
 			}
 		}

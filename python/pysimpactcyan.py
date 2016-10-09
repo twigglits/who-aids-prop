@@ -240,14 +240,57 @@ def createConfigLines(executable, inputConfig, checkNone = True, ignoreKeys = [ 
             unusedlines += unusedparams
             unusedlines += [ "#" ]
 
-    introlines = [ "# Note: the configuration file format is very simple, it is",
-                   "# just a set of \"key = value\" lines. Lines that start with a '#'",
-                   "# sign are treated as comments and are ignored. No calculations",
-                   "# can be done in the file, so instead of writing 1.0/2.0, you'd ",
-                   "# need to write 0.5 for example.",
-                   ""
-                 ]
+    introlines = [  "# The configuration file format is quite straightforward, it is just a set of",
+                    "# 'key = value' lines. Lines that start with '#' are treated as comments and",
+                    "# are ignored.",
+                    "#",
+                    "# If the key starts with a dollar ('$') sign, the rest of the key is ",
+                    "# considered to be the name of a variable, which may be used later on in the",
+                    "# file. To use such a variable in a specified value, you need to surround",
+                    "# the variable name with '${' and '}'. For example, one could write:",
+                    "#",
+                    "#     $PREFIX = MyCustomPrefix",
+                    "#     logsystem.outfile.logevents = ${PREFIX}-output.log",
+                    "#",
+                    "# and the file used will have the name 'MyCustomPrefix-output.log'.",
+                    "#",
+                    "# In the same way, environment variables can be used, and, in fact, ",
+                    "# environment variables will take precedence over these internal variables.",
+                    "# This way, it is easy to change the content of these variables on the command",
+                    "# line",
+                    "#",
+                    "# Note that no calculations can be performed in this file anymore, so instead",
+                    "# of writing 1.0/2.0, you'd need to write 0.5 for example.",
+                    "" ]
+
     return (userConfig, introlines + unusedlines + [ "" ] + lines, resultingConfig)
+
+def _replaceVariables(value, variables):
+
+    newValue = ""
+
+    done = False
+    prevIdx = 0
+    while not done:
+        idx = value.find("${", prevIdx)
+        if idx < 0:
+            done = True
+        else:
+            nextIdx = value.find("}", idx)
+            if nextIdx < 0:
+                done = True
+            else:
+                key = value[idx+2:nextIdx]
+                if key in variables:
+                    newValue += variables[key]
+                    prevIdx = nextIdx+1
+                else:
+                    newValue += value[prevIdx:nextIdx+1]
+                    prevIdx = nextIdx + 1
+    
+    newValue += value[prevIdx:]
+
+    return newValue.strip()
 
 class PySimpactCyan(object):
     """ This class is used to run SimpactCyan based simulations."""
@@ -428,21 +471,70 @@ class PySimpactCyan(object):
     def showConfiguration(self, config):
         self.getConfiguration(config, True)
 
-    def _getID(self):
-        chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-        rndStr = ""
-        for i in range(8):
+    def _getID(self, identifierFormat):
+
+        def getRandomChar():
+            chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
             pos = int(random.random()*len(chars)) % len(chars)
-            rndStr += chars[pos]
+            return chars[pos]
 
         t = time.gmtime()
-        timeStr = "%d-%02d-%02d-%02d-%02d-%02d" % (t.tm_year, t.tm_mon, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec)
+        pid = os.getpid()
+        simType = self._execPrefix
 
-        pidStr = str(os.getpid())
+        identifier = ""
+        prevPos = 0
+        pos = identifierFormat.find("%")
+        while pos >= 0:
+            if pos < len(identifierFormat)-1 and identifierFormat[pos+1] in [ '%', 'T', 'y', 'm', 'd', 'H', 'M', 'S', 'p', 'r' ]:
 
-        return self._execPrefix + "-" + timeStr + "_" + pidStr + "_" + rndStr
+                identifier += identifierFormat[prevPos:pos]
+                prevPos = pos+2
 
-    def run(self, config, destDir, agedist = None, parallel = False, opt = True, release = True, seed = -1, interventionConfig = None, dryRun = False):
+                n = identifierFormat[pos+1]
+                if n == '%':
+                    identifier += "%"
+                elif n == 'T':
+                    identifier += simType
+                elif n == 'y':
+                    identifier += "%d" % t.tm_year
+                elif n == 'm':
+                    identifier += "%02d" % t.tm_mon
+                elif n == 'd':
+                    identifier += "%02d" % t.tm_mday
+                elif n == 'H':
+                    identifier += "%02d" % t.tm_hour
+                elif n == 'M':
+                    identifier += "%02d" % t.tm_min
+                elif n == 'S':
+                    identifier += "%02d" % t.tm_sec
+                elif n == 'p':
+                    identifier += "%d" % pid
+                elif n == 'r':
+                    identifier += getRandomChar()
+                else:
+                    raise Exception("Internal error: unexpected identifier format '%s'" % n)
+
+                pos = identifierFormat.find("%", pos+2)
+            else:
+                # No need to adjust prevPos
+                pos = identifierFormat.find("%", pos+1)
+
+        identifier += identifierFormat[prevPos:]
+
+        return identifier
+
+    def _getFromConfigOrSetDefault(self, config, key, defaultValue):
+
+        try:
+            v = config[key]
+        except:
+            v = defaultValue
+            config[key] = defaultValue
+
+        return v
+
+    def run(self, config, destDir, agedist = None, parallel = False, opt = True, release = True, seed = -1, interventionConfig = None, dryRun = False, identifierFormat = "%T-%y-%m-%d-%H-%M-%S_%p_%r%r%r%r%r%r%r%r-"):
 
         if not destDir:
             raise Exception("A destination directory must be specified")
@@ -451,7 +543,9 @@ class PySimpactCyan(object):
         if not config:
             config = { }
 
-        idStr = self._getID()
+        idStr = self._getID(identifierFormat)
+        if not idStr:
+            raise Exception("The specified identifier format leads to an empty identifier")
 
         distFile = None
         if agedist is not None:
@@ -475,23 +569,13 @@ class PySimpactCyan(object):
                 if len(distAges) != len(distMalePct) or len(distAges) != len(distFemalePct):
                     raise Exception("Not all columns of the 'agedist' variable seem to have the same length")
 
-                distFile = "%s-agedist.csv" % idStr
+                distFile = "%sagedist.csv" % idStr
                 config["population.agedistfile"] = distFile
 
             else: # Assume we're referring to a file
 
                 config["population.agedistfile"] = str(agedist)
 
-        # The config files will be overridden to make sure we write in the specified
-        # destination directory
-        eventLog = "%s-eventlog.csv" % idStr
-        personLog = "%s-personlog.csv" % idStr
-        relationLog = "%s-relationlog.csv" % idStr
-        treatmentLog = "%s-treatmentlog.csv" % idStr
-        config["logsystem.filename.events"] = eventLog
-        config["logsystem.filename.persons"] = personLog
-        config["logsystem.filename.relations"] = relationLog
-        config["logsystem.filename.treatments"] = treatmentLog
 
         # Intervention event stuff
 
@@ -540,7 +624,7 @@ class PySimpactCyan(object):
             config["intervention.times"] = ivTimeString
             config["intervention.fileids"] = ivIDString
 
-            intBaseFile = "%s-interventionconfig_%%.txt" % idStr
+            intBaseFile = "%sinterventionconfig_%%.txt" % idStr
             config["intervention.baseconfigname"] = intBaseFile
 
         if os.path.exists(destDir):
@@ -557,11 +641,11 @@ class PySimpactCyan(object):
         finalConfig, lines, notNeeded = self._createConfigLines(config, True)
 
         # Check some paths
-        configFile = os.path.abspath(os.path.join(destDir, "%s-config.txt" % idStr))
+        configFile = os.path.abspath(os.path.join(destDir, "%sconfig.txt" % idStr))
         if os.path.exists(configFile):
             raise Exception("Want to write to configuration file '%s', but this already exists" % configFile)
 
-        outputFile = os.path.abspath(os.path.join(destDir, "%s-output.txt" % idStr))
+        outputFile = os.path.abspath(os.path.join(destDir, "%soutput.txt" % idStr))
         if os.path.exists(outputFile):
             raise Exception("Want to write to output file '%s', but this already exists" % outputFile)
 
@@ -572,6 +656,13 @@ class PySimpactCyan(object):
 
         # Write the config file
         with open(configFile, "wt") as f:
+            f.write("# Some variables. Note that if set, environment variables will have\n")
+            f.write("# Precedence.\n")
+            f.write("$SIMPACT_OUTPUT_PREFIX = %s\n" % idStr)
+            if self._dataDirectory:
+                f.write("$SIMPACT_DATA_DIR = %s\n" % self._dataDirectory)	
+            f.write("\n")
+
             for l in lines:
                 f.write(l + "\n")
             f.close()
@@ -608,19 +699,35 @@ class PySimpactCyan(object):
             print("Using identifier '%s'" % idStr)
             self.runDirect(configFile, parallel, opt, release, outputFile, seed, destDir)
 
+        # Create the return structure
         results = { }
-        results["logevents"] = os.path.join(destDir, eventLog)
-        results["logrelations"] = os.path.join(destDir, relationLog)
-        results["logpersons"] = os.path.join(destDir, personLog)
-        results["logtreatments"] = os.path.join(destDir, treatmentLog) 
+        replaceVars = { }
+        
+        # These are things that should be replaced
+        if self._dataDirectory: 
+            replaceVars["SIMPACT_DATA_DIR"] = self._dataDirectory
+        replaceVars["SIMPACT_OUTPUT_PREFIX"] = idStr
+        
+        # These are the output log files in a generic way
+        outFileSpec = ".outfile."
+        for n in finalConfig:
+
+            if outFileSpec in n:
+                value = _replaceVariables(finalConfig[n], replaceVars)
+
+                if value:
+                    pos = n.find(outFileSpec) + len(outFileSpec)
+                    logName = n[pos:]
+                    results[logName] = os.path.join(destDir, value)
+
         results["configfile"] = os.path.join(destDir, configFile)
         results["outputfile"] = os.path.join(destDir, outputFile)
-        results["id"] = "%s-" % idStr
+        results["id"] = idStr
 
         if distFile:
             results["agedistfile"] = os.path.join(destDir, distFile)
         else:
-            results["agedistfile"] = finalConfig["population.agedistfile"]
+            results["agedistfile"] = _replaceVariables(finalConfig["population.agedistfile"], replaceVars)
 
         return results
 
@@ -634,6 +741,7 @@ def main():
         print("Error: %s" % str(e), file=sys.stderr)
         print(file=sys.stderr)
         print("Usage: pysimpactcyan.py simpactexecutable", file=sys.stderr)
+        sys.exit(-1)
 
     # Read the input
 

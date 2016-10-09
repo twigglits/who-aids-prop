@@ -107,12 +107,10 @@ double EventAIDSStage::getNewStageTime(double currentTime) const
 	}
 	
 	// TODO: What's  a good approach in this case? for now, we'll advance to the
-	//       stage very soon
+	//       stage immediately
 	if (newStageTime <= currentTime)
 	{
-		double timeToLive = expectedTimeOfDeath - currentTime;
-
-		newStageTime = currentTime + timeToLive/100.0;
+		newStageTime = currentTime + 1e-8;
 //		cerr << "Warning: advancing faster to new AIDS stage for person " << pPerson->getName() << endl;
 	}
 

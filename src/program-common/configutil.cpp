@@ -12,8 +12,10 @@
 #include "eventintervention.h"
 #include "eventconception.h"
 #include "eventbirth.h"
-#include "eventtest.h"
+#include "eventdiagnosis.h"
+#include "eventmonitoring.h"
 #include "eventdropout.h"
+#include "eventperiodiclogging.h"
 #include "logsystem.h"
 #include "util.h"
 #include "populationdistributioncsv.h"
@@ -35,8 +37,10 @@ void processNonInterventionEventConfig(ConfigSettings &config, GslRandomNumberGe
 	EventAIDSStage::processConfig(config);
 	EventConception::processConfig(config, pRndGen);
 	EventBirth::processConfig(config, pRndGen);
-	EventTest::processConfig(config, pRndGen);
+	EventDiagnosis::processConfig(config);
+	EventMonitoring::processConfig(config, pRndGen);
 	EventDropout::processConfig(config, pRndGen);
+	EventPeriodicLogging::processConfig(config);
 }
 
 bool configure(ConfigSettings &config, SimpactPopulationConfig &populationConfig, PopulationDistributionCSV &ageDist,
@@ -166,8 +170,10 @@ void checkConfiguration(const ConfigSettings &loadedConfig, const SimpactPopulat
 	EventAIDSStage::obtainConfig(config);
 	EventConception::obtainConfig(config);
 	EventBirth::obtainConfig(config);
-	EventTest::obtainConfig(config);
+	EventDiagnosis::obtainConfig(config);
+	EventMonitoring::obtainConfig(config);
 	EventDropout::obtainConfig(config);
+	EventPeriodicLogging::obtainConfig(config);
 	EventIntervention::obtainConfig(config);
 	Person::obtainConfig(config);
 

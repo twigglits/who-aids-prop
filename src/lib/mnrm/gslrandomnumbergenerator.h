@@ -35,6 +35,10 @@ public:
 	 *  parameter \c lambda. */
 	unsigned int pickPoissonNumber(double lambda);
 
+	/** Pick a random number from the binomial distribution, for \c n trials
+	 *  with a probability of success \c p for each trial. */
+	unsigned int pickBinomialNumber(double p, unsigned int n);
+
 	/** Picks a random number from the gaussian distribution with parameters
 	 *  \c mean and \c sigma. */
 	double pickGaussianNumber(double mean, double sigma);

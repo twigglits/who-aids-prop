@@ -20,6 +20,7 @@ void abortWithMessage(const std::string &msg);
 bool parseAsInt(const std::string &str, int &number);
 bool parseAsInt(const std::string &str, int64_t &number);
 bool parseAsDouble(const std::string &str, double &number);
+bool parseAsDoubleVector(const std::string &str, std::vector<double> &numbers, std::string &badField);
 std::string doubleToString(double x);
 
 std::string trim(const std::string &str, const std::string &trimChars = " \t\r\n");

@@ -3,6 +3,7 @@
 #include "hazardfunctionformationsimple.h"
 #include "hazardfunctionformationagegap.h"
 #include "hazardfunctionexp.h"
+#include "eventdiagnosis.h"
 #include "uniformdistribution.h"
 #include <cmath>
 #include <iostream>
@@ -80,34 +81,36 @@ void runHazardTests(SimpactPopulation &pop)
 {
 	GslRandomNumberGenerator rndGen;
 
-	//Man **ppMen = pop.getMen();
-	//Woman **ppWomen = pop.getWomen();
-	//Man *pMan = ppMen[0];
-	//Woman *pWoman = ppWomen[0];
-	Man *pMan = new Man(60);
-	Woman *pWoman = new Woman(70);
-
 	{
-		TestHazardFunction h0;
-		TimeLimitedHazardFunction h(h0, 80);
-		runHazardTest(h, "TestHazardFunction", rndGen);
-	}
+		//Man **ppMen = pop.getMen();
+		//Woman **ppWomen = pop.getWomen();
+		//Man *pMan = ppMen[0];
+		//Woman *pWoman = ppWomen[0];
+		Man *pMan = new Man(60);
+		Woman *pWoman = new Woman(70);
 
-	{
-		HazardFunctionFormationSimple h0(pMan, pWoman, 0, 
-				                0, 0, 0, 0, -0.1, 0, 5, -1.0);
-		TimeLimitedHazardFunction h(h0, 80);
-		runHazardTest(h, "HazardFunctionFormationSimple", rndGen);
-	}
+		{
+			TestHazardFunction h0;
+			TimeLimitedHazardFunction h(h0, 80);
+			runHazardTest(h, "TestHazardFunction", rndGen);
+		}
 
-	{
-		//HazardFunctionFormationAgeGap h0(pMan, pWoman, 0, 
-		//		                0, 0, 0, 0, 0, -0.1, -0.1, -0.05, -0.1, 0);
-		//
-		HazardFunctionFormationAgeGap h0(pMan, pWoman, 0, 
-				                0, 0, 0, 0, 0, -0.1, -0.1, -0.05, -0.1, 0);
-		TimeLimitedHazardFunction h(h0, 120);
-		runHazardTest(h, "HazardFunctionFormationAgeGap", rndGen);
+		{
+			HazardFunctionFormationSimple h0(pMan, pWoman, 0, 
+							0, 0, 0, 0, -0.1, 0, 5, -1.0);
+			TimeLimitedHazardFunction h(h0, 80);
+			runHazardTest(h, "HazardFunctionFormationSimple", rndGen);
+		}
+
+		{
+			//HazardFunctionFormationAgeGap h0(pMan, pWoman, 0, 
+			//		                0, 0, 0, 0, 0, -0.1, -0.1, -0.05, -0.1, 0);
+			//
+			HazardFunctionFormationAgeGap h0(pMan, pWoman, 0, 
+							0, 0, 0, 0, 0, -0.1, -0.1, -0.05, -0.1, 0);
+			TimeLimitedHazardFunction h(h0, 120);
+			runHazardTest(h, "HazardFunctionFormationAgeGap", rndGen);
+		}
 	}
 
 	{
@@ -120,6 +123,30 @@ void runHazardTests(SimpactPopulation &pop)
 		HazardFunctionExp h0(1.23,4.56);
 		TimeLimitedHazardFunction h(h0, 120);
 		runHazardTest(h, "HazardFunctionExp2", rndGen);
+	}
+
+	{
+		Man *pMan = new Man(-30);
+		Woman *pWoman = new Woman(-20);
+		pMan->setInfected(-10, 0, Person::Seed);
+		pWoman->setInfected(-15, 0, Person::Seed);
+
+		pMan->addRelationship(pWoman, 0.1);
+		pWoman->addRelationship(pMan, 0.1);
+
+		{
+			HazardFunctionDiagnosis h0(pMan, 0.1, -0.2, 0.3, 0.4, 0.5, 0.6);
+			TimeLimitedHazardFunction h(h0, 120);
+			runHazardTest(h, "HazardFunctionDiagnosis", rndGen);
+		}
+
+		pMan->increaseDiagnoseCount();
+
+		{
+			HazardFunctionDiagnosis h0(pWoman, 0.1, -0.2, 0.3, 0.4, 0.5, 0.6);
+			TimeLimitedHazardFunction h(h0, 120);
+			runHazardTest(h, "HazardFunctionDiagnosis2", rndGen);
+		}
 	}
 
 	exit(-1);

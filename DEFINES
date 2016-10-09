@@ -44,3 +44,9 @@ EVENTBASE_ALWAYS_CHECK_NANTIME: used in src/mnrm/eventbase.h
 
 	If set, after calculation timing info, a check is always done to see
 	if the time has not become a NaN value.
+
+POPULATION_ALWAYS_RECALCULATE: used in src/lib/core/population.cpp
+
+	If set, all event times will always be recalculated, similar to the
+	basic mNRM version.
+

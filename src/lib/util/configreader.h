@@ -52,9 +52,10 @@ public:
 	/** Clears the stored key/value pairs. */
 	void clear();
 private:
-	static std::string substituteEnvironmentVariables(const std::string &s);
+	std::string substituteVariables(const std::string &s);
 
 	std::map<std::string, std::string> m_keyValues;
+	std::map<std::string, std::string> m_variables;
 };
 
 #endif // CONFIGREADER_H

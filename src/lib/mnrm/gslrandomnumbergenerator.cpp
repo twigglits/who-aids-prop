@@ -183,3 +183,8 @@ std::pair<double,double> GslRandomNumberGenerator::pickBivariateGaussian(double 
 	return std::pair<double,double>(x+muX,y+muY);
 }
 
+unsigned int GslRandomNumberGenerator::pickBinomialNumber(double p, unsigned int n)
+{
+	return gsl_ran_binomial(m_pRng, p, n);
+}
+

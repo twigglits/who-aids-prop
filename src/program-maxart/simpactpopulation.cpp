@@ -7,6 +7,7 @@
 #include "eventtransmission.h"
 #include "eventhivseed.h"
 #include "eventintervention.h"
+#include "eventperiodiclogging.h"
 #include "populationdistribution.h"
 #include "person.h"
 #include "gslrandomnumbergenerator.h"
@@ -161,6 +162,12 @@ bool SimpactPopulation::scheduleInitialEvents()
 		onNewEvent(pEvt);
 	}
 
+	if (EventPeriodicLogging::isEnabled())
+	{
+		EventPeriodicLogging *pEvt = new EventPeriodicLogging(); // gloval event
+		onNewEvent(pEvt);
+	}
+
 	return true;
 }
 
@@ -230,9 +237,8 @@ void SimpactPopulation::initializeFormationEvents(Person *pPerson)
 		{
 			Man *pMan = MAN(pPerson);
 			int numWomen = getNumberOfWomen();
-			double meanManInterests = m_eyeCapsFraction * (double)numWomen;
 
-			int numInterests = (int)pRngGen->pickPoissonNumber(meanManInterests);
+			int numInterests = (int)pRngGen->pickBinomialNumber(m_eyeCapsFraction, numWomen);
 			interests.resize(numInterests);
 
 			getInterestsForPerson(pMan, interests);
@@ -263,9 +269,8 @@ void SimpactPopulation::initializeFormationEvents(Person *pPerson)
 		{
 			Woman *pWoman = WOMAN(pPerson);
 			int numMen = getNumberOfMen();
-			double meanWomanInterests = m_eyeCapsFraction * (double)numMen;
 
-			int numInterests = (int)pRngGen->pickPoissonNumber(meanWomanInterests);
+			int numInterests = (int)pRngGen->pickBinomialNumber(m_eyeCapsFraction, numMen);
 			interests.resize(numInterests);
 
 			getInterestsForPerson(pWoman, interests);

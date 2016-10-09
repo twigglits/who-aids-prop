@@ -13,6 +13,15 @@
 // FOR DEBUGGING
 #include <map>
 
+// For debugging: undefine to always recalculate all events
+//#define POPULATION_ALWAYS_RECALCULATE
+
+#ifdef POPULATION_ALWAYS_RECALCULATE
+#define POPULATION_ALWAYS_RECALCULATE_FLAG 1
+#else
+#define POPULATION_ALWAYS_RECALCULATE_FLAG 0
+#endif
+
 #ifndef SIMPLEMNRM
 Population::Population(bool parallel, GslRandomNumberGenerator *pRnd) : State(pRnd)
 #else
@@ -294,7 +303,7 @@ void Population::advanceEventTimes(EventBase *pScheduledEvent, double dt)
 	// with just the mortality event this way should suffice
 
 	m_otherAffectedPeople.clear();
-	if (pEvt->isEveryoneAffected())
+	if (POPULATION_ALWAYS_RECALCULATE_FLAG || pEvt->isEveryoneAffected())
 	{
 		int num = m_people.size();
 		for (int i = m_numGlobalDummies ; i < num ; i++)
@@ -323,7 +332,7 @@ void Population::advanceEventTimes(EventBase *pScheduledEvent, double dt)
 		}
 	}
 
-	if (pEvt->areGlobalEventsAffected())
+	if (POPULATION_ALWAYS_RECALCULATE_FLAG || pEvt->areGlobalEventsAffected())
 	{
 		int num = m_numGlobalDummies;
 
@@ -663,8 +672,8 @@ void Population::addNewPerson(PersonBase *pPerson)
 #ifndef SIMPLEMNRM
 void Population::showEvents()
 {
-	std::map<int64_t, SimpactEvent *> m;
-	std::map<int64_t, SimpactEvent *>::const_iterator it;
+	std::map<int64_t, PopulationEvent *> m;
+	std::map<int64_t, PopulationEvent *>::const_iterator it;
 
 	for (int i = 0 ; i < m_people.size() ; i++)
 	{

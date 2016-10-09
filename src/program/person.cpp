@@ -29,6 +29,7 @@ Person::Person(double dateOfBirth, Gender g) : PersonBase(g, dateOfBirth)
 	m_pInfectionOrigin = 0;
 	m_infectionType = None;
 	m_infectionStage = NoInfection;
+	m_diagnoseCount = 0;
 
 	m_Vsp = 0;
 	m_VspOriginal = 0;
@@ -59,6 +60,9 @@ Person::Person(double dateOfBirth, Gender g) : PersonBase(g, dateOfBirth)
 
 	m_cd4AtStart = -1;
 	m_cd4AtDeath = -1;
+
+	assert(m_pARTAcceptDistribution);
+	m_artAcceptanceThreshold = m_pARTAcceptDistribution->pickNumber();
 }
 
 Person::~Person()
@@ -167,6 +171,7 @@ ProbabilityDistribution *Person::m_pFemaleAgeGapDistribution = 0; // This will b
 VspModel *Person::m_pVspModel = 0;
 ProbabilityDistribution *Person::m_pCD4StartDistribution = 0;
 ProbabilityDistribution *Person::m_pCD4EndDistribution = 0;
+ProbabilityDistribution *Person::m_pARTAcceptDistribution = 0;
 
 void Person::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
@@ -257,6 +262,9 @@ void Person::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRn
 
 	delete m_pCD4EndDistribution;
 	m_pCD4EndDistribution = getDistributionFromConfig(config, pRndGen, "person.cd4.end");
+
+	delete m_pARTAcceptDistribution;
+	m_pARTAcceptDistribution = getDistributionFromConfig(config, pRndGen, "person.art.accept.threshold");
 }
 
 void Person::obtainConfig(ConfigWriter &config)
@@ -272,6 +280,7 @@ void Person::obtainConfig(ConfigWriter &config)
 	addDistributionToConfig(m_pFemaleAgeGapDistribution, config, "person.agegap.woman");
 	addDistributionToConfig(m_pCD4StartDistribution, config, "person.cd4.start");
 	addDistributionToConfig(m_pCD4EndDistribution, config, "person.cd4.end");
+	addDistributionToConfig(m_pARTAcceptDistribution, config, "person.art.accept.threshold");
 
 	{
 		VspModelLogWeibullWithRandomNoise *pDist = 0;
@@ -382,6 +391,28 @@ void Person::removeRelationship(Person *pPerson, double t, bool deathBased)
 
 		writeToRelationLog(pPerson1, pPerson2, formationTime, t);
 	}
+}
+
+int Person::getNumberOfDiagnosedPartners()
+{
+	// IMPORTANT: for a simple method, we cannot cache the result, it will
+	//            not only change on relationship events, but also on transmission
+
+	int D = 0; // number of diagnosed partners
+	int numRelations = getNumberOfRelationships();
+	double tDummy = 0;
+
+	// TODO: is this a bottleneck? Should it be faster?
+	startRelationshipIteration();
+	for (int i = 0 ; i < numRelations ; i++)
+	{
+		Person *pPartner = getNextRelationshipPartner(tDummy);
+		if (pPartner->isDiagnosed())
+			D++;
+	}
+	assert(getNextRelationshipPartner(tDummy) == 0);
+
+	return D;
 }
 
 void Person::writeToRelationLog(const Person *pMan, const Person *pWoman, double formationTime, double dissolutionTime)

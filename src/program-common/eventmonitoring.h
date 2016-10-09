@@ -1,18 +1,18 @@
-#ifndef EVENTTEST_H
+#ifndef EVENTMONITORING_H
 
-#define EVENTTEST_H
+#define EVENTMONITORING_H
 
 #include "simpactevent.h"
 
 class ConfigSettings;
 class ConfigWriter;
-class ProbabilityDistribution;
+class PieceWiseLinearFunction;
 
-class EventTest : public SimpactEvent
+class EventMonitoring : public SimpactEvent
 {
 public:
-	EventTest(Person *pPerson);
-	~EventTest();
+	EventMonitoring(Person *pPerson, bool scheduleImmediately = false);
+	~EventMonitoring();
 
 	std::string getDescription(double tNow);
 	void writeLogs(double tNow) const;
@@ -22,14 +22,15 @@ public:
 	static void obtainConfig(ConfigWriter &config);
 private:
 	bool isEligibleForTreatment(double t);
+	bool isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen);
 	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
-	double calculateInternalTimeInterval(const State *pState, double t0, double dt);
-	double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);
+
+	bool m_scheduleImmediately;
 
 	static double s_treatmentVLLogFrac;
 	static double s_cd4Threshold;
-	static ProbabilityDistribution *s_pTestingDistribution;
+	static PieceWiseLinearFunction *s_pRecheckInterval;
 };
 
-#endif // EVENTTEST_H
+#endif // EVENTMONITORING_H
 

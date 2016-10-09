@@ -191,7 +191,7 @@ void SplitLine(const string &line, vector<string> &args, const string &separator
 	args = arguments;
 }
 
-string trim(const std::string &str, const std::string &trimChars)
+string trim(const string &str, const string &trimChars)
 {
 	if (str.length() == 0)
 		return "";
@@ -250,7 +250,7 @@ void abortWithMessage(const string &msg)
 	abort();
 }
 
-bool parseAsInt(const std::string &str, int &value)
+bool parseAsInt(const string &str, int &value)
 {
 	string valueStr = trim(str);
 	if (valueStr.length() == 0)
@@ -279,7 +279,7 @@ bool parseAsInt(const std::string &str, int &value)
 	return true;
 }
 
-bool parseAsInt(const std::string &str, int64_t &value)
+bool parseAsInt(const string &str, int64_t &value)
 {
 	string valueStr = trim(str);
 	if (valueStr.length() == 0)
@@ -303,7 +303,7 @@ bool parseAsInt(const std::string &str, int64_t &value)
 	return true;
 }
 
-bool parseAsDouble(const std::string &str, double &value)
+bool parseAsDouble(const string &str, double &value)
 {
 	string valueStr = trim(str);
 	if (valueStr.length() == 0)
@@ -326,7 +326,25 @@ bool parseAsDouble(const std::string &str, double &value)
 	return true;
 }
 
-std::string replace(const std::string &input, const std::string &target, const std::string &replacement)
+bool parseAsDoubleVector(const string &str, vector<double> &numbers, string &badField)
+{
+	vector<string> parts;
+	SplitLine(str, parts, ",", "", "", false);
+
+	numbers.resize(parts.size());
+
+	for (size_t i = 0 ; i < parts.size() ; i++)
+	{
+		if (!parseAsDouble(parts[i], numbers[i]))
+		{
+			badField = parts[i];
+			return false;
+		}
+	}
+	return true;
+}
+
+string replace(const string &input, const string &target, const string &replacement)
 {
 	string result = "";
 	bool done = false;

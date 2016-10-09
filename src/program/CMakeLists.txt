@@ -20,8 +20,10 @@ set(SOURCES_SIMPACT
 	../program-common/eventaidsstage.cpp
 	../program-common/eventconception.cpp
 	../program-common/eventbirth.cpp
-	../program-common/eventtest.cpp
+	../program-common/eventdiagnosis.cpp
+	../program-common/eventmonitoring.cpp
 	../program-common/eventdropout.cpp
+	../program-common/eventperiodiclogging.cpp
 	../program-common/vspmodellogweibullwithnoise.cpp
 	../program-common/vspmodellogbinormal.cpp
 	../program-common/simpactevent.cpp
@@ -35,7 +37,7 @@ set(SOURCES_SIMPACT
 	../program-common/aidstodutil.cpp
 	)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../program-common/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/../program-common/")
 add_simpact_executable(simpact-cyan ${SOURCES_SIMPACT})
 install_simpact_executable(simpact-cyan)
 
