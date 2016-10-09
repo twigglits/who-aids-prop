@@ -7,6 +7,7 @@
  */
 
 #include "probabilitydistribution.h"
+#include "probabilitydistribution2d.h"
 #include <string>
 
 class ConfigSettings;
@@ -73,5 +74,10 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 		                                   const std::string &prefix);
 
 void addDistributionToConfig(ProbabilityDistribution *pDist, ConfigWriter &config, const std::string &prefix);
+
+ProbabilityDistribution2D *getDistribution2DFromConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen,
+		                                       const std::string &prefix);
+
+void addDistribution2DToConfig(ProbabilityDistribution2D *pDist, ConfigWriter &config, const std::string &prefix);
 
 #endif // CONFIGDISTRIBUTIONHELPER_H

@@ -1,6 +1,7 @@
 #include "logsystem.h"
 #include "configsettings.h"
 #include "configwriter.h"
+#include "jsonconfig.h"
 
 using namespace std;
 
@@ -39,7 +40,7 @@ void LogSystem::processConfig(ConfigSettings &config)
 			abortWithMessage("Unable to open treatment log file: " + logTreatment.getErrorString());
 	}
 
-	logPersons.print("\"ID\",\"Gender\",\"TOB\",\"TOD\",\"IDF\",\"IDM\",\"TODebut\",\"FormEag\",\"InfectTime\",\"InfectOrigID\",\"InfectType\",\"log10SPVL\",\"TreatTime\"");
+	logPersons.print("\"ID\",\"Gender\",\"TOB\",\"TOD\",\"IDF\",\"IDM\",\"TODebut\",\"FormEag\",\"InfectTime\",\"InfectOrigID\",\"InfectType\",\"log10SPVL\",\"TreatTime\",\"XCoord\",\"YCoord\"");
 	logRelations.print("\"IDm\",\"IDw\",\"FormTime\",\"DisTime\",\"AgeGap\"");
 	logTreatment.print("\"ID\",\"Gender\",\"TStart\",\"TEnd\",\"DiedNow\"");
 }
@@ -58,3 +59,16 @@ LogFile LogSystem::logEvents;
 LogFile LogSystem::logPersons;
 LogFile LogSystem::logRelations;
 LogFile LogSystem::logTreatment;
+
+JSONConfig logSystemJSONConfig(R"JSON(
+        "LogSystem": { 
+            "depends": null,
+            "params": [ 
+                ["logsystem.outfile.logevents", "${SIMPACT_OUTPUT_PREFIX}eventlog.csv" ],
+                ["logsystem.outfile.logpersons", "${SIMPACT_OUTPUT_PREFIX}personlog.csv" ],
+                ["logsystem.outfile.logrelations", "${SIMPACT_OUTPUT_PREFIX}relationlog.csv" ], 
+                ["logsystem.outfile.logtreatments", "${SIMPACT_OUTPUT_PREFIX}treatmentlog.csv" ]
+            ],
+            "info": null                          
+        })JSON");
+

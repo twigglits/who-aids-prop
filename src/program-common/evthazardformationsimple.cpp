@@ -3,6 +3,7 @@
 #include "eventdebut.h"
 #include "configsettings.h"
 #include "hazardfunctionformationsimple.h"
+#include "jsonconfig.h"
 #include <algorithm>
 
 // WARNING: the same instance can be called from multiple threads
@@ -163,3 +164,26 @@ void EvtHazardFormationSimple::obtainConfig(ConfigWriter &config)
 	    !config.addKey("formation.hazard.simple.t_max", m_tMax) )
 		abortWithMessage(config.getErrorString());
 }
+
+JSONConfig simpleFormationJSONConfig(R"JSON(
+        "EventFormation_simple": { 
+            "depends": ["EventFormationTypes", "formation.hazard.type", "simple"],
+            "params": [ 
+                ["formation.hazard.simple.alpha_0", 0.1],
+                ["formation.hazard.simple.alpha_1", 0],
+                ["formation.hazard.simple.alpha_2", 0],
+                ["formation.hazard.simple.alpha_3", 0],
+                ["formation.hazard.simple.alpha_4", 0],
+                ["formation.hazard.simple.alpha_5", 0],
+                ["formation.hazard.simple.alpha_6", 0],
+                ["formation.hazard.simple.alpha_7", 0],
+                ["formation.hazard.simple.Dp", 0],
+                ["formation.hazard.simple.beta", 0],
+                ["formation.hazard.simple.t_max", 200] ],
+            "info": [
+                "These are the parameters for the hazard in the simple formation event.",
+                "see http://research.edm.uhasselt.be/~jori/simpact/documentation/simpactcyan.html",
+                "for more information."
+            ]
+        })JSON");
+

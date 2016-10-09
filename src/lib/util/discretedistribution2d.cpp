@@ -1,13 +1,15 @@
 #include "discretedistribution2d.h"
 #include "tiffdensityfile.h"
 #include <iostream>
+#include <limits>
 
 using namespace std;
 
 DiscreteDistribution2D::DiscreteDistribution2D(double xOffset, double yOffset, double xSize, double ySize,
 			       		       const TIFFDensityFile &density, GslRandomNumberGenerator *pRngGen,
-					       const Polygon2D &filter) : ProbabilityDistribution2D(pRngGen)
+					       const Polygon2D &filter) : ProbabilityDistribution2D(pRngGen, true)
 {
+	m_pMarginalXDist = 0;
 	m_pMarginalYDist = 0;
 	m_xSize = xSize;
 	m_ySize = ySize;
@@ -17,22 +19,136 @@ DiscreteDistribution2D::DiscreteDistribution2D(double xOffset, double yOffset, d
 	m_width = density.getWidth();
 	m_height = density.getHeight();
 
-	vector<double> yValues(m_height);
-	vector<double> xValues(m_width);
+	generateConditionalsAndMarginal(xOffset, yOffset, xSize, ySize, density, pRngGen, filter, false, m_conditionalXDists, &m_pMarginalYDist);
+	generateConditionalsAndMarginal(xOffset, yOffset, xSize, ySize, density, pRngGen, filter, true, m_conditionalYDists, &m_pMarginalXDist);
+
+	m_flippedY = density.isYFlipped();
+}
+
+DiscreteDistribution2D::~DiscreteDistribution2D()
+{
+	delete m_pMarginalXDist;
+	delete m_pMarginalYDist;
+	for (size_t i = 0 ; i < m_conditionalXDists.size() ; i++)
+		delete m_conditionalXDists[i];
+	for (size_t i = 0 ; i < m_conditionalYDists.size() ; i++)
+		delete m_conditionalYDists[i];
+}
+
+Point2D DiscreteDistribution2D::pickPoint() const
+{
+	double y = m_pMarginalYDist->pickNumber();
+	int yi = (int)y;
+	assert(yi >= 0 && yi < m_conditionalXDists.size());
+	
+	double x = m_conditionalXDists[yi]->pickNumber();
+
+	x = (x/(double)m_width)*m_xSize + m_xOffset;
+	y = (y/(double)m_height)*m_ySize + m_yOffset;
+
+	return Point2D(x, y);
+}
+
+double DiscreteDistribution2D::pickMarginalX() const
+{
+	double x = m_pMarginalXDist->pickNumber();
+
+	x = (x/(double)m_width)*m_xSize + m_xOffset;
+	return x;
+}
+
+double DiscreteDistribution2D::pickMarginalY() const
+{
+	double y = m_pMarginalYDist->pickNumber();
+
+	y = (y/(double)m_height)*m_ySize + m_yOffset;
+	return y;
+}
+
+double DiscreteDistribution2D::pickConditionalOnX(double x) const
+{
+	x = (x - m_xOffset)/m_xSize * (double)m_width;
+
+	int xi = (int)x;
+	if (xi < 0 || xi >= m_conditionalYDists.size())
+		return numeric_limits<double>::quiet_NaN();
+
+	double y = m_conditionalYDists[xi]->pickNumber();
+
+	y = (y/(double)m_height)*m_ySize + m_yOffset;
+	return y;
+}
+
+double DiscreteDistribution2D::pickConditionalOnY(double y) const
+{
+	y = (y - m_yOffset)/m_ySize * (double)m_height;
+	
+	int yi = (int)y;
+	if (yi < 0 || yi >= m_conditionalXDists.size())
+		return numeric_limits<double>::quiet_NaN();
+
+	double x = m_conditionalXDists[yi]->pickNumber();
+
+	x = (x/(double)m_width)*m_xSize + m_xOffset;
+	return x;
+}
+
+void DiscreteDistribution2D::generateConditionalsAndMarginal(double xOffset, double yOffset, double xSize, double ySize,
+		                                             const TIFFDensityFile &density, GslRandomNumberGenerator *pRngGen,
+		                                             const Polygon2D &filter, bool transpose,
+#ifdef OLDTEST
+							     vector<DiscreteDistribution *> &conditionals,
+							     DiscreteDistribution **ppMarginal
+#else
+							     vector<DiscreteDistributionFast *> &conditionals,
+							     DiscreteDistributionFast **ppMarginal
+#endif
+							     )
+{
+	assert(conditionals.size() == 0);
+	assert(*ppMarginal == 0);
+
+	int dim1, dim2;
+	
+	if (!transpose)
+	{
+		dim1 = density.getWidth();
+		dim2 = density.getHeight();
+	}
+	else
+	{
+		dim1 = density.getHeight();
+		dim2 = density.getWidth();
+	}
+
+	vector<double> margValues(dim2);
+	vector<double> condValues(dim1);
 
 	bool hasFilter = (filter.getNumberOfPoints() > 0);
-	double pixelWidth = xSize/(double)m_width;
-	double pixelHeight = ySize/(double)m_height;
+	double pixelWidth = xSize/(double)density.getWidth();
+	double pixelHeight = ySize/(double)density.getHeight();
 	bool hasValue = false;
 
-	for (size_t y = 0 ; y < m_height ; y++)
+	for (size_t v = 0 ; v < dim2 ; v++)
 	{
 		double sum = 0;
 
-		for (size_t x = 0 ; x < m_width ; x++)
+		for (size_t u = 0 ; u < dim1 ; u++)
 		{
 			float val = 0;
 			bool pass = true;
+			int x, y;
+
+			if (!transpose)
+			{
+				x = u;
+				y = v;
+			}
+			else
+			{
+				x = v;
+				y = u;
+			}
 			
 			if (hasFilter)
 			{
@@ -52,64 +168,42 @@ DiscreteDistribution2D::DiscreteDistribution2D(double xOffset, double yOffset, d
 
 			assert(val >= 0);
 
-			xValues[x] = val;
+			condValues[u] = val;
 			sum += val;
 		}
 
 #ifdef OLDTEST
 		std::vector<double> binStarts, histValues;
-		for (int i = 0 ; i < xValues.size() ; i++)
+		for (int i = 0 ; i < condValues.size() ; i++)
 		{
-			binStarts.push_back(xOffset + (double)i);
-			histValues.push_back(xValues[i]);
+			binStarts.push_back((double)i);
+			histValues.push_back(condValues[i]);
 		}
-		binStarts.push_back(m_width);
+		binStarts.push_back(dim1);
 		histValues.push_back(0);
 
-		m_conditionalXDists.push_back(new DiscreteDistribution(binStarts, histValues, pRngGen));
+		conditionals.push_back(new DiscreteDistribution(binStarts, histValues, pRngGen));
 #else
-		m_conditionalXDists.push_back(new DiscreteDistributionFast(0, m_width, xValues, pRngGen));
+		conditionals.push_back(new DiscreteDistributionFast(0, dim1, condValues, pRngGen));
 #endif
-
-		yValues[y] = sum;
+		margValues[v] = sum;
 	}
 
 	assert(hasValue);
 
 #ifdef OLDTEST
 	std::vector<double> binStarts, histValues;
-	for (int i = 0 ; i < xValues.size() ; i++)
+	for (int i = 0 ; i < margValues.size() ; i++)
 	{
-		binStarts.push_back(yOffset + (double)i);
-		histValues.push_back(yValues[i]);
+		binStarts.push_back((double)i);
+		histValues.push_back(margValues[i]);
 	}
-	binStarts.push_back(m_height);
+	binStarts.push_back(dim2);
 	histValues.push_back(0);
 
-	m_pMarginalYDist = new DiscreteDistribution(binStarts, histValues, pRngGen);
+	*ppMarginal = new DiscreteDistribution(binStarts, histValues, pRngGen);
 #else
-	m_pMarginalYDist = new DiscreteDistributionFast(0, m_height, yValues, pRngGen);
+	*ppMarginal = new DiscreteDistributionFast(0, dim2, margValues, pRngGen);
 #endif
-}
-
-DiscreteDistribution2D::~DiscreteDistribution2D()
-{
-	delete m_pMarginalYDist;
-	for (size_t i = 0 ; i < m_conditionalXDists.size() ; i++)
-		delete m_conditionalXDists[i];
-}
-
-Point2D DiscreteDistribution2D::pickPoint() const
-{
-	double y = m_pMarginalYDist->pickNumber();
-	int yi = (int)y;
-	assert(yi >= 0 && yi < m_conditionalXDists.size());
-	
-	double x = m_conditionalXDists[yi]->pickNumber();
-
-	x = (x/(double)m_width)*m_xSize + m_xOffset;
-	y = (y/(double)m_height)*m_ySize + m_yOffset;
-
-	return Point2D(x, y);
 }
 

@@ -37,11 +37,17 @@ def _getExpandedSettingsOptions(executable):
 
     configOptions = json.loads(jsonData)
     configNames = configOptions["configNames"]
-    distTypes = configOptions["distTypes"]
+    
+    distTypesNames = [ ]
+    for n in configOptions:
+        if n != "configNames":
+            distTypesNames.append(n)
 
-    possibleDistNames = [ t for t in distTypes ]
+    possibleDistNames = { }
+    for n in distTypesNames:
+        possibleDistNames[n] = [ t for t in configOptions[n] ]
 
-    # Change the config entries which have a 'distTypes' setting
+    # Change the config entries which have a 'distTypes' etc setting
 
     newConfig = copy.deepcopy(configNames)
     for n in configNames:
@@ -51,9 +57,12 @@ def _getExpandedSettingsOptions(executable):
             p = params[i] 
             pName = p[0]
             pValue = p[1]
-            if pValue == "distTypes":
 
-                defaultDistName = 'fixed'
+            if pValue in distTypesNames:
+
+                distTypes = configOptions[pValue]
+
+                defaultDistName = "fixed"
                 defaultDistParams = None
                 if len(p) == 3: # The third parameter are the defaults
                     defaultDistOptions = p[2]
@@ -61,7 +70,7 @@ def _getExpandedSettingsOptions(executable):
                     defaultDistParams = defaultDistOptions[1]
 
                 # Adjust the entry in 'newConfig' to reflect the default distribution name
-                newConfig[n]['params'][i] = [ pName + ".type", defaultDistName, possibleDistNames ]
+                newConfig[n]['params'][i] = [ pName + ".type", defaultDistName, possibleDistNames[pValue] ]
 
                 # Add entries to newConfig for all possible distributions
                 for distName in distTypes:
@@ -84,10 +93,10 @@ def _getExpandedSettingsOptions(executable):
                             if dp in defaultParamMap:
                                 paramPair[1] = defaultParamMap[dp]
 
-                        newConfig[newConfName]['params'] = [ [ pName + "." + distName + "." + dp, dv ] for dp,dv in modParams ]
+                        newConfig[newConfName]['params'] = [ [ pName + "." + distName + "." + p[0] ] + p[1:] for p in modParams ]
                     else:
                         # No specific defaults, just use the info from the "distTypes" data structure
-                        newConfig[newConfName]['params'] = [ [ pName + "." + distName + "." + dp, dv ] for dp,dv in distParams ]
+                        newConfig[newConfName]['params'] = [ [ pName + "." + distName + "." + p[0] ] + p[1:] for p in distParams ]
 
                     newConfig[newConfName]['info'] = distTypes[distName]['info']
 

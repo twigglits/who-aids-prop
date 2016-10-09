@@ -2,7 +2,11 @@
 #include "gslrandomnumbergenerator.h"
 #include "util.h"
 #include "piecewiselinearfunction.h"
+#include "tiffdensityfile.h"
+#include "discretedistribution2d.h"
+#include "binormaldistribution.h"
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -82,7 +86,7 @@ int main2(void)
 	return 0;
 }
 
-int main(void)
+int main3(void)
 {
 	vector<Point2D> points;
 
@@ -99,3 +103,125 @@ int main(void)
 	return 0;
 }
 
+int main4(int argc, char *argv[])
+{
+	vector<string> files;
+
+	for (int i = 1 ; i < argc ; i++)
+		files.push_back(argv[i]);
+
+	for (int i = 0 ; i < files.size() ; i++)
+	{
+		TIFFDensityFile td;
+
+		cout << "Trying " << files[i] << "...";
+		if (!td.init(files[i], false, false))
+		{
+			cout << " Error: " << td.getErrorString() << endl;
+		}
+		else 
+		{
+			cout << "Ok" << endl;
+
+			string outFile = files[i]+".out";
+			FILE *pFile = fopen(outFile.c_str(), "wb");
+			if (pFile)
+			{
+				int w = td.getWidth();
+				int h = td.getHeight();
+
+				for (int y = 0 ; y < h ; y++)
+				{
+					for (int x = 0 ; x < w ; x++)
+					{
+						double v = td.getValue(x, y);
+						//fwrite(&v, 1, sizeof(double), pFile);
+						fprintf(pFile, "%g\t", td.getValue(x, y));
+					}
+					fprintf(pFile, "\n");
+				}
+				fclose(pFile);
+			}
+		}
+	}
+
+	return 0;
+}
+
+int main5(int argc, char *argv[])
+{
+	GslRandomNumberGenerator rndGen;
+	vector<string> files;
+
+	for (int i = 1 ; i < argc ; i++)
+		files.push_back(argv[i]);
+
+	cout << "X,Y" << endl;
+	for (int i = 0 ; i < files.size() ; i++)
+	{
+		TIFFDensityFile td;
+		cerr << "Trying " << files[i] << "...";
+
+		if (!td.init(files[i], true, true))
+			cerr << " Error loading TIFF: " << td.getErrorString() << endl;
+		else
+		{
+			DiscreteDistribution2D dist(0, 0, 1, 2, td, &rndGen);
+
+			const int numPoints = 1000000;
+
+			for (int i = 0 ; i < numPoints ; i++)
+			{
+				double y = dist.pickMarginalY();
+				double x = dist.pickConditionalOnY(y);
+
+				cout << x << "," << y << endl;
+			}
+			for (int i = 0 ; i < numPoints ; i++)
+			{
+				double x = dist.pickMarginalX();
+				double y = dist.pickConditionalOnX(x);
+
+				cout << x << "," << y << endl;
+			}
+		}
+	}
+	return 0;
+}
+
+int main(void)
+{
+	GslRandomNumberGenerator rnd;
+	BinormalDistribution d(2, 8, 1, 3, 0.5, &rnd, 0, 4, 5, 15);
+
+	{
+		ofstream f("2d_general.dat");
+		for (int i = 0 ; i < 1000000 ; i++)
+		{
+			Point2D p = d.pickPoint();
+			f << p.x << " " << p.y << endl;
+		}
+	}
+
+	{
+		ofstream f("2d_margx.dat");
+		for (int i = 0 ; i < 1000000 ; i++)
+		{
+			double x = d.pickMarginalX();
+			double y = d.pickConditionalOnX(x);
+			f << x << " " << y << endl;
+		}
+	}
+
+	{
+		ofstream f("2d_margy.dat");
+		for (int i = 0 ; i < 1000000 ; i++)
+		{
+			double y = d.pickMarginalY();
+			double x = d.pickConditionalOnY(y);
+			f << x << " " << y << endl;
+		}
+	}
+
+	return 0;
+}

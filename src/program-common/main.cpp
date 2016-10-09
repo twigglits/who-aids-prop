@@ -6,6 +6,8 @@
 #include "inverseerfi.h"
 #include "version.h"
 #include "configutil.h"
+#include "signalhandlers.h"
+#include "jsonconfig.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -16,6 +18,8 @@
 using namespace std;
 
 void runHazardTests(SimpactPopulation &pop);
+void logOnGoingRelationships(SimpactPopulation &pop);
+void logAllPersons(SimpactPopulation &pop);
 
 void usage(const string &progName)
 {
@@ -35,7 +39,7 @@ int real_main(int argc, char **argv)
 		string flag = argv[1];
 		if (flag == "--showconfigoptions")
 		{
-			showConfigOptions();
+			cout << JSONConfig::getFullConfigurationString() << endl;
 			return 0;
 		}
 	}
@@ -62,24 +66,6 @@ int real_main(int argc, char **argv)
 
 	if (!configure(config, populationConfig, ageDist, &rng, tMax, maxEvents))
 		return -1;
-
-	// Check that we've used everything in the config file
-	vector<string> keys;
-	
-	config.getUnusedKeys(keys);
-	if (keys.size() != 0)
-	{
-		cerr << "Error: the following entries from the configuration file were not used:" << endl;
-		for (int i = 0 ; i < keys.size() ; i++)
-			cerr << "  " << keys[i] << endl;
-		
-		cerr << endl;
-		return -1;
-	}
-	
-	// Sanity check on configuration parameters
-	cerr << "# Performing extra check on read configuration parameters" << endl;
-	checkConfiguration(config, populationConfig, tMax, maxEvents);
 
 	bool parallel = (intParallel == 1);
 
@@ -111,9 +97,20 @@ int real_main(int argc, char **argv)
 	cerr << "# Number of events executed is " << maxEvents << endl;
 	cerr << "# Started with " << numInitPeople << " people, ending with " << numEndPeople << " (difference is " << numEndPeople-numInitPeople << ")" << endl;
 
-	// Log current, non-dissolved relationships
-	// TODO: we only iterate over the men, since relationships are logged in lists of both men and women
-	// TODO: this needs to be changed for homosexual relationships
+	// Log ongoing relationships
+	logOnGoingRelationships(pop);
+
+	// Log different persons, both alive and deceased
+	logAllPersons(pop);
+
+	return 0;
+}
+
+// Log current, non-dissolved relationships
+// TODO: we only iterate over the men, since relationships are logged in lists of both men and women
+// TODO: this needs to be changed for homosexual relationships
+void logOnGoingRelationships(SimpactPopulation &pop)
+{
 	int numMen = pop.getNumberOfMen();
 	Man **ppMen = pop.getMen();
 	double infinity = numeric_limits<double>::infinity();
@@ -137,9 +134,11 @@ int real_main(int argc, char **argv)
 		double tDummy;
 		assert(pMan->getNextRelationshipPartner(tDummy) == 0); // make sure the iteration is done
 	}
-	
-	// Log different persons, both alive and deceased
-	
+}	
+
+void logAllPersons(SimpactPopulation &pop)
+{
+	double infinity = numeric_limits<double>::infinity();
 	int numPeople = pop.getNumberOfPeople();
 	Person **ppPersons = pop.getAllPeople();
 
@@ -158,12 +157,13 @@ int real_main(int argc, char **argv)
 	
 	for (int i = 0 ; i < numPeople ; i++)
 		ppPersons[i]->writeToPersonLog();
-
-	return 0;
 }
 
 int main(int argc, char **argv)
 {
+	installSignalHandlers();
+
 //	InverseErfI::initialize(); // TODO: we should really 'destroy' at the end as well, to be really clean
 	return real_main(argc, argv);
 }
+

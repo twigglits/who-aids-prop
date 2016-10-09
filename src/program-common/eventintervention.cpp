@@ -2,6 +2,7 @@
 #include "gslrandomnumbergenerator.h"
 #include "util.h"
 #include "configsettings.h"
+#include "jsonconfig.h"
 #include <stdio.h>
 #include <iostream>
 
@@ -215,4 +216,46 @@ void EventIntervention::popNextInterventionInfo(double &t, ConfigSettings &confi
 	m_interventionTimes.pop_front();
 	m_interventionSettings.pop_front();
 }
+
+JSONConfig interventionJSONConfig(R"JSON(
+        "EventIntervention": { 
+            "depends": null,
+            "params": [ ["intervention.enabled", "no", [ "yes", "no"] ] ],
+            "info": [ 
+                "If you enable the intervention event, you need to specify a number of times",
+                "at which this event should fire. On these times, some new configuration lines",
+                "will be read, overriding the initial parameters read from config file."
+            ]
+        },
+
+        "EventIntervention_enabled": { 
+            "depends": [ "EventIntervention", "intervention.enabled", "yes"],
+            "params": [ 
+                 ["intervention.baseconfigname", null],
+                 ["intervention.times", null],
+                 ["intervention.fileids", null] ],
+            "info": [ 
+                "In 'intervention.times' you need to specify the times at which the ",
+                "intervention event should fire. All times must be positive and the list",
+                "of times must be increasing.",
+                "",
+                "The 'intervention.baseconfigname' is the filename template that should be",
+                "used to read the config settings from for the intervention events. For each",
+                "intervention time, the '%' character will either be replaced by the ",
+                "corresponding string from 'intervention.fileids', or by the time specified ",
+                "in 'intervention.times' if you leave 'intervention.fileids' empty.",
+                "",
+                "For example:",
+                "  intervention.baseconfigname = intconfig_%.txt",
+                "  intervention.times = 1,2,3",
+                "  intervention.fileids = A,B,C",
+                "will read intervention settings from 'intconfig_A.txt', 'intconfig_B.txt' and",
+                "'intconfig_C.txt'.",
+                "",
+                "If you leave the file IDs empty,",
+                "  intervention.fileids =",
+                "then the files used would be 'intconfig_1.txt', 'intconfig_2.txt' and",
+                "'intconfig_3.txt'."
+            ]
+        })JSON");
 

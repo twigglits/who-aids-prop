@@ -1,12 +1,8 @@
-add_custom_command(OUTPUT config_tree.cpp 
-	COMMAND embedfile configJSon ${CMAKE_CURRENT_SOURCE_DIR}/config_tree.json config_tree.cpp
-	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/config_tree.json)
-
 set(SOURCES_SIMPACT
-	simpactpopulation.cpp
-	person.cpp
-	logsystem.cpp
-	config_tree.cpp
+	personimpl.cpp
+	../program-common/person.cpp
+	../program-common/logsystem.cpp
+	../program-common/simpactpopulation.cpp
 	../program-common/eventmortalitybase.cpp
 	../program-common/eventmortality.cpp
 	../program-common/eventaidsmortality.cpp
@@ -25,7 +21,7 @@ set(SOURCES_SIMPACT
 	../program-common/eventdropout.cpp
 	../program-common/eventperiodiclogging.cpp
 	../program-common/vspmodellogweibullwithnoise.cpp
-	../program-common/vspmodellogbinormal.cpp
+	../program-common/vspmodellogdist.cpp
 	../program-common/simpactevent.cpp
 	../program-common/evthazardformationsimple.cpp
 	../program-common/evthazardformationagegap.cpp
@@ -33,6 +29,7 @@ set(SOURCES_SIMPACT
 	../program-common/hazardfunctionformationagegap.cpp
 	../program-common/main_hazardtest.cpp
 	../program-common/main.cpp
+	../program-common/signalhandlers.cpp
 	../program-common/configutil.cpp
 	../program-common/aidstodutil.cpp
 	)

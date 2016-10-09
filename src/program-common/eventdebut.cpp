@@ -1,6 +1,7 @@
 #include "eventdebut.h"
 #include "eventformation.h"
 #include "gslrandomnumbergenerator.h"
+#include "jsonconfig.h"
 #include <stdio.h>
 #include <iostream>
 
@@ -71,3 +72,14 @@ void EventDebut::obtainConfig(ConfigWriter &config)
 	if (!config.addKey("debut.debutage", m_debutAge))
 		abortWithMessage(config.getErrorString());
 }
+
+JSONConfig debutJSONConfig(R"JSON(
+        "EventDebut": { 
+            "depends": null, 
+            "params" : [ [ "debut.debutage", 15] ],
+            "info": [
+                "Age at which a person becomes sexually active and can form",
+                "relationships"
+            ]
+        })JSON");
+

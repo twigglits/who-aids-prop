@@ -3,6 +3,7 @@
 #include "eventtransmission.h"
 #include "eventchronicstage.h"
 #include "gslrandomnumbergenerator.h"
+#include "jsonconfig.h"
 #include <stdio.h>
 #include <iostream>
 #include <cmath>
@@ -187,4 +188,49 @@ void EventHIVSeed::obtainConfig(ConfigWriter &config)
 			abortWithMessage(config.getErrorString());
 	}
 }
+
+JSONConfig hivseedingJSONConfig(R"JSON(
+        "EventSeeding": { 
+            "depends": null, 
+            "params": [ 
+                ["hivseed.time", 0],
+                ["hivseed.type", "fraction", [ "fraction", "amount"] ],
+                ["hivseed.age.min", 0],
+                ["hivseed.age.max", 1000]
+            ],
+            "info": [ 
+                "Controls when the initial HIV seeders are introduced, and who those seeders",
+                "are. First, the possible seeders are chosen from the population, based on the",
+                "specified mininum and maximum ages.",
+                "",
+                "The specified time says when the seeding event should take place. Note that",
+                "if the time is negative, no seeders will be introduced since the event will ",
+                "be ignored (simulation time starts at t = 0)."
+            ]
+        },
+
+        "EventSeeding_fraction": {
+            "depends": [ "EventSeeding", "hivseed.type", "fraction" ],
+            "params": [
+                [ "hivseed.fraction", 0.2 ]
+            ],
+            "info": [
+                "From the people who possibly can be seeded with HIV, the specified fraction",
+                "will be marked as infected."
+            ]
+        },
+
+        "EventSeeding_number": {
+            "depends": [ "EventSeeding", "hivseed.type", "amount" ],
+            "params": [
+                [ "hivseed.amount", 1 ],
+                [ "hivseed.stop.short", "yes", [ "yes", "no" ] ]
+            ],
+            "info": [
+                "From the people who possibly can be seeded with HIV, the specified amount",
+                "will be marked as infected. If the 'hivseed.stop.short' parameter is set to",
+                "'yes' and there were not enough people that could be infected, the program",
+                "will abort."
+            ]
+        })JSON");
 

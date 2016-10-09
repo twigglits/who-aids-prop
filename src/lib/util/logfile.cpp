@@ -7,13 +7,27 @@ using namespace std;
 
 LogFile::LogFile()
 {
+	s_allLogFiles.push_back(this);
+
 	m_pFile = 0;
 }
 
 LogFile::~LogFile()
 {
 	close();
+
+	for (size_t i = 0 ; i < s_allLogFiles.size() ; i++)
+	{
+		if (s_allLogFiles[i] == this)
+		{
+			size_t last = s_allLogFiles.size()-1;
+			s_allLogFiles[i] = s_allLogFiles[last];
+			s_allLogFiles.resize(last);
+			break;
+		}
+	}
 }
+
 
 bool LogFile::open(const std::string &fileName)
 {
@@ -77,5 +91,20 @@ void LogFile::printNoNewLine(const char *format, ...)
 	va_start(ap, format);
 	vfprintf(m_pFile, format, ap);
 	va_end(ap);
+}
+
+vector<LogFile *> LogFile::s_allLogFiles;
+
+void LogFile::writeToAllLogFiles(const std::string &str)
+{
+	for (size_t i = 0 ; i < s_allLogFiles.size() ; i++)
+	{
+		FILE *pFile = s_allLogFiles[i]->m_pFile;
+		if (pFile)
+		{
+			fprintf(pFile, "%s\n", str.c_str());
+			fflush(pFile);
+		}
+	}
 }
 

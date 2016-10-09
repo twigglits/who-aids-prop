@@ -21,14 +21,16 @@ public:
 	double pickNumber() const;
 	double getMin() const										{ return m_offset; }
 	double getRange() const										{ return m_range; }
+	double getMax() const										{ return m_maxValue; }
 private:
-	double m_range, m_offset;
+	double m_range, m_offset, m_maxValue;
 };
 
 inline UniformDistribution::UniformDistribution(double minValue, double maxValue, GslRandomNumberGenerator *pRng) : ProbabilityDistribution(pRng)
 {
 	m_range = maxValue-minValue;
 	m_offset = minValue;
+	m_maxValue = maxValue;
 }
 
 inline double UniformDistribution::pickNumber() const

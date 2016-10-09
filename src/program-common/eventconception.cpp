@@ -2,6 +2,7 @@
 #include "configdistributionhelper.h"
 #include "probabilitydistribution.h"
 #include "eventbirth.h"
+#include "jsonconfig.h"
 #include <assert.h>
 
 using namespace std;
@@ -180,3 +181,24 @@ EventConception::HazardFunctionConception::~HazardFunctionConception()
 {
 }
 
+JSONConfig conceptionJSONConfig(R"JSON(
+        "EventConception": { 
+            "depends": null,
+            "params": [ 
+                ["conception.alpha_base", -3],
+                ["conception.alpha_ageman", 0],
+                ["conception.alpha_agewoman", 0],
+                ["conception.alpha_wsf", 0],
+                ["conception.beta", 0],
+                ["conception.t_max", 200],
+                ["conception.wsf.dist", "distTypes" ] 
+            ],
+            "info": [ 
+                "Parameters for the conception event. Hazard is ",
+                "    h = exp(alpha_base + alpha_ageman * AgeMan(t) + alpha_agewoman * AgeWoman(t) ",
+                "            + alpha_wsf * WSF + beta*(t-t_ref) )",
+                "",
+                "Here, WSF is a number that's generated at random from the specified distribution",
+                "when a conception event is scheduled."
+            ]
+        })JSON");

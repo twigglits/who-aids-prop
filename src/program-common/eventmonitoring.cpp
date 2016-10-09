@@ -6,6 +6,7 @@
 #include "gslrandomnumbergenerator.h"
 #include "piecewiselinearfunction.h"
 #include "point2d.h"
+#include "jsonconfig.h"
 
 #include <iostream>
 
@@ -175,4 +176,48 @@ void EventMonitoring::obtainConfig(ConfigWriter &config)
 	    !config.addKey("monitoring.interval.piecewise.right", s_pRecheckInterval->getRightValue()) )
 		abortWithMessage(config.getErrorString());
 }
+
+JSONConfig monitoringJSONConfig(R"JSON(
+        "EventMonitoring" : {
+            "depends": null,
+            "params": [
+                [ "monitoring.cd4.threshold", 350.0 ],
+                [ "monitoring.fraction.log_viralload", 0.7 ]
+            ],
+            "info": [
+                "When a person is diagnosed (or 're-diagnosed' after a dropout), monitoring",
+                "events will be scheduled using an interval that depends on the CD4 count.",
+                "When such an event fires, and the person's CD4 count is below the specified",
+                "CD4 threshold, the person may start ART treatment, if he/she is willing",
+                "to do so (see person settings). ",
+                "",
+                "If the person is treated, the SPVL will be lowered in such a way that on a ",
+                "logarithmic scale the new value equals the specified fraction of the original",
+                "viral load."
+            ]
+        },
+
+        "EventMonitoring_interval" : {
+            "depends": null,
+            "params": [
+                [ "monitoring.interval.piecewise.cd4s", "200,350" ],
+                [ "monitoring.interval.piecewise.times", "0.25,0.25" ],
+                [ "monitoring.interval.piecewise.left", 0.16666 ],
+                [ "monitoring.interval.piecewise.right", 0.5 ]
+            ],
+            "info": [
+                "These parameters specify the interval with which monitoring events will take",
+                "place. This is determined by a piecewise linear function, which is a function",
+                "of the person's CD4 count and which will return the interval (the unit is one",
+                "year).",
+                "",
+                "The 'monitoring.interval.piecewise.cd4s' specify the x-values of this ",
+                "piecewise linear function (comma separated list), while ",
+                "'monitoring.interval.piecewise.times' specified the corresponding y-values. ",
+                "For an x-value (CD4 count) that's smaller than the smallest value in the list,",
+                "the value in 'monitoring.interval.piecewise.left' will be returned. For an",
+                "x-value that's larger than the largest value in the list, the value in",
+                "'monitoring.interval.piecewise.right' will be returned."
+            ]
+        })JSON");
 

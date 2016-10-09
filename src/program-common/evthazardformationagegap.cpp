@@ -3,6 +3,7 @@
 #include "eventdebut.h"
 #include "configsettings.h"
 #include "hazardfunctionformationagegap.h"
+#include "jsonconfig.h"
 #include <algorithm>
 
 // WARNING: the same instance can be called from multiple threads
@@ -166,4 +167,28 @@ void EvtHazardFormationAgeGap::obtainConfig(ConfigWriter &config)
 	    !config.addKey("formation.hazard.agegap.t_max", m_tMax) )
 		abortWithMessage(config.getErrorString());
 }
+
+JSONConfig agegapFormationJSONConfig(R"JSON(
+        "EventFormation_agegap": { 
+            "depends": [ "EventFormationTypes", "formation.hazard.type", "agegap" ],
+            "params": [ 
+                ["formation.hazard.agegap.baseline", 0.1],
+                ["formation.hazard.agegap.numrel_man", 0],
+                ["formation.hazard.agegap.numrel_woman", 0],
+                ["formation.hazard.agegap.numrel_diff", 0],
+                ["formation.hazard.agegap.meanage", 0],
+                ["formation.hazard.agegap.eagerness_sum", 0],
+                ["formation.hazard.agegap.eagerness_diff", 0],
+                ["formation.hazard.agegap.gap_factor_man", 0],
+                ["formation.hazard.agegap.gap_agescale_man", 0],
+                ["formation.hazard.agegap.gap_factor_woman", 0],
+                ["formation.hazard.agegap.gap_agescale_woman", 0],
+                ["formation.hazard.agegap.beta", 0],
+                ["formation.hazard.agegap.t_max", 200] ],
+            "info": [ 
+                "These are the parameters for the hazard in the 'agegap' formation event.",
+                "see http://research.edm.uhasselt.be/~jori/simpact/documentation/simpactcyan.html",
+                "for more information."
+            ]
+        })JSON");
 

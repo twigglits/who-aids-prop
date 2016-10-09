@@ -4,6 +4,7 @@
 #include "configwriter.h"
 #include "configdistributionhelper.h"
 #include "gslrandomnumbergenerator.h"
+#include "jsonconfig.h"
 
 #include <iostream>
 
@@ -92,4 +93,15 @@ void EventDropout::obtainConfig(ConfigWriter &config)
 {
 	addDistributionToConfig(s_pDropoutDistribution, config, "dropout.interval");
 }
+
+JSONConfig dropoutJSONConfig(R"JSON(
+        "EventDropout_Timing": {
+            "depends": null,
+            "params": [ 
+                [ "dropout.interval.dist", "distTypes", [ "uniform", [ [ "min", 0.25  ], [ "max", 10.0 ] ] ] ]
+            ],
+            "info": [
+                "Distribution to schedule dropout events."
+            ]
+        })JSON");
 

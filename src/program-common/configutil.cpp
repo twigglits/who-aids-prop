@@ -24,6 +24,9 @@
 
 using namespace std;
 
+void checkConfiguration(const ConfigSettings &loadedConfig, const SimpactPopulationConfig &populationConfig, double tMax,
+		        int64_t maxEvents);
+
 void processNonInterventionEventConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	EventAIDSMortality::processConfig(config);
@@ -72,6 +75,24 @@ bool configure(ConfigSettings &config, SimpactPopulationConfig &populationConfig
 		cerr << "Can't load age distribution data: " << ageDist.getErrorString() << endl;
 		return false;
 	}
+
+	// Check that we've used everything in the config file
+	vector<string> keys;
+	
+	config.getUnusedKeys(keys);
+	if (keys.size() != 0)
+	{
+		cerr << "Error: the following entries from the configuration file were not used:" << endl;
+		for (int i = 0 ; i < keys.size() ; i++)
+			cerr << "  " << keys[i] << endl;
+		
+		cerr << endl;
+		return false;
+	}
+	
+	// Sanity check on configuration parameters
+	cerr << "# Performing extra check on read configuration parameters" << endl;
+	checkConfiguration(config, populationConfig, tMax, maxEvents);
 
 	return true;
 }
@@ -218,12 +239,5 @@ void checkConfiguration(const ConfigSettings &loadedConfig, const SimpactPopulat
 
 		// If all keys are the same, we've already checked the contents for compatibility
 	}
-}
-
-extern const char configJSon[];
-
-void showConfigOptions()
-{
-	cout << configJSon << endl;
 }
 

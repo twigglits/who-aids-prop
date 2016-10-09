@@ -1,5 +1,6 @@
 #include "eventaidsstage.h"
 #include "eventaidsmortality.h"
+#include "jsonconfig.h"
 
 using namespace std;
 
@@ -133,4 +134,14 @@ void EventAIDSStage::obtainConfig(ConfigWriter &config)
 	    !config.addKey("aidsstage.start", m_relativeStartTime) )
 		abortWithMessage(config.getErrorString());
 }
+
+JSONConfig aidsStageJSONConfig(R"JSON(
+        "EventAIDSStage": { 
+            "depends": null,
+            "params": [ ["aidsstage.start", 1.25], ["aidsstage.final", 0.5] ],
+            "info": [ 
+                "Indicates the time interval before death that the AIDS stages occur",
+                "The defaults are 15 and 6 months before death"
+            ]
+        })JSON");
 

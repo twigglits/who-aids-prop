@@ -8,6 +8,19 @@ macro(simpact_setup)
 	get_install_directory(LIBRARY_INSTALL_DIR)
 	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
+	include(CheckCXXCompilerFlag)
+	include(CheckCXXSourceCompiles)
+	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+	if(COMPILER_SUPPORTS_CXX0X)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+	else()
+		# Test if the compiler already supports C++0x
+		check_cxx_source_compiles("int main(void) \n { \n char *a = R\"TST(X)TST\"; \n return 0; \n }" C0XAVAIL)
+		if (NOT C0XAVAIL)
+			message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++0x support.")
+		endif()
+	endif()
+
 	# TODO: Just for some tests
 	#find_package(MEANWALKER REQUIRED)
 	#include_directories(${MEANWALKER_INCLUDE_DIR})
@@ -69,6 +82,8 @@ macro(simpact_setup)
 		${PROJECT_SOURCE_DIR}/src/lib/util/configwriter.cpp 
 		${PROJECT_SOURCE_DIR}/src/lib/util/piecewiselinearfunction.cpp 
 		${PROJECT_SOURCE_DIR}/src/lib/util/normaldistribution.cpp
+		${PROJECT_SOURCE_DIR}/src/lib/util/jsonconfig.cpp
+		${PROJECT_SOURCE_DIR}/src/lib/util/binormaldistribution.cpp
 		)
 	set(SOURCES_MRNM
 		${PROJECT_SOURCE_DIR}/src/lib/mnrm/gslrandomnumbergenerator.cpp
@@ -95,7 +110,7 @@ macro(simpact_setup)
 	add_simpact_library("simpact-lib-static" ${SOURCES})
 
 	# From: http://stackoverflow.com/questions/11813271/embed-resources-eg-shader-code-images-into-executable-library-with-cmake
-	add_executable(embedfile "${PROJECT_SOURCE_DIR}/cmake/embedfile.c")
+	#add_executable(embedfile "${PROJECT_SOURCE_DIR}/cmake/embedfile.c")
 endmacro()
 
 macro(add_simpact_library LIBPREFIX MAINSOURCES)

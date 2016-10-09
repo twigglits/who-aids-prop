@@ -23,21 +23,44 @@ public:
 
 	Point2D pickPoint() const;
 
+	double pickMarginalX() const;
+	double pickMarginalY() const;
+	double pickConditionalOnX(double x) const;
+	double pickConditionalOnY(double y) const;
+
 	double getXOffset() const								{ return m_xOffset; }
 	double getYOffset() const								{ return m_yOffset; }
 	double getXSize() const									{ return m_xSize; }
 	double getYSize() const									{ return m_ySize; }
+
+	bool isYFlipped() const									{ return m_flippedY; }
 private:
+	static void generateConditionalsAndMarginal(double xOffset, double yOffset, double xSize, double ySize,
+		                                             const TIFFDensityFile &density, GslRandomNumberGenerator *pRngGen,
+		                                             const Polygon2D &filter, bool transpose,
 #ifdef OLDTEST
+							     std::vector<DiscreteDistribution *> &conditionals,
+							     DiscreteDistribution **ppMarginal
+#else
+							     std::vector<DiscreteDistributionFast *> &conditionals,
+							     DiscreteDistributionFast **ppMarginal
+#endif
+							     );
+#ifdef OLDTEST
+	DiscreteDistribution *m_pMarginalXDist;
 	DiscreteDistribution *m_pMarginalYDist;
 	std::vector<DiscreteDistribution *> m_conditionalXDists;
+	std::vector<DiscreteDistribution *> m_conditionalYDists;
 #else
+	DiscreteDistributionFast *m_pMarginalXDist;
 	DiscreteDistributionFast *m_pMarginalYDist;
 	std::vector<DiscreteDistributionFast *> m_conditionalXDists;
+	std::vector<DiscreteDistributionFast *> m_conditionalYDists;
 #endif
 	double m_xOffset, m_yOffset;
 	double m_xSize, m_ySize;
 	int m_width, m_height; // discrete size (pixels)
+	bool m_flippedY;
 };
 
 #endif // DISCRETEDISTRIBUTION2D_H

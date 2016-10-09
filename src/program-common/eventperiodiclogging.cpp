@@ -1,4 +1,5 @@
 #include "eventperiodiclogging.h"
+#include "jsonconfig.h"
 #include <stdio.h>
 #include <iostream>
 
@@ -93,4 +94,18 @@ void EventPeriodicLogging::obtainConfig(ConfigWriter &config)
 	    !config.addKey("periodiclogging.outfile.logperiodic", s_logFileName) )
 	    	abortWithMessage(config.getErrorString());
 }
+
+JSONConfig periodicLoggingJSONConfig(R"JSON(
+        "EventPeriodicLogging": {
+            "depends": null,
+            "params": [
+                [ "periodiclogging.interval", -1 ],
+                [ "periodiclogging.outfile.logperiodic", "${SIMPACT_OUTPUT_PREFIX}periodiclog.csv" ]
+            ],
+            "info": [
+                "During the simulation, at regular time intervals certain extra information",
+                "can be logged with this event. Set the interval value to positive to enable,",
+                "otherwise it will be disabled."
+            ]
+        })JSON");
 

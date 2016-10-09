@@ -8,6 +8,7 @@
 
 #include "errut/errorbase.h"
 #include <stdio.h>
+#include <vector>
 
 /** Helper class to write to a log file. */
 class LogFile : public errut::ErrorBase
@@ -30,9 +31,15 @@ public:
 
 	/** Finalizes and closes the log file. */
 	void close();
+
+	/** Method to write something to all currently open log files, useful when program aborts
+	 *  and a message should appear in all logs. */
+	static void writeToAllLogFiles(const std::string &str);
 private:
 	FILE *m_pFile;
 	std::string m_fileName;
+
+	static std::vector<LogFile *> s_allLogFiles;
 };
 
 #endif // LOGFILE_H

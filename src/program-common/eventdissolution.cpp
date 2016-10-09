@@ -1,6 +1,7 @@
 #include "eventdissolution.h"
 #include "eventformation.h"
 #include "hazardfunctionformationsimple.h"
+#include "jsonconfig.h"
 #include <stdio.h>
 #include <cmath>
 #include <iostream>
@@ -140,4 +141,24 @@ void EventDissolution::obtainConfig(ConfigWriter &config)
 	    !config.addKey("dissolution.t_max", tMaxDiff) )
 		abortWithMessage(config.getErrorString());
 }
+
+JSONConfig dissolutionJSONConfig(R"JSON(
+        "EventDissolution": { 
+            "depends": null,
+            "params": [ 
+                ["dissolution.alpha_0", 0.1],
+                ["dissolution.alpha_1", 0],
+                ["dissolution.alpha_2", 0],
+                ["dissolution.alpha_3", 0],
+                ["dissolution.alpha_4", 0],
+                ["dissolution.alpha_5", 0],
+                ["dissolution.Dp", 0],
+                ["dissolution.beta", 0],
+                ["dissolution.t_max", 200] ],
+            "info": [ 
+                "These are the parameters for the hazard in the dissolution event.",
+                "see http://research.edm.uhasselt.be/~jori/simpact/documentation/simpactcyan.html",
+                "for more information."
+            ]
+        })JSON");
 

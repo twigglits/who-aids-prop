@@ -2,6 +2,7 @@
 #include "eventformation.h"
 #include "eventaidsstage.h"
 #include "gslrandomnumbergenerator.h"
+#include "jsonconfig.h"
 #include <stdio.h>
 #include <iostream>
 
@@ -78,3 +79,10 @@ void EventChronicStage::obtainConfig(ConfigWriter &config)
 	if (!config.addKey("chronicstage.acutestagetime", m_acuteTime))
 		abortWithMessage(config.getErrorString());
 }
+
+JSONConfig chronicStageJSONConfig(R"JSON(
+        "EventChronicStage": { 
+            "depends": null,
+            "params": [ ["chronicstage.acutestagetime", 0.25 ] ],
+            "info": [ "Duration of the acute stage. 3 months = 3/12 = 0.25" ]
+        })JSON");

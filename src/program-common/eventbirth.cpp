@@ -4,6 +4,7 @@
 #include "eventmortality.h"
 #include "eventconception.h"
 #include "eventdebut.h"
+#include "jsonconfig.h"
 #include <assert.h>
 
 using namespace std;
@@ -139,3 +140,29 @@ void EventBirth::obtainConfig(ConfigWriter &config)
 	if (!config.addKey("birth.boygirlratio", m_boyGirlRatio))
 		abortWithMessage(config.getErrorString());
 }
+
+JSONConfig birthConfig(R"JSON(
+        "EventBirth": {
+            "depends": null,
+            "params": [ ["birth.boygirlratio", 0.49751243781094534 ] ],
+            "info": [
+                "When someone is born, a random number is chosen from [0,1],",
+                "and if smaller than this boygirlratio, the new child is male. Otherwise, a ",
+                "woman is added to the population.",
+                "",
+                "Default is 1.0/2.01"
+            ]
+        },
+
+        "EventBirth_pregduration": { 
+            "depends": null,
+            "params": [ [ 
+                "birth.pregnancyduration.dist", "distTypes", ["fixed", [ ["value", 0.7342465753424657 ] ] ] 
+                ] 
+            ],
+            "info": [ 
+                "This parameter is used to specify the pregnancy duration. The default",
+                "is the fixed value of 268/365"
+            ]
+        })JSON");
+

@@ -1,5 +1,6 @@
 #include "eventmortality.h"
 #include "gslrandomnumbergenerator.h"
+#include "jsonconfig.h"
 #include <stdio.h>
 #include <iostream>
 
@@ -81,4 +82,17 @@ void EventMortality::obtainConfig(ConfigWriter &config)
 	    !config.addKey("mortality.normal.weibull.genderdiff", m_genderDiff))
 		abortWithMessage(config.getErrorString());
 }
+
+JSONConfig normalmortalityJSONConfig(R"JSON(
+        "EventMortality_Normal": { 
+            "depends": null,
+            "params": [ 
+                ["mortality.normal.weibull.shape", 4.0],
+                ["mortality.normal.weibull.scale", 70.0],
+                ["mortality.normal.weibull.genderdiff", 5.0] ],
+            "info": [ 
+                "Parameters for the weibull distribution from which a non-aids",
+                "time of death is picked."
+            ]
+        })JSON");
 

@@ -1,4 +1,5 @@
 #include "person.h"
+#include "personimpl.h"
 #include "gslrandomnumbergenerator.h"
 #include "eventtransmission.h"
 #include "configsettings.h"
@@ -6,11 +7,12 @@
 #include "configdistributionhelper.h"
 #include "debugwarning.h"
 #include "vspmodellogweibullwithnoise.h"
-#include "vspmodellogbinormal.h"
+#include "vspmodellogdist.h"
 #include "logsystem.h"
 #include "simpactevent.h"
 #include "discretedistribution2d.h"
 #include "tiffdensityfile.h"
+#include "jsonconfig.h"
 #include <stdlib.h>
 #include <iostream>
 #include <limits>
@@ -70,10 +72,13 @@ Person::Person(double dateOfBirth, Gender g) : PersonBase(g, dateOfBirth)
 
 	m_location = m_pPopDist->pickPoint();
 	assert(m_location.x == m_location.x && m_location.y == m_location.y);
+
+	m_pPersonImpl = new PersonImpl(*this);
 }
 
 Person::~Person()
 {
+	delete m_pPersonImpl;
 }
 
 void Person::setInfected(double t, Person *pOrigin, InfectionType iType)
@@ -180,7 +185,7 @@ ProbabilityDistribution *Person::m_pCD4StartDistribution = 0;
 ProbabilityDistribution *Person::m_pCD4EndDistribution = 0;
 ProbabilityDistribution *Person::m_pARTAcceptDistribution = 0;
 
-DiscreteDistribution2D *Person::m_pPopDist = 0;
+ProbabilityDistribution2D *Person::m_pPopDist = 0;
 double Person::m_popDistWidth = 0;
 double Person::m_popDistHeight = 0;
 
@@ -192,7 +197,7 @@ void Person::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRn
 	string VspModelName;
 
 	supportedModels.push_back("logweibullwithnoise");
-	supportedModels.push_back("logbinormal");
+	supportedModels.push_back("logdist2d");
 
 	if (!config.getKeyValue("person.vsp.model.type", VspModelName, supportedModels) ||
 	    !config.getKeyValue("person.vsp.toacute.x", m_acuteFromSetPointParamX, 0) ||
@@ -201,11 +206,9 @@ void Person::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRn
 	    !config.getKeyValue("person.vsp.maxvalue", m_maxViralLoad, 0) )
 		abortWithMessage(config.getErrorString());
 
-	if (m_pVspModel != 0)
-	{
-		delete m_pVspModel;
-		m_pVspModel = 0;
-	}
+	delete m_pVspModel;
+	m_pVspModel = 0;
+
 	if (VspModelName == "logweibullwithnoise")
 	{
 		double shape, scale, fracSigma;
@@ -232,29 +235,22 @@ void Person::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRn
 
 		m_pVspModel = new VspModelLogWeibullWithRandomNoise(scale, shape, fracSigma, t, pRndGen);
 	}
-	else if (VspModelName == "logbinormal")
+	else if (VspModelName == "logdist2d")
 	{
-		vector<string> yesNo;
-		string alternateSeedDist;
-		double mean, sigma, rho, minValue, maxValue;
+		bool useAltSeedDist;
 
-		yesNo.push_back("yes");
-		yesNo.push_back("no");
-
-		if (!config.getKeyValue("person.vsp.model.logbinormal.mean", mean) ||
-		    !config.getKeyValue("person.vsp.model.logbinormal.sigma", sigma, 0) ||
-		    !config.getKeyValue("person.vsp.model.logbinormal.rho", rho, -1.0, 1.0) ||
-		    !config.getKeyValue("person.vsp.model.logbinormal.min", minValue) ||
-		    !config.getKeyValue("person.vsp.model.logbinormal.max", maxValue, minValue) || 
-		    !config.getKeyValue("person.vsp.model.logbinormal.usealternativeseeddist", alternateSeedDist, yesNo)
-		    )
+		if (!config.getKeyValue("person.vsp.model.logdist2d.usealternativeseeddist", useAltSeedDist))
 			abortWithMessage(config.getErrorString());
 
+		ProbabilityDistribution2D *pDist2D = 0;
 		ProbabilityDistribution *pAltSeedDist = 0;
-		if (alternateSeedDist == "yes")
-			pAltSeedDist = getDistributionFromConfig(config, pRndGen, "person.vsp.model.logbinormal.alternativeseed");
+		
+		if (useAltSeedDist)
+			pAltSeedDist = getDistributionFromConfig(config, pRndGen, "person.vsp.model.logdist2d.alternativeseed");
 
-		m_pVspModel = new VspModelLogBiNormal(mean, sigma, rho, minValue, maxValue, pAltSeedDist, pRndGen);
+		pDist2D = getDistribution2DFromConfig(config, pRndGen, "person.vsp.model.logdist2d");
+
+		m_pVspModel = new VspModelLogDist(pDist2D, pAltSeedDist, pRndGen);
 	}
 	else
 		abortWithMessage("ERROR: unexpected Vsp model name " + VspModelName);
@@ -278,61 +274,14 @@ void Person::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRn
 	m_pARTAcceptDistribution = getDistributionFromConfig(config, pRndGen, "person.art.accept.threshold");
 
 	// Population distribution
-
-	string popDistFilename, popDistMaskName;
-
-	if (!config.getKeyValue("person.geo.dist", popDistFilename) ||
-	    !config.getKeyValue("person.geo.dist.mask", popDistMaskName) ||
-	    !config.getKeyValue("person.geo.dist.width", m_popDistWidth, 0, 40000) ||
-	    !config.getKeyValue("person.geo.dist.height", m_popDistHeight, 0, 40000) )
-		abortWithMessage(config.getErrorString());
-
-	TIFFDensityFile tiffDens;
-
-	if (!tiffDens.init(popDistFilename))
-		abortWithMessage("Can't read population density file: " + tiffDens.getErrorString());
-
-	if (popDistMaskName.length() > 0)
-	{
-		const int w = tiffDens.getWidth();
-		const int h = tiffDens.getHeight();
-
-		TIFFDensityFile maskFile;
-
-		if (!maskFile.init(popDistMaskName))
-			abortWithMessage("Unable to open the mask file for the population density: " + maskFile.getErrorString());
-
-		if (maskFile.getWidth() != w || maskFile.getHeight() != h)
-			abortWithMessage("Population density mask file does not have the same dimensions as the density file itself");
-
-		for (int y = 0 ; y < h ; y++)
-		{
-			for (int x = 0 ; x < w ; x++)
-			{
-				if (maskFile.getValue(x, y) <= 0)
-					tiffDens.setValue(x, y, 0);
-			}
-		}
-	}
-
-	if (m_pPopDist)
-	{
-		delete m_pPopDist;
-		m_pPopDist = 0;
-	}
-
-	m_pPopDist = new DiscreteDistribution2D(0, 0, m_popDistWidth, m_popDistHeight, tiffDens, pRndGen);
+	delete m_pPopDist;
+	m_pPopDist = getDistribution2DFromConfig(config, pRndGen, "person.geo");
 }
 
 void Person::obtainConfig(ConfigWriter &config)
 {
 	assert(m_pPopDist);
-
-	if (!config.addKey("person.geo.dist", "IGNORE") ||
-	    !config.addKey("person.geo.dist.mask", "IGNORE") ||
-	    !config.addKey("person.geo.dist.width", m_pPopDist->getXSize() ) ||
-	    !config.addKey("person.geo.dist.height", m_pPopDist->getYSize() ) )
-		abortWithMessage(config.getErrorString());
+	addDistribution2DToConfig(m_pPopDist, config, "person.geo");
 
 	if (!config.addKey("person.vsp.toacute.x", m_acuteFromSetPointParamX) ||
 	    !config.addKey("person.vsp.toaids.x", m_aidsFromSetPointParamX) ||
@@ -368,22 +317,20 @@ void Person::obtainConfig(ConfigWriter &config)
 		}
 	}
 	{
-		VspModelLogBiNormal *pDist = 0;
-		if ((pDist = dynamic_cast<VspModelLogBiNormal *>(m_pVspModel)) != 0)
+		VspModelLogDist *pDist = 0;
+		if ((pDist = dynamic_cast<VspModelLogDist *>(m_pVspModel)) != 0)
 		{
 			ProbabilityDistribution *pAltSeedDist = pDist->getAltSeedDist();
+			ProbabilityDistribution2D *pDist2D = pDist->getUnderlyingDistribution();
 
-			if (!config.addKey("person.vsp.model.type", "logbinormal") ||
-			    !config.addKey("person.vsp.model.logbinormal.mean", pDist->getMean()) ||
-			    !config.addKey("person.vsp.model.logbinormal.sigma", pDist->getSigma()) ||
-			    !config.addKey("person.vsp.model.logbinormal.rho", pDist->getRho()) ||
-			    !config.addKey("person.vsp.model.logbinormal.min", pDist->getMin()) ||
-			    !config.addKey("person.vsp.model.logbinormal.max", pDist->getMax()) || 
-			    !config.addKey("person.vsp.model.logbinormal.usealternativeseeddist", (pAltSeedDist != 0)))
+			if (!config.addKey("person.vsp.model.type", "logdist2d") ||
+			    !config.addKey("person.vsp.model.logdist2d.usealternativeseeddist", (pAltSeedDist != 0)))
 				abortWithMessage(config.getErrorString());
 
 			if (pAltSeedDist)
-				addDistributionToConfig(pAltSeedDist, config, "person.vsp.model.logbinormal.alternativeseed");
+				addDistributionToConfig(pAltSeedDist, config, "person.vsp.model.logdist2d.alternativeseed");
+
+			addDistribution2DToConfig(pDist2D, config, "person.vsp.model.logdist2d");
 			return;
 		}
 	}
@@ -707,4 +654,131 @@ Woman::Woman(double dateOfBirth) : Person(dateOfBirth, Female)
 Woman::~Woman()
 {
 }
+
+JSONConfig personJSONConfig(R"JSON(
+        "PersonVspAcute": { 
+            "depends": null,
+            "params": [ 
+                ["person.vsp.toacute.x", 10.0],
+                ["person.vsp.toaids.x", 7.0],
+                ["person.vsp.tofinalaids.x", 12.0],
+                ["person.vsp.maxvalue", 1e9] ],
+            "info": [ 
+                "The viral load during the other stages is based on the set point viral load:",
+                "   V = [ max(ln(x)/b + Vsp^(-c), maxvalue^(-c)) ]^(-1/c)",
+                "The b and c parameters are specified in the parameters from the transmission",
+                "event."
+            ]
+        },
+
+        "PersonCD4": {
+            "depends": null,
+            "params": [ 
+                [ "person.cd4.start.dist", "distTypes", [ "uniform", [ [ "min", 700  ], [ "max", 1300 ] ] ] ],
+                [ "person.cd4.end.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 100 ] ] ] ]
+            ],
+            "info": [
+                "These distributions control the initial CD4 count when first getting infected",
+                "and the final CD4 count at the time the person dies from AIDS."
+            ]
+        },
+
+        "PersonEagerness": { 
+            "depends": null, 
+            "params": [ ["person.eagerness.dist", "distTypes" ] ],
+            "info": [ 
+                "The per-person parameter for the eagerness to form a relationship is chosen",
+                "from a specific distribution with certain parameters."
+            ]
+        },
+
+        "PersonAgeGapMen": { 
+            "depends": null, 
+            "params": [ ["person.agegap.man.dist", "distTypes" ] ],
+            "info": null
+        },
+
+        "PersonAgeGapWomen": { 
+            "depends": null, 
+            "params": [ ["person.agegap.woman.dist", "distTypes" ] ],
+            "info": null
+        },
+
+        "PersonVspModelTypes": { 
+            "depends": null, 
+            "params": [ ["person.vsp.model.type", "logdist2d", [ "logweibullwithnoise", "logdist2d"] ] ],
+            "info": [ 
+                "The type of model to use for the Vsp value of the seeders and for inheriting",
+                "Vsp values."
+            ]
+        },
+
+        "PersonVspModel_weibullnoise": { 
+            "depends": ["PersonVspModelTypes", "person.vsp.model.type", "logweibullwithnoise"],
+            "params": [ 
+                ["person.vsp.model.logweibullwithnoise.weibullscale", 5.05],
+                ["person.vsp.model.logweibullwithnoise.weibullshape", 7.2],
+                ["person.vsp.model.logweibullwithnoise.fracsigma", 0.1],
+                ["person.vsp.model.logweibullwithnoise.onnegative", "logweibull", [ "logweibull", "noiseagain"] ] 
+            ],
+            "info": [ 
+                "For 'seeders', people marked as infected at the start of the simulation,",
+                "the logarithm of set-point viral load is chosen from a weibull distribution.",
+                "",
+                "In Vsp heritability, added random noise uses a sigma that's 10% of the ",
+                "original Vsp. When after adding noise upon inheriting the Vsp value, the",
+                "Vsp is negative: use 'noiseagain' to pick from gaussian(VspOrigin,sigma) ",
+                "again, or use 'logweibull' to pick from the initial distribution again."
+            ]
+        },
+
+        "PersonVspModel_logdist": { 
+            "depends": ["PersonVspModelTypes", "person.vsp.model.type", "logdist2d"],
+            "params": [ 
+                ["person.vsp.model.logdist2d.dist2d", "distTypes2D", [ 
+                    "binormalsymm", [
+                        [ "min", 1 ],
+                        [ "max", 8 ],
+                        [ "mean", 4 ],
+                        [ "rho", 0.33 ],
+                        [ "sigma", 1 ]
+                        ]
+                    ]
+                ],
+                ["person.vsp.model.logdist2d.usealternativeseeddist", "no", [ "yes", "no"]]
+            ],
+            "info": [ 
+                "Both the initial 'seed' value and the inherited Vsp value are",
+                "chosen so that the log value is based on the specified 2D distribution.",
+                "",
+                "Additionally, you can also specify that an alternative distribution must",
+                "be used to pick the Vsp values of the seeders."
+            ]                                         
+        },
+
+        "PersonVspModel_logdist_altseed": { 
+            "depends": ["PersonVspModel_logdist", "person.vsp.model.logdist2d.usealternativeseeddist", "yes"],
+            "params": [ ["person.vsp.model.logdist2d.alternativeseed.dist", "distTypes" ] ],
+            "info": null 
+        },
+
+        "PersonARTAcceptange": {
+            "depends": null,
+            "params": [ 
+                [ "person.art.accept.threshold.dist", "distTypes", ["fixed", [ ["value", 0.5 ] ] ] ]
+            ],
+            "info": [
+                "This parameter specifies a distribution from which a number will be chosen",
+                "for each person, and which serves as the threshold to start ART (if eligible).",
+                "When eligible for treatment, a random number will be chosen uniformly from",
+                "[0,1], and treatment will only be started if this number is smaller than the",
+                "threshold. By default, everyone will just have a 50/50 chance of starting",
+                "treatment when possible. ",
+                "",
+                "If this distribution returns a low value (close to zero), it means that ",
+                "there's little chance of accepting treatment; if the value is higher (close to",
+                "one), treatment will almost always be accepted."
+            ]
+        })JSON");
+
 

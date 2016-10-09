@@ -12,9 +12,8 @@
 #include "person.h"
 #include "gslrandomnumbergenerator.h"
 #include "util.h"
+#include "jsonconfig.h"
 
-// TODO: for debugging
-#include <iostream>
 using namespace std;
 
 SimpactPopulationConfig::SimpactPopulationConfig()
@@ -333,4 +332,33 @@ void SimpactPopulation::getInterestsForPerson(const Person *pPerson, vector<Pers
 		}
 	}
 }
+
+JSONConfig populationJSONConfig(R"JSON(
+        "Population_1": { 
+            "depends": null,
+            "params": [ 
+                ["population.nummen", 100],
+                ["population.numwomen", 100],
+                ["population.simtime", 15],
+                ["population.maxevents", -1],
+                ["population.agedistfile", "${SIMPACT_DATA_DIR}sa_2003.csv"] ],
+            "info": [
+                "By default, the 'maxevents' parameter is negative, causing it to be",
+                "ignored. Set this to a positive value to make sure the simulation stops",
+                "when this number of events has been exceeded."
+            ]
+        },
+
+        "Population_2": { 
+            "depends": null,
+            "params": [ ["population.eyecap.fraction", 1] ],
+            "info": [ 
+                "If set to 1, formation events will be scheduled for all man,woman",
+                "pairs (who are both sexually active). This is the default behaviour.",
+                "If set to a smaller number, only a fraction of the formation events ",
+                "that would otherwise be scheduled are now used. This fraction is not ",
+                "only used in the initial scheduling of formation events, but also ",
+                "when a debut event fires, to limit the newly scheduled formation events."
+            ]  
+        })JSON");
 

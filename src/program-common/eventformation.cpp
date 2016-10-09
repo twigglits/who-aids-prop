@@ -7,6 +7,7 @@
 #include "evthazardformationsimple.h"
 #include "evthazardformationagegap.h"
 #include "eventconception.h"
+#include "jsonconfig.h"
 #include <stdio.h>
 #include <cmath>
 #include <algorithm>
@@ -160,3 +161,11 @@ void EventFormation::obtainConfig(ConfigWriter &config)
 
 	m_pHazard->obtainConfig(config);
 }
+
+JSONConfig formationTypesJSONConfig(R"JSON(
+        "EventFormationTypes": { 
+            "depends": null,
+            "params": [ ["formation.hazard.type", "agegap", [ "simple", "agegap" ] ] ],
+            "info": null 
+        })JSON");
+

@@ -11,6 +11,7 @@
 #include <vector>
 #include <set>
 
+class PersonImpl;
 class Person;
 class Man;
 class Woman;
@@ -32,6 +33,8 @@ public:
 
 	Person(double dateOfBirth, Gender g);
 	~Person();
+
+	PersonImpl *getImplementationSpecificPart()					{ return m_pPersonImpl; }
 
 	bool isMan() const								{ return getGender() == Male; }
 	bool isWoman() const								{ return getGender() == Female; }
@@ -177,6 +180,8 @@ private:
 	double m_cd4AtStart, m_cd4AtDeath;
 	double m_artAcceptanceThreshold;
 
+	PersonImpl *m_pPersonImpl;
+
 	static double m_hivSeedWeibullShape;
 	static double m_hivSeedWeibullScale;
 	static double m_VspHeritabilitySigmaFraction;
@@ -189,7 +194,7 @@ private:
 	static ProbabilityDistribution *m_pMaleAgeGapDistribution;
 	static ProbabilityDistribution *m_pFemaleAgeGapDistribution;
 	static VspModel *m_pVspModel;
-	static DiscreteDistribution2D *m_pPopDist;
+	static ProbabilityDistribution2D *m_pPopDist;
 	static double m_popDistWidth;
 	static double m_popDistHeight;
 	static ProbabilityDistribution *m_pCD4StartDistribution;

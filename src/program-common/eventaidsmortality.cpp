@@ -1,5 +1,6 @@
 #include "eventaidsmortality.h"
 #include "gslrandomnumbergenerator.h"
+#include "jsonconfig.h"
 #include <stdio.h>
 #include <iostream>
 
@@ -110,3 +111,14 @@ void EventAIDSMortality::obtainConfig(ConfigWriter &config)
 		abortWithMessage(config.getErrorString());
 }
 
+JSONConfig aidsMortalityConfig(R"JSON(
+        "EventMortality_AIDS": { 
+            "depends": null,
+            "params": [ 
+                ["mortality.aids.survtime.C", 1325.0],
+                ["mortality.aids.survtime.k", -0.49] ],
+            "info": [ 
+                "Parameters for the calculation of the survival time from the",
+                "set-point viral load: t_surv = C/Vsp^(-k)"
+            ]
+        })JSON");

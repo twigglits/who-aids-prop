@@ -3,6 +3,7 @@
 #include "eventaidsmortality.h"
 #include "eventchronicstage.h"
 #include "eventdiagnosis.h"
+#include "jsonconfig.h"
 #include <stdio.h>
 #include <cmath>
 #include <iostream>
@@ -203,4 +204,22 @@ void EventTransmission::obtainConfig(ConfigWriter &config)
 		
 		abortWithMessage(config.getErrorString());
 }
+
+JSONConfig transmissionJSONConfig(R"JSON(
+        "EventTransmission": { 
+            "depends": null,
+            "params": [ 
+                ["transmission.param.a", -1.3997],
+                ["transmission.param.b", -12.0220],
+                ["transmission.param.c", 0.1649],
+                ["transmission.param.d1", 0],
+                ["transmission.param.d2", 0] ],
+            "info": [ 
+                "The hazard of transmission is h = exp(a + b * V^(-c) + d1*Pi + d2*Pj), ",
+                "where V can be either the set-point viral load or the acute stage ",
+                "viral load. ",
+                "",
+                "Default parameters originate from a fit to the Lingappa et al. data."
+            ]
+        })JSON");
 

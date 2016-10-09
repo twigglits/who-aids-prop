@@ -4,6 +4,7 @@
 #include "eventmonitoring.h"
 #include "configdistributionhelper.h"
 #include "gslrandomnumbergenerator.h"
+#include "jsonconfig.h"
 
 #include <iostream>
 
@@ -183,4 +184,31 @@ double HazardFunctionDiagnosis::evaluate(double t)
 	return std::exp(m_baseline + m_ageFactor*age + m_genderFactor*G + m_diagPartnersFactor*D +
 			m_isDiagnosedFactor*hasBeenDiagnosed + m_beta*(t-tinf));
 }
+
+JSONConfig diagnosisJSONConfig(R"JSON(
+        "EventDiagnosis": {
+            "depends": null,
+            "params": [
+                [ "diagnosis.baseline", 0 ],
+                [ "diagnosis.agefactor", 0 ],
+                [ "diagnosis.genderfactor", 0 ],
+                [ "diagnosis.diagpartnersfactor", 0 ],
+                [ "diagnosis.isdiagnosedfactor", 0 ],
+                [ "diagnosis.beta", 0 ],
+                [ "diagnosis.t_max", 200 ]
+            ],
+            "info": [
+                "When a person gets infected or drops out of treatment, a diagnosis event is ",
+                "scheduled of which the fire time is determined by the following hazard:",
+                "",
+                " h = exp(baseline + agefactor*A(t) + genderfactor*G ",
+                "         + diagpartnersfactor*ND + isdiagnosedfactor*D",
+                "         + beta*t)",
+                "",
+                "Here, A(t) is the age of the person, G is the gender (0 for a man, 1 for a",
+                "woman), ND is the number of diagnosed partners and D is a flag (0 or 1)",
+                "indicating if the person has been on treatment before (to have different",
+                "behaviour for first diagnosis and re-testing after dropout)."
+            ]
+        })JSON");
 

@@ -13,26 +13,32 @@ public:
 	~TIFFDensityFile();
 
 	// Note: everything will be converted to doubles!
-	bool init(const std::string &fileName, bool noNegativeValues = true);
+	bool init(const std::string &fileName, bool noNegativeValues = true, bool flipY = false);
 	int getWidth() const									{ return m_width; }
 	int getHeight() const									{ return m_height; }
 	double getValue(int x, int y) const;
 	void setValue(int x, int y, double v);
+	bool isYFlipped() const									{ return m_yFlipped; }
 private:
-	bool readTiffFile(const std::string &fileName, bool noNeg);
+	bool readTiffFile(const std::string &fileName, bool noNeg, bool flipY);
+
+	template<class T>
+	bool readTilesFromTIFF(void *pTiffVoid, int tileWidth, int tileHeight, int width, int height, bool noNeg, const std::string &fileName);
 
 	int m_width, m_height;
 	std::vector<double> m_values;
+	bool m_yFlipped;
 
+	template<class T>
 	class Tile
 	{
 	public:
 		Tile() 										{ }
 		Tile(size_t s) 									{ m_buffer.resize(s); }
 		Tile(const Tile &src)								{ m_buffer = src.m_buffer; }
-		float *getData() 								{ assert(m_buffer.size() > 0); return &(m_buffer[0]); }
+		T *getData()	 								{ assert(m_buffer.size() > 0); return &(m_buffer[0]); }
 	private:
-		std::vector<float> m_buffer;
+		std::vector<T> m_buffer;
 	};
 };
 
