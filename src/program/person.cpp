@@ -486,6 +486,44 @@ void Person::lowerViralLoad(double fractionOnLogscale, double treatmentTime)
 	m_treatmentTime = treatmentTime; 
 }
 
+void Person::addPersonOfInterest(Person *pPerson)
+{
+	assert(pPerson);
+	assert(!pPerson->hasDied());
+	assert(pPerson != this); // Never add ourselves
+
+	const int num = m_personsOfInterest.size();
+
+	for (int i = 0 ; i < num ; i++)
+	{
+		if (m_personsOfInterest[i] == pPerson) // Already in the list
+			return;
+	}
+
+	m_personsOfInterest.push_back(pPerson);
+}
+
+void Person::removePersonOfInterest(Person *pPerson)
+{
+	assert(pPerson);
+
+	const int num = m_personsOfInterest.size();
+
+	for (int i = 0 ; i < num ; i++)
+	{
+		if (m_personsOfInterest[i] == pPerson)
+		{
+			Person *pLast = m_personsOfInterest[num-1];
+
+			m_personsOfInterest[i] = pLast;
+			m_personsOfInterest.pop_back();
+			return;
+		}
+	}
+ 
+	abortWithMessage("Specified person of interest " + pPerson->getName() + " was not found in list of " + getName());
+}
+
 Man::Man(double dateOfBirth) : Person(dateOfBirth, Male)
 {
 }

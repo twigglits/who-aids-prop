@@ -3,6 +3,7 @@
 #define CONFIGWRITER_H
 
 #include "errut/errorbase.h"
+#include <stdint.h>
 #include <vector>
 #include <map>
 
@@ -15,6 +16,7 @@ public:
 
 	bool addKey(const std::string &key, double value);
 	bool addKey(const std::string &key, int value);
+	bool addKey(const std::string &key, int64_t value);
 	bool addKey(const std::string &key, bool value);
 	bool addKey(const std::string &key, const char *pStr);
 	bool addKey(const std::string &key, const std::string &value);

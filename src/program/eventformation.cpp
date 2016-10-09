@@ -23,6 +23,9 @@ EventFormation::EventFormation(Person *pPerson1, Person *pPerson2, double lastDi
 	assert(pPerson1->isMan());
 	assert(pPerson2->isWoman());
 
+	assert(pPerson1->isSexuallyActive());
+	assert(pPerson2->isSexuallyActive());
+
 	// New formation events must not be scheduled if one of the persons is in the
 	// final AIDS stage
 	assert(pPerson1->getInfectionStage() != Person::AIDSFinal);

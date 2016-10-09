@@ -4,6 +4,8 @@
 
 // UNDER CONSTRUCTION
 
+#include <limits>
+
 class Function
 {
 public:
@@ -17,8 +19,8 @@ public:
 	virtual double evaluate(double x) = 0;
 
 	virtual int getPrimitiveType(double x)							{ return 0; }
-	virtual double evaluatePrimitive(double x, int pType = 0)				{ return 0.0/0.0; } // generate a NaN by default
-	virtual double evaluateInversePrimitive(double x, int pType = 0)			{ return 0.0/0.0; } // generate a NaN by default
+	virtual double evaluatePrimitive(double x, int pType = 0)				{ return std::numeric_limits<double>::quiet_NaN(); } // generate a NaN by default
+	virtual double evaluateInversePrimitive(double x, int pType = 0)			{ return std::numeric_limits<double>::quiet_NaN(); } // generate a NaN by default
 private:
 	const bool m_hasPrimitive, m_hasInversePrimitive;
 };

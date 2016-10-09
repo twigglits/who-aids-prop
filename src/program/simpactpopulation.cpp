@@ -13,6 +13,10 @@
 #include "gslrandomnumbergenerator.h"
 #include "util.h"
 
+// TODO: for debugging
+#include <iostream>
+using namespace std;
+
 SimpactPopulationConfig::SimpactPopulationConfig()
 {
 	m_initialMen = 100;
@@ -119,34 +123,18 @@ bool SimpactPopulation::scheduleInitialEvents()
 		onNewEvent(pEvt);
 	}
 
-	// Relationship formation, using eyecaps approach
-	GslRandomNumberGenerator *pRngGen = getRandomNumberGenerator();
-
+	
+	// Relationship formation. We'll only process the women, the
+	// events for the men are scheduled automatically
 	for (int i = 0 ; i < numWomen ; i++)
 	{
 		Woman *pWoman = ppWomen[i];
 		assert(pWoman->getGender() == Person::Female);
 
 		if (pWoman->isSexuallyActive())
-		{
-			for (int j = 0 ; j < numMen ; j++)
-			{
-				Man *pMan = ppMen[j];
-				assert(pMan->getGender() == Person::Male);
-		
-				if (pMan->isSexuallyActive())
-				{
-					// Don't necessarily schedule all possible events, but just a fraction
-					if (m_eyeCapsFraction >= 1.0 || pRngGen->pickRandomDouble() < m_eyeCapsFraction)
-					{
-						EventFormation *pEvt = new EventFormation(pMan, pWoman, -1);
-						onNewEvent(pEvt);
-					}
-				}
-			}
-		}
+			initializeFormationEvents(pWoman);
 	}
-	
+
 	// For the people who are not sexually active, set a debut event
 
 	for (int i = 0 ; i < numPeople ; i++)
@@ -188,5 +176,157 @@ void SimpactPopulation::onAboutToFire(EventBase *pEvt)
 //	std::cout << t << "\t" << pEvent->getDescription(t) << std::endl;
 
 	pEvent->writeLogs(t);
+}
+
+void SimpactPopulation::initializeFormationEvents(Person *pPerson)
+{
+	assert(pPerson->isSexuallyActive());
+	assert(pPerson->getInfectionStage() != Person::AIDSFinal);
+
+	GslRandomNumberGenerator *pRngGen = getRandomNumberGenerator();
+
+	if (m_eyeCapsFraction >= 1.0)
+	{
+		if (pPerson->getGender() == Person::Male)
+		{
+			Man *pMan = MAN(pPerson);
+			Woman **ppWomen = getWomen();
+			int numWomen = getNumberOfWomen();
+
+			for (int i = 0 ; i < numWomen ; i++)
+			{
+				Woman *pWoman = ppWomen[i];
+				
+				// No events will be scheduled of the person
+				if (pWoman->isSexuallyActive() && pWoman->getInfectionStage() != Person::AIDSFinal)
+				{
+					EventFormation *pEvt = new EventFormation(pMan, pWoman, -1);
+					onNewEvent(pEvt);
+				}
+			}
+		}
+		else // Female
+		{
+			Woman *pWoman = WOMAN(pPerson);
+			Man **ppMen = getMen();
+			int numMen = getNumberOfMen();
+
+			for (int i = 0 ; i < numMen ; i++)
+			{
+				Man *pMan = ppMen[i];
+
+				if (pMan->isSexuallyActive() && pMan->getInfectionStage() != Person::AIDSFinal)
+				{
+					EventFormation *pEvt = new EventFormation(pMan, pWoman, -1);
+					onNewEvent(pEvt);
+				}
+			}
+		}
+	}
+	else // Use eyecaps
+	{
+		vector<Person *> interests;
+
+		if (pPerson->getGender() == Person::Male)
+		{
+			Man *pMan = MAN(pPerson);
+			int numWomen = getNumberOfWomen();
+			double meanManInterests = m_eyeCapsFraction * (double)numWomen;
+
+			int numInterests = (int)pRngGen->pickPoissonNumber(meanManInterests);
+			interests.resize(numInterests);
+
+			getInterestsForPerson(pMan, interests);
+			
+			for (int i = 0 ; i < numInterests ; i++)
+			{
+				Person *pWoman = interests[i];
+				assert(pWoman->isWoman());
+
+				if (pWoman->isSexuallyActive() && pWoman->getInfectionStage() != Person::AIDSFinal)
+				{
+					pMan->addPersonOfInterest(pWoman);
+					pWoman->addPersonOfInterest(pMan);
+				}
+			}
+
+			numInterests = pMan->getNumberOfPersonsOfInterest();
+
+			for (int i = 0 ; i < numInterests ; i++)
+			{
+				Person *pPoi = pMan->getPersonOfInterest(i);
+
+				EventFormation *pEvt = new EventFormation(pMan, pPoi, -1);
+				onNewEvent(pEvt);
+			}
+		}
+		else // Female
+		{
+			Woman *pWoman = WOMAN(pPerson);
+			int numMen = getNumberOfMen();
+			double meanWomanInterests = m_eyeCapsFraction * (double)numMen;
+
+			int numInterests = (int)pRngGen->pickPoissonNumber(meanWomanInterests);
+			interests.resize(numInterests);
+
+			getInterestsForPerson(pWoman, interests);
+			
+			for (int i = 0 ; i < numInterests ; i++)
+			{
+				Person *pMan = interests[i];
+				assert(pMan->isMan());
+
+				if (pMan->isSexuallyActive() && pMan->getInfectionStage() != Person::AIDSFinal)
+				{
+					pMan->addPersonOfInterest(pWoman);
+					pWoman->addPersonOfInterest(pMan);
+				}
+			}
+
+			numInterests = pWoman->getNumberOfPersonsOfInterest();
+
+			for (int i = 0 ; i < numInterests ; i++)
+			{
+				Person *pPoi = pWoman->getPersonOfInterest(i);
+
+				EventFormation *pEvt = new EventFormation(pPoi, pWoman, -1);
+				onNewEvent(pEvt);
+			}
+		}
+	}
+}
+
+// Doubles and persons who are not sexually active will be removed from the list in another stage
+void SimpactPopulation::getInterestsForPerson(const Person *pPerson, vector<Person *> &interests)
+{
+	GslRandomNumberGenerator *pRngGen = getRandomNumberGenerator();
+	Woman **ppWomen = getWomen();
+	Man **ppMen = getMen();
+	int numWomen = getNumberOfWomen();
+	int numMen = getNumberOfMen();
+	int numInterests = interests.size();
+
+	if (pPerson->isMan())
+	{
+		for (int i = 0 ; i < numInterests ; i++)
+		{
+			int idx = (int)(pRngGen->pickRandomDouble() * (double)numWomen);
+			assert(idx >= 0 && idx < numWomen);
+
+			Woman *pWoman = ppWomen[idx];
+			interests[i] = pWoman;
+		}
+	}
+	else // Woman
+	{
+		for (int i = 0 ; i < numInterests ; i++)
+		{
+			int idx = (int)(pRngGen->pickRandomDouble() * (double)numMen);
+			assert(idx >= 0 && idx < numMen);
+
+			Man *pMan = ppMen[idx];
+			interests[i] = pMan;
+		}
+	}
 }
 

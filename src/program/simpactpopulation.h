@@ -43,11 +43,15 @@ public:
 
 	int getInitialPopulationSize() const					{ return m_initialPopulationSize; }
 	double getEyeCapsFraction() const					{ return m_eyeCapsFraction; }
+
+	// Is called by debut event
+	void initializeFormationEvents(Person *pPerson);
 protected:
 	bool createInitialPopulation(const SimpactPopulationConfig &config, const PopulationDistribution &popDist);
 	bool scheduleInitialEvents();
 private:
 	void onAboutToFire(EventBase *pEvt);
+	void getInterestsForPerson(const Person *pPerson, std::vector<Person *> &interests);
 
 	int m_initialPopulationSize;
 	double m_eyeCapsFraction;

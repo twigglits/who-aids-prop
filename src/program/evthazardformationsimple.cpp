@@ -3,6 +3,7 @@
 #include "eventdebut.h"
 #include "configsettings.h"
 #include "hazardfunctionformationsimple.h"
+#include <algorithm>
 
 // WARNING: the same instance can be called from multiple threads
 // WARNING: the same instance can be called from multiple threads

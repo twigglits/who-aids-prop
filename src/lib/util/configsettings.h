@@ -8,6 +8,7 @@
 
 #include "configreader.h"
 #include "util.h"
+#include <stdint.h>
 #include <limits>
 
 /** Helper class to read configuration settings, more advanced than ConfigReader.
@@ -49,6 +50,11 @@ public:
 	 *  checking that it lies withing the bounds if specified. */
 	bool getKeyValue(const std::string &key, int &value, int minValue = std::numeric_limits<int>::min(),
 	                 int maxValue = std::numeric_limits<int>::max());
+
+	/** Interprets the value for the specified key as an integer number,
+	 *  checking that it lies withing the bounds if specified. */
+	bool getKeyValue(const std::string &key, int64_t &value, int64_t minValue = std::numeric_limits<int64_t>::min(),
+	                 int64_t maxValue = std::numeric_limits<int64_t>::max());
 
 	bool getStringKeyValue(const std::string &key, std::string &value, bool &used) const;
 	

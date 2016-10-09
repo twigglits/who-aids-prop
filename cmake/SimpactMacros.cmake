@@ -23,7 +23,7 @@ macro(simpact_setup)
 
 	find_package(TIFF REQUIRED)
 	include_directories(${TIFF_INCLUDE_DIR})
-	string(REPLACE "." ";" TIFF_VERSION_LIST ${TIFF_VERSION_STRING})
+	string(REPLACE "." ";" TIFF_VERSION_LIST "${TIFF_VERSION_STRING}")
 	list(GET TIFF_VERSION_LIST 0 TIFF_VERSION_MAJOR)
 
 	if (NOT RT_LIBRARIES)
@@ -60,9 +60,9 @@ macro(simpact_setup)
 		${PROJECT_SOURCE_DIR}/src/lib/util/configsettings.cpp
 		${PROJECT_SOURCE_DIR}/src/lib/util/configdistributionhelper.cpp
 		${PROJECT_SOURCE_DIR}/src/lib/util/experimental/discretefunction.cpp
-		${PROJECT_SOURCE_DIR}/src/lib/util/experimental/Faddeeva.cc
-		${PROJECT_SOURCE_DIR}/src/lib/util/experimental/inverseerfi.cpp
-		${PROJECT_SOURCE_DIR}/src/lib/util/experimental/exponentialfunction.cpp
+		#${PROJECT_SOURCE_DIR}/src/lib/util/experimental/Faddeeva.cc
+		#${PROJECT_SOURCE_DIR}/src/lib/util/experimental/inverseerfi.cpp
+		#${PROJECT_SOURCE_DIR}/src/lib/util/experimental/exponentialfunction.cpp
 		${PROJECT_SOURCE_DIR}/src/lib/util/hazardfunction.cpp
 		${PROJECT_SOURCE_DIR}/src/lib/util/logfile.cpp 
 		${PROJECT_SOURCE_DIR}/src/lib/util/tiffdensityfile.cpp 
@@ -91,6 +91,9 @@ macro(simpact_setup)
 
 	set(SOURCES ${SOURCES_UTIL} ${SOURCES_CORE} ${SOURCES_MRNM})
 	add_simpact_library("simpact-lib-static" ${SOURCES})
+
+	# From: http://stackoverflow.com/questions/11813271/embed-resources-eg-shader-code-images-into-executable-library-with-cmake
+	add_executable(embedfile "${PROJECT_SOURCE_DIR}/cmake/embedfile.c")
 endmacro()
 
 macro(add_simpact_library LIBPREFIX MAINSOURCES)
@@ -105,6 +108,14 @@ macro(add_simpact_executable EXEPREFIX MAINSOURCES)
 	list(REMOVE_AT MAINSOURCES0 0)
 	set(SOURCES ${MAINSOURCES0})
 	add_simpact_executable_or_library("EXE" ${EXEPREFIX} ${SOURCES})
+endmacro()
+
+macro(install_simpact_executable EXEPREFIX)
+	if (UNIX AND NOT CMAKE_GENERATOR STREQUAL Xcode)
+		install(TARGETS ${EXEPREFIX}-opt ${EXEPREFIX}-opt-debug ${EXEPREFIX}-basic ${EXEPREFIX}-basic-debug DESTINATION bin)
+	else()
+		install(TARGETS ${EXEPREFIX}-opt ${EXEPREFIX}-basic DESTINATION bin)
+	endif()
 endmacro()
 
 macro(add_library_or_executable LIBOREXEFLAG LIBOREXENAME MAINSOURCES)
@@ -186,6 +197,7 @@ macro(add_simpact_executable_or_library LIBOREXE EXEPREFIX MAINSOURCES)
 		set_target_properties(${EXEPREFIX}-basic-debug PROPERTIES LINK_FLAGS ${CMAKE_CXX_FLAGS_DEBUG})
 		add_openmp_flags(${EXEPREFIX}-basic-debug)
 	else()
+
 		if (USELIBSETTINGS)
 			set(ALLLIBSOPT ${ALLLIBS})
 			set(ALLLIBSBASIC ${ALLLIBS})
@@ -202,5 +214,12 @@ macro(add_simpact_executable_or_library LIBOREXE EXEPREFIX MAINSOURCES)
 		target_link_libraries(${EXEPREFIX}-basic ${ALLLIBSBASIC})
 		set_target_properties(${EXEPREFIX}-basic PROPERTIES COMPILE_DEFINITIONS "SIMPLEMNRM;TIFFVERSION=${TIFF_VERSION_MAJOR};${OPENMPDEFINE}")
 		add_openmp_flags(${EXEPREFIX}-basic) # Must be last (set_target_properties changes it again otherwise)
+
+		if (USELIBSETTINGS)
+			set(CMAKE_DEBUG_POSTFIX "-debug") # Is only used for libraries
+		else()
+			set_property(TARGET ${EXEPREFIX}-opt PROPERTY DEBUG_OUTPUT_NAME "${EXEPREFIX}-opt-debug")
+			set_property(TARGET ${EXEPREFIX}-basic PROPERTY DEBUG_OUTPUT_NAME "${EXEPREFIX}-basic-debug")
+		endif()
 	endif()
 endmacro(add_simpact_executable_or_library)

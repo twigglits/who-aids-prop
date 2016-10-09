@@ -84,6 +84,13 @@ public:
 	int getNumberOfChildren() const							{ return m_children.size(); }
 	Person *getChild(int idx);
 
+	// NOTE: this ignores the call if already in the list
+	void addPersonOfInterest(Person *pPerson);
+	void removePersonOfInterest(Person *pPerson);
+	void clearPersonsOfInterest()								{ m_personsOfInterest.clear(); }
+	int getNumberOfPersonsOfInterest() const						{ return m_personsOfInterest.size(); }
+	Person *getPersonOfInterest(int idx) const						{ assert(idx >= 0 && idx < m_personsOfInterest.size()); Person *pPerson = m_personsOfInterest[idx]; assert(pPerson); return pPerson; }
+
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
 
@@ -143,6 +150,7 @@ private:
 	double m_preferredAgeDiff;
 
 	std::vector<Person *> m_children;
+	std::vector<Person *> m_personsOfInterest;
 
 	static double m_hivSeedWeibullShape;
 	static double m_hivSeedWeibullScale;

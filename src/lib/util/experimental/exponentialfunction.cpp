@@ -6,6 +6,7 @@
 #include <gsl/gsl_cdf.h>
 #include <assert.h>
 #include <cmath>
+#include <limits>
 
 // UNDER CONSTRUCTION
 
@@ -19,7 +20,7 @@ ExponentialFunction::ExponentialFunction(double a, double b) : Function(true, tr
 	m_a = a;
 	m_b = b;
 	m_hasSquareTerm = false;
-	m_c = 0.0/0.0; // NaN
+	m_c = std::numeric_limits<double>::quiet_NaN(); // NaN
 
 	m_prefactor = 0;
 	m_prefactor2 = 0;

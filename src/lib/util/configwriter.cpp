@@ -1,6 +1,9 @@
 #include "configwriter.h"
 #include <stdio.h>
 
+#define __STDC_FORMAT_MACROS // Need this for PRId64
+#include <inttypes.h>
+
 using namespace std;
 
 ConfigWriter::ConfigWriter()
@@ -24,6 +27,14 @@ bool ConfigWriter::addKey(const std::string &key, int value)
 	char str[1024];
 
 	sprintf(str, "%d", value);
+	return addKey(key, str);
+}
+
+bool ConfigWriter::addKey(const std::string &key, int64_t value)
+{
+	char str[1024];
+
+	sprintf(str, "%" PRId64, value);
 	return addKey(key, str);
 }
 

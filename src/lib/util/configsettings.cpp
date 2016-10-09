@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <iostream>
 
+#define __STDC_FORMAT_MACROS // Need this for PRId64
+#include <inttypes.h>
+
+
 using namespace std;
 
 ConfigSettings::ConfigSettings()
@@ -141,7 +145,7 @@ bool ConfigSettings::getKeyValue(const std::string &key, double &value, double m
 	{
 		char str[1024];
 
-		snprintf(str, 1024, "The value for '%s' must lie between %g and %g, but is %g", key.c_str(), minValue, maxValue, value);
+		sprintf(str, "The value for '%s' must lie between %g and %g, but is %g", key.c_str(), minValue, maxValue, value);
 		setErrorString(str);
 		return false;
 	}
@@ -166,7 +170,32 @@ bool ConfigSettings::getKeyValue(const std::string &key, int &value, int minValu
 	{
 		char str[1024];
 
-		snprintf(str, 1024, "The value for '%s' must lie between %d and %d, but is %d", key.c_str(), minValue, maxValue, value);
+		sprintf(str, "The value for '%s' must lie between %d and %d, but is %d", key.c_str(), minValue, maxValue, value);
+		setErrorString(str);
+		return false;
+	}
+
+	return true;
+}
+
+bool ConfigSettings::getKeyValue(const std::string &key, int64_t &value, int64_t minValue, int64_t maxValue)
+{
+	string valueStr;
+
+	if (!getKeyValue(key, valueStr))
+		return false;
+
+	if (!parseAsInt(valueStr, value))
+	{
+		setErrorString("Can't interpret value for key '" + key + "' as an integer number");
+		return false;
+	}
+
+	if (value < minValue || value > maxValue)
+	{
+		char str[1024];
+
+		sprintf(str, "The value for '%s' must lie between %" PRId64 " and %" PRId64 ", but is %" PRId64 "", key.c_str(), minValue, maxValue, value);
 		setErrorString(str);
 		return false;
 	}

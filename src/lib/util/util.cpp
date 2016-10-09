@@ -279,6 +279,30 @@ bool parseAsInt(const std::string &str, int &value)
 	return true;
 }
 
+bool parseAsInt(const std::string &str, int64_t &value)
+{
+	string valueStr = trim(str);
+	if (valueStr.length() == 0)
+		return false;
+
+	const char *nptr = valueStr.c_str();
+	char *endptr;
+	
+	long int v = strtol(nptr,&endptr,10); // base 10
+	
+	if (*nptr != '\0')
+	{
+		if (*endptr != '\0')
+		{
+			return false;
+		}
+	}
+
+	value = v;
+
+	return true;
+}
+
 bool parseAsDouble(const std::string &str, double &value)
 {
 	string valueStr = trim(str);
@@ -332,7 +356,7 @@ string doubleToString(double x)
 {
 	char s[256];
 
-	snprintf(s, 255, "%.15g", x);
+	sprintf(s, "%.15g", x);
 	return s;
 }
 

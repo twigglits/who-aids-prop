@@ -2,6 +2,7 @@
 
 #define UTIL_H
 
+#include <stdint.h>
 #include <stdio.h>
 #include <string>
 #include <vector>
@@ -17,6 +18,7 @@ std::string createFullPath(const std::string &dir, const std::string &file);
 void abortWithMessage(const std::string &msg);
 
 bool parseAsInt(const std::string &str, int &number);
+bool parseAsInt(const std::string &str, int64_t &number);
 bool parseAsDouble(const std::string &str, double &number);
 std::string doubleToString(double x);
 
