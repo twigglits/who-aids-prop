@@ -3,6 +3,7 @@
 #include "gammadistribution.h"
 #include "fixedvaluedistribution.h"
 #include "lognormaldistribution.h"
+#include "normaldistribution.h"
 #include "configsettings.h"
 #include "configwriter.h"
 #include <vector>
@@ -20,6 +21,7 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	supportedDistributions.push_back("beta");
 	supportedDistributions.push_back("gamma");
 	supportedDistributions.push_back("lognormal");
+	supportedDistributions.push_back("normal");
 	
 	if (!config.getKeyValue(prefix + ".dist.type", distName, supportedDistributions))
 		abortWithMessage(config.getErrorString());
@@ -75,6 +77,16 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 			abortWithMessage(config.getErrorString());
 
 		pDist = new LogNormalDistribution(zeta, sigma, pRndGen);
+	}
+	else if (distName == "normal")
+	{
+		double mu, sigma;
+
+		if (!config.getKeyValue(prefix + ".dist.normal.mu", mu) ||
+		    !config.getKeyValue(prefix + ".dist.normal.sigma", sigma, 0) )
+			abortWithMessage(config.getErrorString());
+
+		pDist = new NormalDistribution(mu, sigma, pRndGen);
 	}
 	else
 		abortWithMessage("ERROR: distribution name for " + prefix + ".dist.type:" + distName);
@@ -157,6 +169,20 @@ void addDistributionToConfig(ProbabilityDistribution *pSrcDist, ConfigWriter &co
 			if (!config.addKey(prefix + ".dist.type", "lognormal") ||
 			    !config.addKey(prefix + ".dist.lognormal.zeta", pDist->getZeta()) ||
 			    !config.addKey(prefix + ".dist.lognormal.sigma", pDist->getSigma()))
+				abortWithMessage(config.getErrorString());
+
+			return;
+		}
+	}
+
+	// Just some curly braces to limite the name scope
+	{
+		NormalDistribution *pDist = 0;
+		if ((pDist = dynamic_cast<NormalDistribution *>(pSrcDist)) != 0)
+		{
+			if (!config.addKey(prefix + ".dist.type", "normal") ||
+			    !config.addKey(prefix + ".dist.normal.mu", pDist->getMu()) ||
+			    !config.addKey(prefix + ".dist.normal.sigma", pDist->getSigma()))
 				abortWithMessage(config.getErrorString());
 
 			return;

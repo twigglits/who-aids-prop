@@ -62,6 +62,12 @@ class GslRandomNumberGenerator;
  *   - test.dist.type = lognormal
  *   - test.dist.lognormal.zeta = 0
  *   - test.dist.lognormal.sigma = 0.5
+ *
+ *  Normal distribution, \f[ \textrm{prob}(x) = \frac{1}{\sigma \sqrt{2 \pi} }  \exp\left(-\frac{(x-\mu)^2}{2 \sigma^2}\right) \f]
+ *
+ *   - test.dist.type = normal
+ *   - test.dist.normal.mu = 1
+ *   - test.dist.normal.sigma = 2.5
  */
 ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen, 
 		                                   const std::string &prefix);

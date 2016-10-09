@@ -24,10 +24,17 @@
             ]
         },
         "lognormal": { 
-            "params": [ ["zeta", 0], ["sigma", null] ],
+            "params": [ ["zeta", null], ["sigma", null] ],
             "info": [ 
                 "Parameters for a log-normal distribution",
                 "prob(x) = 1.0/(x*s*sqrt(2.0*pi)) * exp(- (ln(x)-z)^2 / (2.0*s^2))"
+            ]
+        },
+        "normal": { 
+            "params": [ ["mu", null], ["sigma", null] ],
+            "info": [ 
+                "Parameters for a normal distribution",
+                "prob(x) = 1.0/(s*sqrt(2.0*pi)) * exp(- (x-m)^2 / (2.0*s^2))"
             ]
         }
     },
