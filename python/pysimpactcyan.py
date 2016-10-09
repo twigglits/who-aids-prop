@@ -39,57 +39,78 @@ def _getExpandedSettingsOptions(executable):
     configNames = configOptions["configNames"]
     distTypes = configOptions["distTypes"]
 
+    possibleDistNames = [ t for t in distTypes ]
+
     # Change the config entries which have a 'distTypes' setting
 
     newConfig = copy.deepcopy(configNames)
     for n in configNames:
+
         params = configNames[n]['params']
         for i in range(len(params)):
-            p = params[i]
+            p = params[i] 
             pName = p[0]
             pValue = p[1]
             if pValue == "distTypes":
 
                 defaultDistName = 'fixed'
                 defaultDistParams = None
-                if len(p) == 3:
+                if len(p) == 3: # The third parameter are the defaults
                     defaultDistOptions = p[2]
                     defaultDistName = defaultDistOptions[0]
                     defaultDistParams = defaultDistOptions[1]
 
-                # Adjust the entry in 'newConfig'
-                possibleNames = [ t for t in distTypes ]
-                newConfig[n]['params'][i] = (pName + ".type", defaultDistName, possibleNames)
+                # Adjust the entry in 'newConfig' to reflect the default distribution name
+                newConfig[n]['params'][i] = [ pName + ".type", defaultDistName, possibleDistNames ]
 
-                #print "configNames[%s] = " % n
-                #pprint.pprint(newConfig[n])
-                #print
-
+                # Add entries to newConfig for all possible distributions
                 for distName in distTypes:
                     distParams = distTypes[distName]['params']
 
-                    if len(params) > 1:
-                        newConfName = n + "_" + str(i) + "_" + distName
-                    else:
-                        newConfName = n + "_" + distName
+                    newConfName = n + "_" + str(i) + "_" + distName
+                    newConfig[newConfName] = { 'depends': [ n, pName + ".type", distName ] }
 
-                    newConfig[newConfName] = { 'depends': (n, pName + ".type", distName) }
+                    if defaultDistName == distName and defaultDistParams:
+                        # Default parameters are present for this distribution,
+                        # merge them
 
-                    if not defaultDistParams:
-                        newConfig[newConfName]['params'] = [ (pName + "." + distName + "." + dp, dv) for dp,dv in distParams ]
+                        defaultParamMap = { }
+                        for dp,dv in defaultDistParams:
+                            defaultParamMap[dp] = dv
+
+                        modParams = copy.deepcopy(distParams)
+                        for paramPair in modParams:
+                            dp = paramPair[0]
+                            if dp in defaultParamMap:
+                                paramPair[1] = defaultParamMap[dp]
+
+                        newConfig[newConfName]['params'] = [ [ pName + "." + distName + "." + dp, dv ] for dp,dv in modParams ]
                     else:
-                        newConfig[newConfName]['params'] = [ (pName + "." + distName + "." + dp, dv) for dp,dv in defaultDistParams ]
+                        # No specific defaults, just use the info from the "distTypes" data structure
+                        newConfig[newConfName]['params'] = [ [ pName + "." + distName + "." + dp, dv ] for dp,dv in distParams ]
 
                     newConfig[newConfName]['info'] = distTypes[distName]['info']
 
+    #pprint.pprint(newConfig)
+    #sys.exit(-1)
     return newConfig
 
+# userConfig is a map of key/value pairs, for each configuration option as
+# will be present in the config file
+#
+# cfg is actually an entry of configNames, and configNames is present as
+# well in case this entry has a dependency, which then needs to be checked
+# first
+#
+# requiredKeys will be a map of keys than need to be set in the final config
+# file, either mapped to None just to indicate that it needs to be present,
+# or mapped to a list of possible values
 def _processConfigPart(cfg, userConfig, configNames, requiredKeys):
 
     params = cfg['params']
     deps = cfg['depends']
 
-    # Check if we need to process dependencies
+    # Check if we need to process dependencies first
     if deps is not None:
 
         depObjName = deps[0]
@@ -153,8 +174,6 @@ def createConfigLines(executable, inputConfig, checkNone = True, ignoreKeys = [ 
 
     for n in configNames:
         cfg = configNames[n]
-        #print "createConfigLines", n
-        #print cfg
         _processConfigPart(cfg, userConfig, configNames, requiredKeys)
 
     for k in userConfig:

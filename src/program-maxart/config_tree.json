@@ -31,10 +31,11 @@
             ]
         },
         "normal": { 
-            "params": [ ["mu", null], ["sigma", null] ],
+            "params": [ ["mu", null], ["sigma", null], ["min", "-inf"], ["max", "inf"] ],
             "info": [ 
-                "Parameters for a normal distribution",
-                "prob(x) = 1.0/(s*sqrt(2.0*pi)) * exp(- (x-m)^2 / (2.0*s^2))"
+                "Parameters for a clipped normal distribution",
+                "prob(x) = 1.0/(s*sqrt(2.0*pi)) * exp(- (x-m)^2 / (2.0*s^2))",
+		"possibly truncated to [min,max] (using rejection sampling)"
             ]
         },
         "exponential": {

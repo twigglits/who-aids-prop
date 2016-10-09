@@ -43,15 +43,15 @@ public:
 	/** Interprets the value for the specified key as a double precision floating point number,
 	 *  checking that it lies withing the bounds if specified. */
 	// std::numeric_limits<double>::min() is the smallest in absolute value, can't use that here!
-	bool getKeyValue(const std::string &key, double &value, double minValue = -std::numeric_limits<double>::max(), 
-	                 double maxValue = std::numeric_limits<double>::max());
+	bool getKeyValue(const std::string &key, double &value, double minValue = -std::numeric_limits<double>::infinity(), 
+	                 double maxValue = std::numeric_limits<double>::infinity());
 
 	/** Interprets the value for the specified key as a list of double precision floating point numbers,
 	 *  checking that each lies withing the bounds if specified. */
 	// std::numeric_limits<double>::min() is the smallest in absolute value, can't use that here!
 	bool getKeyValue(const std::string &key, std::vector<double> &values, 
-			 double minValue = -std::numeric_limits<double>::max(), 
-	                 double maxValue = std::numeric_limits<double>::max());
+			 double minValue = -std::numeric_limits<double>::infinity(), 
+	                 double maxValue = std::numeric_limits<double>::infinity());
 
 	/** Interprets the value for the specified key as an integer number,
 	 *  checking that it lies withing the bounds if specified. */

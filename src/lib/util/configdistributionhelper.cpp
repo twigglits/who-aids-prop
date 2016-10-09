@@ -82,13 +82,16 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	}
 	else if (distName == "normal")
 	{
-		double mu, sigma;
+		double mu, sigma, minValue, maxValue;
 
 		if (!config.getKeyValue(prefix + ".dist.normal.mu", mu) ||
-		    !config.getKeyValue(prefix + ".dist.normal.sigma", sigma, 0) )
+		    !config.getKeyValue(prefix + ".dist.normal.sigma", sigma, 0) ||
+		    !config.getKeyValue(prefix + ".dist.normal.min", minValue) ||
+		    !config.getKeyValue(prefix + ".dist.normal.max", maxValue, minValue)
+		    )
 			abortWithMessage(config.getErrorString());
 
-		pDist = new NormalDistribution(mu, sigma, pRndGen);
+		pDist = new NormalDistribution(mu, sigma, pRndGen, minValue, maxValue);
 	}
 	else if (distName == "exponential")
 	{
@@ -193,7 +196,10 @@ void addDistributionToConfig(ProbabilityDistribution *pSrcDist, ConfigWriter &co
 		{
 			if (!config.addKey(prefix + ".dist.type", "normal") ||
 			    !config.addKey(prefix + ".dist.normal.mu", pDist->getMu()) ||
-			    !config.addKey(prefix + ".dist.normal.sigma", pDist->getSigma()))
+			    !config.addKey(prefix + ".dist.normal.sigma", pDist->getSigma()) ||
+			    !config.addKey(prefix + ".dist.normal.min", pDist->getMin()) ||
+			    !config.addKey(prefix + ".dist.normal.max", pDist->getMax())
+			    )
 				abortWithMessage(config.getErrorString());
 
 			return;
