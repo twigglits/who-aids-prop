@@ -1,13 +1,21 @@
+#ifndef DISABLEOPENMP
 #include <omp.h>
+#endif // !DISABLEOPENMP
+
 #include "simplestate.h"
 #include "eventbase.h"
 #include "gslrandomnumbergenerator.h"
+#include "util.h"
 #include <assert.h>
 #include <iostream>
 #include <limits>
 
 SimpleState::SimpleState(bool parallel, GslRandomNumberGenerator *pRng) : State(pRng)
 {
+#ifdef DISABLEOPENMP
+	if (parallel)
+		abortWithMessage("Parallel version requested but OpenMP was not available when creating the program");
+#endif // DISABLEOPENMP
 	m_parallel = parallel;
 
 	m_eventPos = -1;
@@ -15,9 +23,11 @@ SimpleState::SimpleState(bool parallel, GslRandomNumberGenerator *pRng) : State(
 
 	if (m_parallel)
 	{
+#ifndef DISABLEOPENMP
 		std::cerr << "# Parallel time dependent mRNM: using " << omp_get_max_threads() << " threads" << std::endl;
 		m_dtMinValues.resize(omp_get_max_threads());
 		m_minPosValues.resize(m_dtMinValues.size());
+#endif // !DISABLEOPENMP
 	}
 }
 
@@ -62,6 +72,7 @@ EventBase *SimpleState::getNextScheduledEvent(double &dt)
 
 	if (m_parallel)
 	{
+#ifndef DISABLEOPENMP
 		for (int i = 0 ; i < m_dtMinValues.size() ; i++)
 		{
 			m_dtMinValues[i] = dtMin;
@@ -90,6 +101,7 @@ EventBase *SimpleState::getNextScheduledEvent(double &dt)
 				eventPos = m_minPosValues[i];
 			}
 		}
+#endif // DISABLEOPENMP
 	}
 	else
 	{
@@ -138,12 +150,14 @@ void SimpleState::advanceEventTimes(EventBase *pScheduledEvent, double dtMin)
 
 	if (m_parallel)
 	{
+#ifndef DISABLEOPENMP
 		#pragma omp parallel for
 		for (int i = 0 ; i < numEvents ; i++)
 		{
 			if (i != m_eventPos)
 				events[i]->subtractInternalTimeInterval(this, t1);
 		}
+#endif // !DISABLEOPENMP
 	}
 	else
 	{

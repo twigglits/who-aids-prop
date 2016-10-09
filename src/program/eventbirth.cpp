@@ -1,20 +1,17 @@
 #include "eventbirth.h"
-#include "eventdebut.h"
+#include "configdistributionhelper.h"
+#include "gslrandomnumbergenerator.h"
 #include "eventmortality.h"
 #include "eventconception.h"
-#include "eventmtctransmission.h"
-#include "eventstopbreastfeeding.h"
-#include "eventchronicstage.h"
-#include "simpactpopulation.h"
-#include "person.h"
-#include "gslrandomnumbergenerator.h"
-#include <stdio.h>
-#include <iostream>
+#include "eventdebut.h"
+#include <assert.h>
 
-// The event should not be affected if the father dies, so it's a one person event
-// but we'll store the father using 'setFather' to keep track of him
-EventBirth::EventBirth(Person *pPerson) : SimpactEvent(pPerson)
+using namespace std;
+
+EventBirth::EventBirth(Person *pMother) : SimpactEvent(pMother)
 {
+	assert(pMother->isWoman());
+
 	m_pFather = 0;
 }
 
@@ -22,41 +19,43 @@ EventBirth::~EventBirth()
 {
 }
 
-void EventBirth::setFather(Person *pFather)
+string EventBirth::getDescription(double tNow) const
 {
-	m_pFather = MAN(pFather);
+	return "birth";
+}
+
+void EventBirth::writeLogs(double tNow) const
+{
+	Person *pMother = getPerson(0);
+
+	writeEventLogStart(true, "birth", tNow, pMother, 0);
 }
 
 double EventBirth::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-	double dt = 268.0/365.0; // 268 days // TODO: make this configurable? // TODO: add something random?
+	assert(m_pPregDurationDist);
+
+	double dt = m_pPregDurationDist->pickNumber();
 
 	return dt;
-}
-
-std::string EventBirth::getDescription(double tNow) const
-{
-	Person *pPerson = getPerson(0);
-	char str[1024];
-
-	sprintf(str, "Birth event for %s", pPerson->getName().c_str());
-	return std::string(str);
 }
 
 void EventBirth::fire(State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
-	assert(getNumberOfPersons() == 1);
 
 	Woman *pMother = WOMAN(getPerson(0));
 	assert(pMother->isPregnant());
 
+	// After the birth the pregnancy is over
+	pMother->setPregnant(false);
+
 	// Create the new person, set father and mother and add him/her to the population
-	double boyGirlRatio = 1.0/2.01;
 	GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
 	Person *pChild = 0;
 	
-	if (pRndGen->pickRandomDouble() < boyGirlRatio)
+	assert(m_boyGirlRatio >= 0 && m_boyGirlRatio <= 1.0);
+	if (pRndGen->pickRandomDouble() < m_boyGirlRatio)
 		pChild = new Man(t);
 	else
 		pChild = new Woman(t);
@@ -69,51 +68,19 @@ void EventBirth::fire(State *pState, double t)
 	pMother->addChild(pChild);
 
 	population.addNewPerson(pChild);
-	std::cerr << "\t\tNew child born: " << pChild->getName() << std::endl;
+	writeEventLogStart(true, "(childborn)", t, pChild, 0);
 
-	// Schedule MTC transmission event if the mother is infected, or
+	// TODO!
+	// Currently children are assumed to be non-infected, even if the mother is infected
 	
-	if (pMother->isInfected())
-	{
-		if (0) // TODO TODO TODO: what criterion should be used here?
-		{
-			// Child is immediately infected
-			pChild->setInfected(t, pMother, Person::Mother);
-			
-			// the mortality event is generated below and will automatically be of the
-			// right type
-
-			// Schedule an event for the transition to the chronic stage
-			EventChronicStage *pEvtChronic = new EventChronicStage(pChild);
-			population.onNewEvent(pEvtChronic);
-		}
-		else // not infected immediately
-		{
-			EventMTCTransmission *pEvtMTCTrans = new EventMTCTransmission(pMother, pChild);
-			population.onNewEvent(pEvtMTCTrans);
-		}
-	}
-
-	// TODO: only do breastfeeding stuff in case of a mtc transmission event?
-	//       (child is already infected otherwise)
-	// Schedule breastfeeding stop time
-	pChild->setBreastFeeding();
-
-	EventStopBreastFeeding *pEvtStopBF = new EventStopBreastFeeding(pChild); // it's the child which is being fed
-	population.onNewEvent(pEvtStopBF);
-
 	// Create mortality and debut events for the child and register them in the system
-	// Since the infection status has already been set, this can be both a normal and an
-	// aids-mortality
 	EventMortality *pEvtMort = new EventMortality(pChild);
 	population.onNewEvent(pEvtMort);
 
 	EventDebut *pEvtDebut = new EventDebut(pChild);
 	population.onNewEvent(pEvtDebut);
 
-	// After the birth the pregnancy is over
-	pMother->setPregnant(false);
-	
+	// TODO: this needs to be changed if breastfeeding event is included
 	// Schedule conception events for current relationships the mother is in
 	int numRelations = pMother->getNumberOfRelationships();
 	pMother->startRelationshipIteration();
@@ -125,7 +92,7 @@ void EventBirth::fire(State *pState, double t)
 
 		assert(pPartner->getGender() == Person::Male);
 
-		EventConception *pEvtCon = new EventConception(pPartner, pMother);
+		EventConception *pEvtCon = new EventConception(pPartner, pMother, t);
 		population.onNewEvent(pEvtCon);
 	}
 
@@ -133,3 +100,42 @@ void EventBirth::fire(State *pState, double t)
 	assert(pMother->getNextRelationshipPartner(tDummy) == 0);
 }
 
+void EventBirth::setFather(Person *pFather)
+{
+	assert(pFather);
+	assert(m_pFather == 0); // should only be set once
+
+	m_pFather = MAN(pFather);
+}
+
+void EventBirth::markOtherAffectedPeople(const Population &population)
+{
+	assert(m_pFather);
+
+	if (!m_pFather->hasDied())
+		population.markAffectedPerson(m_pFather);
+}
+
+double EventBirth::m_boyGirlRatio = -1;
+ProbabilityDistribution *EventBirth::m_pPregDurationDist = 0;
+
+void EventBirth::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
+{
+	if (m_pPregDurationDist)
+	{
+		delete m_pPregDurationDist;
+		m_pPregDurationDist = 0;
+	}
+
+	m_pPregDurationDist = getDistributionFromConfig(config, pRndGen, "birth.pregnancyduration");
+
+	if (!config.getKeyValue("birth.boygirlratio", m_boyGirlRatio, 0, 1))
+		abortWithMessage(config.getErrorString());
+}
+
+void EventBirth::obtainConfig(ConfigWriter &config)
+{
+	addDistributionToConfig(m_pPregDurationDist, config, "birth.pregnancyduration");
+	if (!config.addKey("birth.boygirlratio", m_boyGirlRatio))
+		abortWithMessage(config.getErrorString());
+}

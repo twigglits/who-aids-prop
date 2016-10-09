@@ -4,6 +4,8 @@
 
 #include "simpactevent.h"
 
+class ConfigSettings;
+
 class EventChronicStage : public SimpactEvent
 {
 public:
@@ -11,10 +13,17 @@ public:
 	~EventChronicStage();
 
 	std::string getDescription(double tNow) const;
+	void writeLogs(double tNow) const;
 
 	void fire(State *pState, double t);
+
+	static double getAcuteStageTime() 							{ return m_acuteTime; }
+	static void processConfig(ConfigSettings &config);
+	static void obtainConfig(ConfigWriter &config);
 private:
 	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
+
+	static double m_acuteTime;
 };
 
 #endif // EVENTCHRONICSTAGE_H

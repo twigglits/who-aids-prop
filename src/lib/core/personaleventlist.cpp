@@ -228,7 +228,7 @@ void PersonalEventList::advanceEventTimes(const Population &pop, double t1)
 				if (!foundOurselves)
 				{
 					std::cerr << "Consistency error: we're not present in the event" << std::endl;
-					exit(-1);
+					abort();
 				}
 
 				pEvt->subtractInternalTimeInterval(&pop, t1);
@@ -280,7 +280,7 @@ void PersonalEventList::advanceEventTimes(const Population &pop, double t1)
 				if (!foundOurselves)
 				{
 					std::cerr << "Consistency error: we're not present in the event" << std::endl;
-					exit(-1);
+					abort();
 				}
 
 				pEvt->subtractInternalTimeInterval(&pop, t1);

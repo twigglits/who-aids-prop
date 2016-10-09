@@ -16,7 +16,9 @@ class GslRandomNumberGenerator;
 
 // To perform a check on solveForRealTimeInterval <-> calculateInternalTimeInterval compatibility
 #ifndef NDEBUG
-	#define EVENTBASE_CHECK_INVERSE
+	#ifdef SIMPLEMNRM
+		#define EVENTBASE_CHECK_INVERSE
+	#endif
 #endif // NDEBUG
 
 // IMPORTANT: this is only meant for positive times! we use a negative
@@ -82,6 +84,7 @@ public:
 	void generateNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
 
 	double getEventTime() const								{ return m_tEvent; }
+	double getInternalTimeLeft() const							{ return m_Tdiff; }
 
 	// always calculate with current state
 	double solveForRealTimeInterval(const State *pState, double t0);
@@ -97,7 +100,12 @@ public:
 	bool needsEventTimeCalculation() const							{ return (m_tEvent < 0); }
 	void setNeedEventTimeCalculation()							{ m_tEvent = -12345; }
 
+	/** Check if the event has been marked for deletion, can avoid a call to the random
+	 *  number generator to create a new random number. */
 	bool willBeRemoved() const								{ return m_willBeRemoved; }
+
+	/** When an event has fired, by default a new internal fire time will be calculated; setting
+	 *  this flag avoids this which can be useful if the event isn't going to be used again. */
 	void setWillBeRemoved(bool f)								{ m_willBeRemoved = f; }
 protected:
 	/** This function will be called to generate a new internal time difference.
@@ -159,10 +167,10 @@ inline double EventBase::solveForRealTimeInterval(const State *pState, double t0
 #ifdef EVENTBASE_CHECK_INVERSE
 	double tmpDT = calculateInternalTimeInterval(pState, t0, dt);
 	double diff = std::abs(tmpDT - m_Tdiff);
-	if (diff > 1e-10)
+	if (diff > 1e-8)
 	{
 		std::cerr << "ERROR: mismatch 1 between solveForRealTimeInterval and calculateInternalTimeInterval" << std::endl;
-		exit(-1);
+		abort();
 	}
 #endif // EVENTBASE_CHECK_INVERSE
 
@@ -185,10 +193,10 @@ inline void EventBase::subtractInternalTimeInterval(const State *pState, double 
 	double dt = t1 - m_tLastCalc;
 	double tmpDt = solveForRealTimeInterval(pState, dT, m_tLastCalc);
 	double diff = std::abs(tmpDt - dt);
-	if (diff > 1e-10)
+	if (diff > 1e-8)
 	{
 		std::cerr << "ERROR: mismatch 2 between solveForRealTimeInterval and calculateInternalTimeInterval" << std::endl;
-		exit(-1);
+		abort();
 	}
 #endif // EVENTBASE_CHECK_INVERSE
 

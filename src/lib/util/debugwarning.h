@@ -5,7 +5,7 @@
 /**
  * \file debugwarning.h
  *
- * This file introduces a define which can be used to log something only once.
+ * This file introduces a define called DEBUGWARNING which can be used to log something only once.
  * For instance, this can be helpful to log something only one time from the
  * constructor of a class which is instantiated often.
  */

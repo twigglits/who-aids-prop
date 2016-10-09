@@ -7,6 +7,7 @@
  */
 
 #include <gsl/gsl_rng.h>
+#include <utility>
 
 /**
  * This class allows you to generate random numbers, and uses the 
@@ -48,6 +49,18 @@ public:
 	/** Picks a random number from a distribution which has a Weibull shape with
 	 *  specified parameters above \c ageMin, and which is zero below that age. */
 	double pickWeibull(double lambda, double kappa, double ageMin);
+
+	/** Picks a random number from a log-normal distribution with parameters \c zeta
+	 *  and \c sigma. */
+	double pickLogNorm(double zeta, double sigma);
+
+	/** Picks a random number from the gamma distribution with \c a and \c b defined as
+	 *  in the formula prob(x) = x^(a-1)*exp(-x/b)/(b^a * Gamma(a)) . */
+	double pickGamma(double a, double b);
+
+	/** Picks a random number from a two dimensional gaussian distribution with specified
+	 *  parameters (rho is the correlation coefficient). */
+	std::pair<double,double> pickBivariateGaussian(double muX, double muY, double sigmaX, double sigmaY, double rho);
 private:
 	gsl_rng *m_pRng;
 };

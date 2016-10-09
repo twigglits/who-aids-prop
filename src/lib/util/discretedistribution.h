@@ -6,6 +6,7 @@
  * \file discretedistribution.h
  */
 
+#include "probabilitydistribution.h"
 #include <vector>
 
 class GslRandomNumberGenerator;
@@ -16,7 +17,7 @@ class GslRandomNumberGenerator;
  *  of the bins, which are a measure of the integrated probability
  *  density inside bin.
  */
-class DiscreteDistribution
+class DiscreteDistribution : public ProbabilityDistribution
 {
 public:
 	/** Constructor of the class.
@@ -34,13 +35,11 @@ public:
 			     GslRandomNumberGenerator *pRndGen);
 	~DiscreteDistribution();
 
-	/** Pick a number according to the discrete distrubution specified in the constructor. */
 	double pickNumber() const;
 private:
 	std::vector<double> m_histSums;
 	std::vector<double> m_binStarts;
 	double m_totalSum;
-	mutable GslRandomNumberGenerator *m_pRndGen;
 };
 
 #endif // DISCRETEDISTRIBUTION_H

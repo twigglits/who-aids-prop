@@ -2,31 +2,28 @@
 
 #define EVENTMORTALITY_H
 
-#include "simpactevent.h"
+#include "eventmortalitybase.h"
+
+class ConfigSettings;
 
 // Non-AIDS (normal) mortality
-class EventMortality : public SimpactEvent
+class EventMortality : public EventMortalityBase
 {
 public:
 	EventMortality(Person *pPerson);
 	~EventMortality();
 
-	bool isAidsMortality() const						{ return m_isAidsMortality; }
-
 	std::string getDescription(double tNow) const;
+	void writeLogs(double tNow) const;
 
-	int getNumberOfOtherAffectedPersons() const;
-	void startOtherAffectedPersonIteration();
-	PersonBase *getNextOtherAffectedPerson();
-
-	void fire(State *pState, double t);
+	static void processConfig(ConfigSettings &config);
+	static void obtainConfig(ConfigWriter &config);
 private:
-	double calculateInternalTimeInterval(const State *pState, double t0, double dt);
-	double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);
 	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
-	bool isUseless();
 
-	bool m_isAidsMortality;
+	static double m_shape;
+	static double m_scale;
+	static double m_genderDiff;
 };
 
 #endif // EVENTMORTALITY_H

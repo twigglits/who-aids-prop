@@ -2,6 +2,8 @@
 
 #define MUTEX_H
 
+#ifndef DISABLEOPENMP
+
 #include <omp.h>
 
 class Mutex
@@ -15,5 +17,7 @@ public:
 private:
 	omp_lock_t m_lock;
 };
+
+#endif // !DISABLEOPENMP
 
 #endif // MUTEX_H

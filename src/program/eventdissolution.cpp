@@ -1,8 +1,6 @@
 #include "eventdissolution.h"
 #include "eventformation.h"
-#include "eventconception.h"
-#include "hazardutility.h"
-#include "person.h"
+#include "hazardfunctionformationsimple.h"
 #include <stdio.h>
 #include <cmath>
 #include <iostream>
@@ -28,28 +26,34 @@ std::string EventDissolution::getDescription(double tNow) const
 	return std::string(str);
 }
 
+void EventDissolution::writeLogs(double tNow) const
+{
+	Person *pPerson1 = getPerson(0);
+	Person *pPerson2 = getPerson(1);
+	writeEventLogStart(true, "dissolution", tNow, pPerson1, pPerson2);
+
+	// Relationship log will be written when handling the dissolution in person.cpp, that way
+	// it will also be handled when it's because someone dies
+}
+
 void EventDissolution::fire(State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);
 
-	pPerson1->removeRelationship(pPerson2, t);
-	pPerson2->removeRelationship(pPerson1, t);
+	pPerson1->removeRelationship(pPerson2, t, false);
+	pPerson2->removeRelationship(pPerson1, t, false);
 
-	// Need to add a new formation event for these two
-	EventFormation *pFormationEvent = new EventFormation(pPerson1, pPerson2, t);
-	population.onNewEvent(pFormationEvent);
+	// A new formation event should only be scheduled if neither person is in the
+	// final AIDS stage
+	if (pPerson1->getInfectionStage() != Person::AIDSFinal && pPerson2->getInfectionStage() != Person::AIDSFinal)
+	{
+		// Need to add a new formation event for these two
+		EventFormation *pFormationEvent = new EventFormation(pPerson1, pPerson2, t);
+		population.onNewEvent(pFormationEvent);
+	}
 }
-
-static const double a0 = std::log(0.5);	// baseline_factor
-static const double a1 = 0;		// male_current_relations_factor   -> just current_relations_factor ?
-static const double a2 = 0;		// female_current_relations_factor -> just current_relations_factor ?
-static const double a3 = 0;		// current_relations_difference_factor?? TODO can't find this
-static const double a4 = 0;		// mean_age_factor
-static const double a5 = 0;		// age_difference_factor
-static const double Dp = 0;		// preferred_age_difference
-static const double b  = 0;		// last_change_factor
 
 double EventDissolution::calculateInternalTimeInterval(const State *pState, double t0, double dt)
 {
@@ -57,8 +61,13 @@ double EventDissolution::calculateInternalTimeInterval(const State *pState, doub
 	Person *pPerson2 = getPerson(1);
 
 	double tr = m_formationTime;
+	double tMax = getTMax(pPerson1, pPerson2);
 
-	return ExponentialHazardToInternalTime(pPerson1, pPerson2, t0, dt, tr, a0, a1, a2, a3, a4, a5, Dp, b);
+	HazardFunctionFormationSimple h0(pPerson1, pPerson2, tr, a0, a1, a2, a3, a4, a5, Dp, b);
+	TimeLimitedHazardFunction h(h0, tMax);
+
+	return h.calculateInternalTimeInterval(t0, dt);
+	//return ExponentialHazardToInternalTime(pPerson1, pPerson2, t0, dt, tr, a0, a1, a2, a3, a4, a5, Dp, b, true, tMax);
 }
 
 double EventDissolution::solveForRealTimeInterval(const State *pState, double Tdiff, double t0)
@@ -67,7 +76,68 @@ double EventDissolution::solveForRealTimeInterval(const State *pState, double Td
 	Person *pPerson2 = getPerson(1);
 
 	double tr = m_formationTime;
+	double tMax = getTMax(pPerson1, pPerson2);
 
-	return ExponentialHazardToRealTime(pPerson1, pPerson2, t0, Tdiff, tr, a0, a1, a2, a3, a4, a5, Dp, b);;
+	HazardFunctionFormationSimple h0(pPerson1, pPerson2, tr, a0, a1, a2, a3, a4, a5, Dp, b);
+	TimeLimitedHazardFunction h(h0, tMax);
+
+	return h.solveForRealTimeInterval(t0, Tdiff);
+	//return ExponentialHazardToRealTime(pPerson1, pPerson2, t0, Tdiff, tr, a0, a1, a2, a3, a4, a5, Dp, b, true, tMax);
+}
+
+double EventDissolution::getTMax(Person *pPerson1, Person *pPerson2)
+{
+	assert(pPerson1 != 0 && pPerson2 != 0);
+
+	double tb1 = pPerson1->getDateOfBirth();
+	double tb2 = pPerson2->getDateOfBirth();
+
+	double tMax = tb1;
+
+	if (tb2 < tMax)
+		tMax = tb2;
+
+	assert(tMaxDiff > 0);
+	tMax += tMaxDiff;
+
+	return tMax;
+}
+
+double EventDissolution::a0   = 0;		// baseline_factor
+double EventDissolution::a1   = 0;		// male_current_relations_factor
+double EventDissolution::a2   = 0;		// female_current_relations_factor
+double EventDissolution::a3   = 0;		// current_relations_difference_factor
+double EventDissolution::a4   = 0;		// mean_age_factor
+double EventDissolution::a5   = 0;		// age_difference_factor
+double EventDissolution::Dp   = 0;		// preferred_age_difference
+double EventDissolution::b    = 0;		// last_change_factor
+double EventDissolution::tMaxDiff = 0;		// t_max
+
+void EventDissolution::processConfig(ConfigSettings &config)
+{
+	if (!config.getKeyValue("dissolution.alpha_0", a0) ||
+	    !config.getKeyValue("dissolution.alpha_1", a1) ||
+	    !config.getKeyValue("dissolution.alpha_2", a2) ||
+	    !config.getKeyValue("dissolution.alpha_3", a3) ||
+	    !config.getKeyValue("dissolution.alpha_4", a4) ||
+	    !config.getKeyValue("dissolution.alpha_5", a5) ||
+	    !config.getKeyValue("dissolution.Dp", Dp) ||
+	    !config.getKeyValue("dissolution.beta", b) ||
+	    !config.getKeyValue("dissolution.t_max", tMaxDiff, 0) )
+		abortWithMessage(config.getErrorString());
+}
+
+void EventDissolution::obtainConfig(ConfigWriter &config)
+{
+	if (!config.addKey("dissolution.alpha_0", a0) ||
+	    !config.addKey("dissolution.alpha_1", a1) ||
+	    !config.addKey("dissolution.alpha_2", a2) ||
+	    !config.addKey("dissolution.alpha_3", a3) ||
+	    !config.addKey("dissolution.alpha_4", a4) ||
+	    !config.addKey("dissolution.alpha_5", a5) ||
+	    !config.addKey("dissolution.Dp", Dp) ||
+	    !config.addKey("dissolution.beta", b) ||
+	    !config.addKey("dissolution.t_max", tMaxDiff) )
+		abortWithMessage(config.getErrorString());
 }
 

@@ -1,10 +1,8 @@
 #include "eventtransmission.h"
-#include "eventconception.h"
-#include "eventbirth.h"
-#include "eventhivtest.h"
 #include "eventmortality.h"
+#include "eventaidsmortality.h"
 #include "eventchronicstage.h"
-#include "person.h"
+#include "eventtreatment.h"
 #include <stdio.h>
 #include <cmath>
 #include <iostream>
@@ -18,6 +16,10 @@ EventTransmission::EventTransmission(Person *pPerson1, Person *pPerson2) : Simpa
 {
 	// is about transmission from pPerson1 to pPerson2, so no ordering according to
 	// gender here
+	assert(pPerson1->isInfected() && !pPerson2->isInfected());
+
+	// Person one must not be in the _final_ AIDS stage yet
+	assert(pPerson1->getInfectionStage() != Person::AIDSFinal);
 }
 
 EventTransmission::~EventTransmission()
@@ -30,6 +32,16 @@ string EventTransmission::getDescription(double tNow) const
 
 	sprintf(str, "Transmission event from %s to %s", getPerson(0)->getName().c_str(), getPerson(1)->getName().c_str());
 	return string(str);
+}
+
+void EventTransmission::writeLogs(double tNow) const
+{
+	Person *pPerson1 = getPerson(0);
+	Person *pPerson2 = getPerson(1);
+	writeEventLogStart(false, "transmission", tNow, pPerson1, pPerson2);
+
+	double VspOrigin = pPerson1->getSetPointViralLoad();
+	LogEvent.print(",originSPVL,%10.10f", VspOrigin);
 }
 
 // The dissolution event that makes this event useless involves the exact same people,
@@ -53,6 +65,10 @@ bool EventTransmission::isUseless()
 		return true;
 	}
 
+	// Event also gecomes useless if the first person (origin) is now in the _final_ AIDS stage
+	if (pPerson1->getInfectionStage() == Person::AIDSFinal)
+		return true;
+
 	// Make sure the two lists are consistent: if person1 has a relationship with person2, person2
 	// should also have a relationship with person1
 	assert(pPerson2->hasRelationshipWith(pPerson1));
@@ -67,23 +83,26 @@ void EventTransmission::fire(State *pState, double t)
 	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);
 
-	// Make pPerson2 infected
-	assert(pPerson1->isInfected());
+	// Person 1 should be infected but not in the final aids stage, person 2 should not be infected yet
+	assert(pPerson1->isInfected() && pPerson1->getInfectionStage() != Person::AIDSFinal);
 	assert(!pPerson2->isInfected());
+
+	// Make pPerson2 infected
 	pPerson2->setInfected(t, pPerson1, Person::Partner);
 
 	// An event to mark the transition to the chronic stage
 	EventChronicStage *pEvtChronic = new EventChronicStage(pPerson2);
 	population.onNewEvent(pEvtChronic);
 
-	// Schedule a new mortality event for person2, which will automatically be set to an aids mortality
-	// since it's created after changing the infection status of the person
-	EventMortality *pEvtMort = new EventMortality(pPerson2);
+	// Schedule an AIDS mortality event for person2
+	// TODO: should this be moved to the firing code of the final aids stage?
+	//
+	//       -> NOTE! It is currently best to do it this way: because of the fixed
+	//                time interval of the Acute stage, it is possible that the
+	//                mortality event fires already when in the acute stage. It
+	//                would not be possible if the AIDS mortality event is scheduled
+	EventAIDSMortality *pEvtMort = new EventAIDSMortality(pPerson2);
 	population.onNewEvent(pEvtMort);
-
-	// Schedule HIV test for pPerson2
-	EventHIVTest *pEvtHIVTest = new EventHIVTest(pPerson2);
-	population.onNewEvent(pEvtHIVTest);
 
 	// Check relationships pPerson2 is in, and if the partner is not yet infected, schedule
 	// a transmission event.
@@ -105,21 +124,74 @@ void EventTransmission::fire(State *pState, double t)
 	double tDummy;
 	assert(pPerson2->getNextRelationshipPartner(tDummy) == 0);
 
-	// TODO: if a woman is infected, schedule MTCT events for children that
-	//       are receiving breastfeeding
-
-	// TODO: Survival time must be adjusted (i.e. the mortality event)
+	// If desired, schedule a treatment event for person2, the newly infected one
+	if (EventTreatment::isTreatmentEnabled())
+	{
+		EventTreatment *pEvtTreatment = new EventTreatment(pPerson2);
+		population.onNewEvent(pEvtTreatment);
+	}
 }
+
+double EventTransmission::m_a = 0;
+double EventTransmission::m_b = 0;
+double EventTransmission::m_c = 0;
+double EventTransmission::m_d1 = 0;
+double EventTransmission::m_d2 = 0;
 
 double EventTransmission::calculateInternalTimeInterval(const State *pState, double t0, double dt)
 {
-	// TODO
-	return dt/10;
+	double h = calculateHazardFactor();
+	return dt*h;
 }
 
 double EventTransmission::solveForRealTimeInterval(const State *pState, double Tdiff, double t0)
 {
-	// TODO
-	return Tdiff*10;
+	double h = calculateHazardFactor();
+
+	return Tdiff/h;
+}
+
+double EventTransmission::calculateHazardFactor()
+{
+	// Person1 is the infected person and his/her viral load (set-point or acute) determines
+	// the hazard
+	Person *pPerson1 = getPerson(0);
+	Person *pPerson2 = getPerson(1);
+
+	double Pi = pPerson1->getNumberOfRelationships();
+	double Pj = pPerson2->getNumberOfRelationships();
+
+	double V = pPerson1->getViralLoad();
+	assert(V > 0);
+	
+	assert(m_a != 0);
+	assert(m_b != 0);
+	assert(m_c != 0);
+
+	double h = std::exp(m_a + m_b * std::pow(V,-m_c) + m_d1*Pi + m_d2*Pj);
+
+	return h;
+}
+
+void EventTransmission::processConfig(ConfigSettings &config)
+{
+	if (!config.getKeyValue("transmission.param.a", m_a) ||
+	    !config.getKeyValue("transmission.param.b", m_b) ||
+	    !config.getKeyValue("transmission.param.c", m_c) ||
+	    !config.getKeyValue("transmission.param.d1", m_d1) ||
+	    !config.getKeyValue("transmission.param.d2", m_d2))
+		
+		abortWithMessage(config.getErrorString());
+}
+
+void EventTransmission::obtainConfig(ConfigWriter &config)
+{
+	if (!config.addKey("transmission.param.a", m_a) ||
+	    !config.addKey("transmission.param.b", m_b) ||
+	    !config.addKey("transmission.param.c", m_c) ||
+	    !config.addKey("transmission.param.d1", m_d1) ||
+	    !config.addKey("transmission.param.d2", m_d2))
+		
+		abortWithMessage(config.getErrorString());
 }
 

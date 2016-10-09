@@ -3,6 +3,7 @@
 #define PERSON_H
 
 #include "personbase.h"
+#include "util.h"
 #include <stdlib.h>
 #include <iostream>
 #include <vector>
@@ -11,6 +12,11 @@
 class Person;
 class Man;
 class Woman;
+class GslRandomNumberGenerator;
+class ConfigSettings;
+class ConfigWriter;
+class ProbabilityDistribution;
+class VspModel;
 
 Man *MAN(Person *pPerson);
 Woman *WOMAN(Person *pPerson);
@@ -19,6 +25,7 @@ class Person : public PersonBase
 {
 public:
 	enum InfectionType { None, Partner, Mother, Seed };
+	enum InfectionStage { NoInfection, Acute, Chronic, AIDS, AIDSFinal };
 
 	Person(double dateOfBirth, Gender g);
 	~Person();
@@ -41,19 +48,31 @@ public:
 
 	// WARNING: do not use these during relationship iteration
 	void addRelationship(Person *pPerson, double t);
-	void removeRelationship(Person *pPerson, double t);
+	void removeRelationship(Person *pPerson, double t, bool deathBased);
 	
 	// result is negative if no relations formed yet
 	double getLastRelationshipChangeTime() const					{ return m_lastRelationChangeTime; }
 
-	void setSexuallyActive()							{ m_sexuallyActive = true; }
-	bool isSexuallyActive()								{ return m_sexuallyActive; }
+	void setSexuallyActive(double t)						{ m_sexuallyActive = true; assert(t >= 0); m_debutTime = t; }
+	bool isSexuallyActive()								{ return m_sexuallyActive;}
+	double getDebutTime() const							{ return m_debutTime; }
 
 	void setInfected(double t, Person *pOrigin, InfectionType iType);
-	bool isInfected() const								{ return m_infected; }
-	double getInfectionTime() const							{ assert(m_infected); return m_infectionTime; }
-	bool inAcuteStage() const							{ assert(m_infected); return m_acuteStage; }
-	void setInChronicStage()							{ assert(m_infected); assert(m_acuteStage); m_acuteStage = false; }
+	bool isInfected() const								{ if (m_infectionStage == NoInfection) return false; return true; }
+	double getInfectionTime() const							{ assert(m_infectionStage != NoInfection); return m_infectionTime; }
+	InfectionStage getInfectionStage() const					{ return m_infectionStage; }
+	void setInChronicStage()							{ assert(m_infectionStage == Acute); m_infectionStage = Chronic; }
+	void setInAIDSStage()								{ assert(m_infectionStage == Chronic); m_infectionStage = AIDS; }
+	void setInFinalAIDSStage()							{ assert(m_infectionStage == AIDS); m_infectionStage = AIDSFinal; }
+
+	double getSetPointViralLoad() const						{ assert(m_infectionStage != NoInfection); return m_Vsp; }
+	double getViralLoad() const;
+	void lowerViralLoad(double fractionOnLogscale, double treatmentTime);
+	bool hasLoweredViralLoad() const						{ assert(m_infectionStage != NoInfection); assert(m_Vsp > 0); return m_VspLowered; }
+	double getTreatmentTime() const							{ assert(m_infectionStage != NoInfection); assert(m_Vsp > 0); assert(m_VspLowered); assert(m_treatmentTime >= 0); return m_treatmentTime; }
+
+	double getFormationEagernessParameter() const					{ return m_formationEagerness; }
+	double getPreferredAgeDifference() const					{ assert(m_preferredAgeDiff < 200.0 && m_preferredAgeDiff > -200.0); return m_preferredAgeDiff; }
 
 	// TODO: currently, the death of a parent or the death of a child does
 	// not have any influence on this list. I don't think modifying the list
@@ -63,11 +82,19 @@ public:
 	void addChild(Person *pPerson);
 	bool hasChild(Person *pPerson) const;
 	int getNumberOfChildren() const							{ return m_children.size(); }
+	Person *getChild(int idx);
 
-	void setBreastFeeding()								{ assert(!m_breastFeeding); m_breastFeeding = true; }
-	bool isBreastFeeding() const							{ return m_breastFeeding; }
-	void stopBreastFeeding()							{ assert(m_breastFeeding); m_breastFeeding = false; }
+	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
+	static void obtainConfig(ConfigWriter &config);
+
+	static void writeToRelationLog(const Person *pMan, const Person *pWoman, double formationTime, double dissolutionTime);
+	void writeToPersonLog();
 private:
+	double initializeEagerness();
+	double getViralLoadFromSetPointViralLoad(double x) const;
+	static double pickSeedSetPointViralLoad();
+	static double pickInheritedSetPointViralLoad(const Person *pOrigin);
+
 	class Relationship
 	{
 	public:
@@ -90,89 +117,61 @@ private:
 		double m_formationTime;
 	};
 
+#ifndef NDEBUG
+	bool m_relIterationBusy;
+#endif
+
 	std::set<Relationship> m_relationshipsSet;
 	std::set<Relationship>::const_iterator m_relationshipsIterator;
 	double m_lastRelationChangeTime;
 	bool m_sexuallyActive;
+	double m_debutTime;
 
 	double m_infectionTime;
-	bool m_infected;
 	Person *m_pInfectionOrigin;
 	InfectionType m_infectionType;
-	bool m_acuteStage;
+	InfectionStage m_infectionStage;
+
+	double m_Vsp, m_VspOriginal;
+	bool m_VspLowered;
+	double m_treatmentTime;
 
 	Man *m_pFather;
 	Woman *m_pMother;
 
+	double m_formationEagerness;
+	double m_preferredAgeDiff;
+
 	std::vector<Person *> m_children;
 
-	bool m_breastFeeding;
-
-#ifndef NDEBUG
-	bool m_relIterationBusy;
-#endif
+	static double m_hivSeedWeibullShape;
+	static double m_hivSeedWeibullScale;
+	static double m_VspHeritabilitySigmaFraction;
+	static double m_acuteFromSetPointParamX;
+	static double m_aidsFromSetPointParamX;
+	static double m_finalAidsFromSetPointParamX;
+	static double m_maxValue;
+	static double m_maxViralLoad;
+	static ProbabilityDistribution *m_pEagernessDistribution;
+	static ProbabilityDistribution *m_pMaleAgeGapDistribution;
+	static ProbabilityDistribution *m_pFemaleAgeGapDistribution;
+	static VspModel *m_pVspModel;
 };
 
-class Man : public Person
-{
-public:
-	Man(double dateOfBirth);
-	~Man();
-};
-
-class Woman : public Person
-{
-public:
-	Woman(double dateOfBirth);
-	~Woman();
-
-	void setPregnant(bool f)							{ m_pregnant = f; }
-	bool isPregnant() const								{ return m_pregnant; }
-private:
-	bool m_pregnant;
-};
-
-inline void Person::addRelationship(Person *pPerson, double t)
-{
-	assert(!m_relIterationBusy);
-	assert(pPerson != 0);
-	assert(pPerson != this); // can't have a relationship with ourselves
-	assert(!hasDied() && !pPerson->hasDied());
-	// Check that the relationship doesn't exist yet (debug mode only)
-	assert(m_relationshipsSet.find(Person::Relationship(pPerson)) == m_relationshipsSet.end());
-
-	Person::Relationship r(pPerson, t);
-
-	m_relationshipsSet.insert(r);
-	m_relationshipsIterator = m_relationshipsSet.begin();
-
-	assert(t >= m_lastRelationChangeTime);
-	m_lastRelationChangeTime = t;
-}
-
-inline void Person::removeRelationship(Person *pPerson, double t)
-{
-	assert(!m_relIterationBusy);
-	assert(pPerson != 0);
-
-	std::set<Person::Relationship>::iterator it = m_relationshipsSet.find(pPerson);
-
-	if (it == m_relationshipsSet.end())
-	{
-		std::cerr << "Consistency error: a person was not found exactly once in the relationship list" << std::endl;
-		exit(-1);
-	}
-
-	m_relationshipsSet.erase(it);
-	m_relationshipsIterator = m_relationshipsSet.begin();
-
-	assert(t >= m_lastRelationChangeTime);
-	m_lastRelationChangeTime = t; 
-}
-
-inline bool Person::hasRelationshipWith(Person *pPerson) const
-{
-	return m_relationshipsSet.find(Person::Relationship(pPerson)) != m_relationshipsSet.end();
+inline double Person::getViralLoad() const
+{ 
+	assert(m_infectionStage != NoInfection); 
+	if (m_infectionStage == Acute) 
+		return getViralLoadFromSetPointViralLoad(m_acuteFromSetPointParamX); 
+	else if (m_infectionStage == Chronic)
+		return getSetPointViralLoad(); 
+	else if (m_infectionStage == AIDS)
+		return getViralLoadFromSetPointViralLoad(m_aidsFromSetPointParamX);
+	else if (m_infectionStage == AIDSFinal)
+		return getViralLoadFromSetPointViralLoad(m_finalAidsFromSetPointParamX);
+	
+	abortWithMessage("Unknown stage in Person::getViralLoad");
+	return -1;
 }
 
 inline void Person::addChild(Person *pPerson)
@@ -200,50 +199,28 @@ inline bool Person::hasChild(Person *pPerson) const
 	return false;
 }
 
-inline void Person::setInfected(double t, Person *pOrigin, InfectionType iType)
-{ 
-	assert(!m_infected); 
-	m_infected = true; 
-	
-	m_infectionTime = t; 
-	m_pInfectionOrigin = pOrigin;
-	m_infectionType = iType;
-
-	m_acuteStage = true;
-
-	assert(iType != None);
-	assert(!(pOrigin == 0 && iType != Seed));
-}
-
-inline void Person::startRelationshipIteration()
+class Man : public Person
 {
-	assert(!m_relIterationBusy);
+public:
+	Man(double dateOfBirth);
+	~Man();
+};
 
-	m_relationshipsIterator = m_relationshipsSet.begin();
-#ifndef NDEBUG
-	if (m_relationshipsIterator != m_relationshipsSet.end())
-		m_relIterationBusy = true;
-#endif
-}
-
-inline Person *Person::getNextRelationshipPartner(double &formationTime)
+class Woman : public Person
 {
-	if (m_relationshipsIterator == m_relationshipsSet.end())
-	{
-#ifndef NDEBUG
-		m_relIterationBusy = false;
-#endif
-		return 0;
-	}
+public:
+	Woman(double dateOfBirth);
+	~Woman();
 
-	assert(m_relIterationBusy);
+	void setPregnant(bool f)							{ m_pregnant = f; }
+	bool isPregnant() const								{ return m_pregnant; }
+private:
+	bool m_pregnant;
+};
 
-	const Person::Relationship &r = *m_relationshipsIterator;
-	
-	++m_relationshipsIterator;
-
-	formationTime = r.getFormationTime();
-	return r.getPartner();
+inline bool Person::hasRelationshipWith(Person *pPerson) const
+{
+	return m_relationshipsSet.find(Person::Relationship(pPerson)) != m_relationshipsSet.end();
 }
 
 inline Man *MAN(Person *pPerson)
@@ -260,6 +237,25 @@ inline Woman *WOMAN(Person *pPerson)
 	assert(pPerson->getGender() == PersonBase::Female);
 
 	return static_cast<Woman*>(pPerson);
+}
+
+inline Person* Person::getChild(int idx)
+{ 
+	assert(idx >= 0 && idx < m_children.size()); 
+	Person *pChild = m_children[idx]; 
+
+	assert(pChild != 0); 
+#ifndef NDEBUG
+	if (isWoman())
+	{
+		assert(pChild->getMother() == this);
+	}
+	else // we should be the father of the child
+	{
+		assert(pChild->getFather() == this);
+	}
+#endif
+	return pChild; 
 }
 
 #endif // PERSON_H

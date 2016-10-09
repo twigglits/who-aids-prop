@@ -18,14 +18,14 @@ public:
 
 	void setInitialMen(int number)						{ m_initialMen = number; }
 	void setInitialWomen(int number)					{ m_initialWomen = number; }
-	void setInitialInfectionFraction(double f)				{ m_initialInfectionFraction = f; }
+	void setEyeCapsFraction(double f)					{ m_eyeCapsFraction = f; }
 
 	int getInitialMen() const						{ return m_initialMen; }
 	int getInitialWomen() const						{ return m_initialWomen; }
-	double getInitialInfectionFraction() const				{ return m_initialInfectionFraction; }
+	double getEyeCapsFraction() const					{ return m_eyeCapsFraction; }
 private:
 	int m_initialMen, m_initialWomen;
-	double m_initialInfectionFraction;
+	double m_eyeCapsFraction;
 };
 
 class SimpactPopulation : public Population
@@ -39,16 +39,18 @@ public:
 	Person **getAllPeople()							{ return reinterpret_cast<Person**>(Population::getAllPeople()); }
 	Man **getMen()								{ return reinterpret_cast<Man**>(Population::getMen()); }
 	Woman **getWomen()							{ return reinterpret_cast<Woman**>(Population::getWomen()); }
+	Person **getDeceasedPeople()						{ return reinterpret_cast<Person**>(Population::getDeceasedPeople()); }
 
 	int getInitialPopulationSize() const					{ return m_initialPopulationSize; }
-	double getDebutAge() const						{ return 15.0; }
-	double getAcuteStageTime() const					{ return 3.0/12.0; } // three months 
+	double getEyeCapsFraction() const					{ return m_eyeCapsFraction; }
 protected:
-	virtual void onScheduleInitialEvents();
+	bool createInitialPopulation(const SimpactPopulationConfig &config, const PopulationDistribution &popDist);
+	bool scheduleInitialEvents();
 private:
 	void onAboutToFire(EventBase *pEvt);
 
 	int m_initialPopulationSize;
+	double m_eyeCapsFraction;
 
 	bool m_init;
 };

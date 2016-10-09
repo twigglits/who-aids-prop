@@ -1,4 +1,3 @@
-#include <omp.h>
 #include "state.h"
 #include "eventbase.h"
 #include "gslrandomnumbergenerator.h"

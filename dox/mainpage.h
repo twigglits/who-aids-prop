@@ -179,7 +179,7 @@ from an exponential distribution \f${\rm prob}(x) = \exp(-x)\f$, then works as f
 #### Optimizations ####
 
 It may not be necessary to do the \f$\int_t^{t+\Delta t_\mu} h_k(X(t),s) ds\f$ calculation every time.
-If state changes due to each event, and this influences all hazard functions, then we really do 
+If the state changes due to each event, and this influences all hazard functions, then we really do 
 need to calculate every
 \f[ \Delta T_{k,1} = \int_{t_1}^{t_2} h_k(X(t_1),s) ds \textrm{, }
 \Delta T_{k,2} = \int_{t_2}^{t_3} h_k(X(t_2),s) ds \textrm{, }
@@ -227,7 +227,7 @@ _real time_.
      hazards.
 
 If one keeps track of which event affects which, this can really save some calculation time.
-It's also possible to determine more effectively which event will fire next, not needing to
+It's also possible to determine more efficiently which event will fire next, not needing to
 inspect all scheduled event fire times at every loop.
 
 A slightly re-ordered version (for positive times only since we use a negative one as a marker),
@@ -266,7 +266,7 @@ Implementation of mNRM
 While in the outline above there are a fixed number of \f$ M \f$ event types, this does not
 need to be the case. Event types could be added or removed dynamically without any problem.
 In the case of the population based simulations in this project, we will just talk about a
-number of events in which each event one fires once and is then discarded. This corresponds
+number of events in which each event only fires once and is then discarded. This corresponds
 to the situation where there are as many time lines as events, being added and destroyed
 dynamically, but since each 'time line' will only use a single internal time interval it's 
 not really a line anymore.
@@ -411,15 +411,20 @@ When you construct a new SimpactEvent based instance, you need to specify the
 persons involved in this event, and the event gets stored in these persons' lists. As the figure
 shows, it is very well possible that a single event appears in the lists of
 different people: for example a relationship formation event would involve two
-persons and would therefore be present in two lists.
+persons and would therefore be present in two lists. To be able to have global events,
+events that in principle don't affect people that are known in advance, a 'dummy'
+person is introduced. This 'dummy' person, neither labelled as a 'Man' nor as a 'Woman',
+only has such global events in its event list. By definition, these events will not
+be present in any other person's list. Note that this implies that PopulationEvent::getNumberOfPersons
+will also return 1 for global events.
 
 When an event fires, the algorithm assumes that the persons which have the event
 in their lists are affected and that their events will require a recalculation of
 the fire times. In case other people are affected as well (who you don't know
-beforehand), this can be specified using the functions PopulationEvent::getNumberOfOtherAffectedPersons,
-PopulationEvent::startOtherAffectedPersonIteration and PopulationEvent::getNextOtherAffectedPerson.
-If such additional people are specified as well, those people's event fire times
-will also be recalculated.
+beforehand), this can be specified using the functions PopulationEvent::isEveryoneAffected
+or PopulationEvent::markOtherAffectedPeople. If such additional people are specified 
+as well, those people's event fire times will be recalculated as well. Using PopulationEvent::areGlobalEventsAffected
+you can indicate that the fire times of global events should be recalculated.
 
 Before recalculating an event fire time, it is checked if the event is still relevant.
 If one of the persons specified during the event creation has died, the
@@ -433,13 +438,33 @@ Each person keeps track of which event in his list will fire first. To know whic
 event in the entire simulation will fire first, the algorithm then just needs to
 check the first event times for all the people.
 
+### 'Other affected persons' vs scheduling new events ###
+
+Sometimes you have the choice between two approaches upon firing a certain event:
+
+1. Perform some action immediately, and if this involves other people than the ones
+   specified when the event was created, these people should be accessible using the
+   PopulationEvent::markOtherAffectedPeople function.
+2. Alternatively, you can schedule events that should take place (nearly) immediately,
+   each event affecting one of the other people and having the 'fire' code for that
+   event take appropriate action.
+
+What choice is best will vary on the situation. As an example, suppose that in a simulation
+involving relationships, there's a 'mortality' event which causes a person to die. In
+this case, when such a mortality event fires, we'd also need to make sure that all 
+relationships that the deceased person is in, are dissolved. But we cannot schedule 
+new dissolution events for this: we cannot in general schedule events that involve a 
+person who has already died, since that person is no longer present in the population.
+In this case, there's really no choice and method 1 must be used. 
+
 Working with the code
 ---------------------
 
 As you will see below, the [CMake](http://www.cmake.org/) build system is used to generate
 configuration files (a makefile, a Visual Studio project file, ...) to actually build
 your programs. Since such files are overwritten when you run CMake, and running CMake is
-done automatically when one of the \c CMakeLists.txt files has been changed, you should
+done automatically when one of the \c CMakeLists.txt files has been changed (these files contain
+a description of how the programs should be built), you should
 **never ever directly modify one of those generated files**. For example, do not add source
 file names to the resulting Visual Studio project file. Instead, **adjust the build configuration
 by modifying the CMakelists.txt files**, as is explained below.
@@ -510,7 +535,7 @@ add_subdirectory(src)
 
 This is **not** a file that should be **modified**. Basically it just makes sure that extra
 routines are available from `SimpactMacros.cmake`, then `simpact_setup()` is called to make
-sure that some routines from `SimpactMacros.cmake` are ready to be used later on, and finally
+sure that the routines from `SimpactMacros.cmake` are ready to be used later on, and finally
 the build system is told to continue from the `CMakeLists.txt` file that resides in the `src`
 subdirectory.
 
@@ -548,8 +573,10 @@ both in 'debug' mode and in 'release' mode (different compiler settings), and bo
 very basic mNRM version (based on the
 SimpleState class) and the more optimized, population based version (based on the Population class).
 
-When using a 'makefile' for building (in Linux for example), specifying the prefix 'testmort' will
-cause four executables to be created:
+\anchor fourexes
+
+When using a 'makefile' for building (in Linux for example), specifying the prefix 'testmort' 
+in `add_simpact_executable` will cause four executables to be created: 
 
  - _testmort-basic-debug_: uses the algorithm from SimpleState, compiled with debug information
  - _testmort-basic_: used the algorithm from SimpleState, but compiled with better compiler settings
@@ -557,7 +584,8 @@ cause four executables to be created:
  - _testmort-opt_: uses the algorithm from Population, but compiled with better compiler settings
 
 Here, the 'testmort-opt' should have the best performance, but it is always good to check from time
-to time that for the same seed the four versions of the executables generate exactly the same output.
+to time that (for the same seed of the random number generator) the four versions of the executables 
+generate exactly the same output.
 Different versions can use a different underlying algoritm and the debug versions perform lots of
 extra checks which do not occur in the other versions, but all should produce the same output for the
 same seed. Usually, you'll want a random seed to be chosen, but to check that all program versions are
@@ -730,7 +758,7 @@ This way, the compiler will know that we're certain the PersonBase instance can 
 as a Person instance.
 
 For this simple test program, we'll define an event called EventTest, which inherits from %SimpactEvent
-and which uses the default implementations of EventBase::getNewInternalTimeDifference, EventBase::calculateInternalTimeInterval
+and which uses the same implementations as EventBase::getNewInternalTimeDifference, EventBase::calculateInternalTimeInterval
 and EventBase::solveForRealTimeInterval. These default implementations use a simple exponential
 probability distribution to pick internal time intervals from, and use the trivial mapping from internal
 time to real world time, i.e. internal time intervals equal real world time intervals. We will reimplement
@@ -752,6 +780,10 @@ public:
 
 	std::string getDescription(double tNow) const;
 	void fire(State *pState, double t);
+
+	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
+	double calculateInternalTimeInterval(const State *pState, double t0, double dt);
+	double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);
 };
 
 #endif // EVENTTEST_H
@@ -762,6 +794,7 @@ The implementation for this class is in **eventtest.cpp** and looks as follows:
 
 @code
 #include "eventtest.h"
+#include "gslrandomnumbergenerator.h"
 #include "person.h"
 
 EventTest::EventTest(Person *pPerson) : SimpactEvent(pPerson)
@@ -783,6 +816,39 @@ void EventTest::fire(State *pState, double t)
 {
 	// Let's not do anything in particular
 }
+
+// The following function needs to be modified if a distribution different
+// from an exponential one must be used. If an exponential is ok, you don't
+// need to supply this function, the one in the base class EventBase does
+// the exact same thing.
+double EventTest::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
+{
+	double r = pRndGen->pickRandomDouble(); // Pick a random uniform number from (0,1)
+	double dT = -std::log(r);               // This transforms it to a random number from 
+	                                        // an exponential distribution
+	return dT;
+}
+
+// The following functions must be implemented if a hazard different from h(s) = 1 
+// must be used. On the other hand, if this trivial mapping between real-world time
+// intervals and internal time intervals is sufficient, you don't need to implement
+// these functions. In that case, you can just let the base class EventBase handle
+// them, since those implementations are exactly the same as the functions below.
+double EventTest::calculateInternalTimeInterval(const State *pState, double t0, double dt)
+{
+	// Here we must map the real world time interval dt onto an internal time 
+	// interval. We'll just set interval times equal to real world times,
+	// corresponding to a hazard h(s) = 1.
+	return dt;
+}
+
+double EventTest::solveForRealTimeInterval(const State *pState, double Tdiff, double t0)
+{
+	// This should do the inverse mapping, from internal time difference Tdiff onto
+	// a real world time interval. Again, here the hazard is h(s) = 1
+	return Tdiff;
+}
+
 @endcode
 
 The Population class contains the implementation of the mNRM algorithm that we're
@@ -909,7 +975,7 @@ In the \c init function, we check if some criteria are met, returning \c false t
 indicate that something went wrong and storing an error description to let the caller
 of the function know what precisely is the matter. This \c setErrorString function
 is actually defined in errut::ErrorBase, which is a parent class of State. Then, a number of
-Men and Women are created with age 10 at the start of the simulation (so their birth
+`Man` and `Woman` instances are created with age 10 at the start of the simulation (so their birth
 date is -10), and are introduced into the population using Population::addNewPerson.
 In the \c scheduleInitialEvents member function, we'll just schedule a single test event
 for everyone in the population where each event is introduced into the mNRM algorithm by
@@ -1014,7 +1080,13 @@ means that the advanced algorithm is being used with better (release) compiler s
 is also reported in the output here.
 
 This simulation just runs until no more events are present in the system, which is reported as
-an error.
+an error. If we were to make a histogram of the times events take place, we'd obtain the following
+distribution:
+
+![](hazone.png)
+
+Because we're using a constant hazard \f$ h(s) = 1\f$ in the EventTest class, we're just seeing the distribution
+used for the internal event times: an exponential distribution.
 
 The Simpact Cyan program
 ------------------------
@@ -1022,7 +1094,8 @@ The Simpact Cyan program
 The full Simpact Cyan program can be found in the _src/program_ subdirectory. This program contains
 several events that can take place, the Person class is more elaborate to keep track of relationships,
 number of children, HIV infection status etc, but the overall structure of the program is the same
-as the simple example explained above.
+as the simple example explained above. Some documentation about _using_ the resulting program can be found
+\ref simpactcyan "here".
 
 Since this program is still under development, finished documentation of all the classes and functions
 used is not available currently. Below you'll find some general information that may be helpful though.
@@ -1098,10 +1171,10 @@ default implementations of \c calculateInternalTimeInterval and \c solveForRealT
 time intervals already equal real world time intervals, so you won't need to add those functions to
 your class anymore.
 
-To cancel the future execution of an event, you can reimplement the Population::isUseless function.
+To cancel the future execution of an event, you can reimplement the PopulationEvent::isUseless function.
 Before this function is called, a check has already been done to see if one of the persons specified
 in the constructor (of the %SimpactEvent derived class) has died. If so, the event will be cancelled
-and no further check is done. Otherwise, the Population::isUseless function is called and if this
+and no further check is done. Otherwise, the PopulationEvent::isUseless function is called and if this
 returns \c true, the event is cancelled as well. Note that this function is only called for events
 that would require a recalculation of their mapping from internal time to real world time, which are
 the events queued in the event lists of persons relevant to the event that has just been fired.

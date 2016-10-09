@@ -11,6 +11,7 @@ void PopulationEvent::commonConstructor()
 	// avoids the needless generation of a random number
 	setWillBeRemoved(true); 
 
+	m_numPersons = 0;
 	m_eventID = -1;
 	m_scheduledForRemoval = false;
 
@@ -25,8 +26,16 @@ void PopulationEvent::commonConstructor()
 
 PopulationEvent::PopulationEvent()
 {
-	std::cerr << "Currently no support for events that have no reference to any person" << std::endl;
-	exit(-1);
+	commonConstructor();
+}
+
+void PopulationEvent::setGlobalEventPerson(PersonBase *pDummyPerson)
+{
+	assert(m_numPersons == 0);
+	assert(pDummyPerson != 0 && pDummyPerson->getGender() == PersonBase::GlobalEventDummy);
+
+	m_pPersons[0] = pDummyPerson;
+	m_numPersons = 1;
 }
 
 PopulationEvent::PopulationEvent(PersonBase *pPerson)

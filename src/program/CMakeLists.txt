@@ -1,19 +1,31 @@
 set(SOURCES_SIMPACT
 	simpactpopulation.cpp
 	person.cpp
+	eventmortalitybase.cpp
 	eventmortality.cpp
+	eventaidsmortality.cpp
 	eventformation.cpp
 	eventdissolution.cpp
 	eventdebut.cpp
-	eventbirth.cpp
-	eventconception.cpp
 	eventtransmission.cpp
-	eventhivtest.cpp
-	eventmtctransmission.cpp
-	eventstopbreastfeeding.cpp
 	eventchronicstage.cpp
-	hazardutility.cpp
-	main.cpp)
+	eventtreatment.cpp
+	eventhivseed.cpp
+	eventintervention.cpp
+	eventaidsstage.cpp
+	eventconception.cpp
+	eventbirth.cpp
+	vspmodellogweibullwithnoise.cpp
+	vspmodellogbinormal.cpp
+	logsystem.cpp
+	simpactevent.cpp
+	evthazardformationsimple.cpp
+	evthazardformationagegap.cpp
+	hazardfunctionformationsimple.cpp
+	hazardfunctionformationagegap.cpp
+	main_hazardtest.cpp
+	main.cpp
+	)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 add_simpact_executable(simpact-cyan ${SOURCES_SIMPACT})

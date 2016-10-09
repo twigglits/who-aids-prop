@@ -152,10 +152,34 @@ double GslRandomNumberGenerator::pickWeibull(double lambda, double kappa, double
 		std::cerr << "WARNING: GslRandomNumberGenerator::pickWeibull -> ageMin should be at least 0 but is " << ageMin << ". Clipping it." << std::endl;
 		ageMin = 0;
 	}
+
 	double z = pickRandomDouble();
 	double tmp = std::pow(ageMin/lambda, kappa) - std::log(z);
 	double y = lambda*std::pow(tmp, 1.0/kappa);
 
 	return y;
+}
+
+double GslRandomNumberGenerator::pickLogNorm(double zeta, double sigma)
+{
+	double result = gsl_ran_lognormal(m_pRng, zeta, sigma);
+
+	return result;
+}
+
+double GslRandomNumberGenerator::pickGamma(double a, double b)
+{
+	double result = gsl_ran_gamma(m_pRng, a, b);
+
+	return result;
+}
+
+std::pair<double,double> GslRandomNumberGenerator::pickBivariateGaussian(double muX, double muY, 
+		                                                         double sigmaX, double sigmaY, double rho)
+{
+	double x, y;
+	gsl_ran_bivariate_gaussian(m_pRng, sigmaX, sigmaY, rho, &x, &y);
+	
+	return std::pair<double,double>(x+muX,y+muY);
 }
 

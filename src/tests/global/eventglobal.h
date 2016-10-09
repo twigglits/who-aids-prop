@@ -1,22 +1,22 @@
-#ifndef EVENTMTCTRANSMISSION_H
+#ifndef EVENTGLOBAL_H
 
-#define EVENTMTCTRANSMISSION_H
+#define EVENTGLOBAL_H
 
 #include "simpactevent.h"
 
-class EventMTCTransmission : public SimpactEvent
+// Global event test
+class EventGlobal : public SimpactEvent
 {
 public:
-	EventMTCTransmission(Person *pMother, Person *pChild);
-	~EventMTCTransmission();
+	EventGlobal();
+	~EventGlobal();
 
 	std::string getDescription(double tNow) const;
 	void fire(State *pState, double t);
+	bool isEveryoneAffected() const									{ return true; }
 protected:
 	double calculateInternalTimeInterval(const State *pState, double t0, double dt);
 	double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);
-	bool isUseless();
 };
 
-#endif // EVENTMTCTRANSMISSION_H
-
+#endif // EVENTGLOBA_H

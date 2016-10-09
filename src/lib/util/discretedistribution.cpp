@@ -6,7 +6,7 @@
 
 DiscreteDistribution::DiscreteDistribution(std::vector<double> &binStarts,
 		                           std::vector<double> &histValues, 
-		                           GslRandomNumberGenerator *pRndGen)
+		                           GslRandomNumberGenerator *pRndGen) : ProbabilityDistribution(pRndGen)
 {
 	m_histSums.resize(histValues.size());
 	m_binStarts.resize(binStarts.size() + 1); // allocate one more for the start of the next one
@@ -16,7 +16,7 @@ DiscreteDistribution::DiscreteDistribution(std::vector<double> &binStarts,
 	if (std::abs(lastValue) > 1e-7) // last one should be about zero for everything to make sense
 	{
 		std::cerr << "DiscreteDistribution: ERROR: last value should be nearly zero, but is " << lastValue << std::endl;
-		exit(-1);
+		abort();
 	}
 	double sum = 0;
 	for (int i = 0 ; i < histValues.size() ; i++)
@@ -35,14 +35,13 @@ DiscreteDistribution::DiscreteDistribution(std::vector<double> &binStarts,
 		if (!(m_binStarts[i+1] > m_binStarts[i]))
 		{
 			std::cerr << "DiscreteDistribution: ERROR: bin start values must be increasing!" << std::endl;
-			exit(-1);
+			abort();
 		}
 	}
 
 //	std::cerr << "extra bin start: " << m_binStarts[lastPos+1] << std::endl;
 
 	m_totalSum = sum;
-	m_pRndGen = pRndGen;
 }
 
 DiscreteDistribution::~DiscreteDistribution()
@@ -51,7 +50,7 @@ DiscreteDistribution::~DiscreteDistribution()
 
 double DiscreteDistribution::pickNumber() const
 {
-	double r = m_pRndGen->pickRandomDouble() * m_totalSum;
+	double r = getRandomNumberGenerator()->pickRandomDouble() * m_totalSum;
 	int foundBin = -1;
 
 	for (int i = 0 ; i < m_histSums.size() ; i++)

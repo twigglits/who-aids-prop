@@ -10,6 +10,7 @@
 
 #include "simplestate.h"
 #include "mutex.h"
+#include <assert.h>
 
 class GslRandomNumberGenerator;
 class PersonBase;
@@ -18,7 +19,7 @@ class PopulationEvent;
 /**
  * This class provides functions for a population-based simulation using
  * the modified Next Reaction Method (mNRM). Being population-based, the
- * state of the simulation mostly consists of the (living) people.
+ * state of the simulation mostly consists of the (living) people. 
  *
  * Depending on a compiler
  * setting, it either uses the very straightforward algorithm provided
@@ -51,15 +52,20 @@ class PopulationEvent;
  * persons involved in this event, and the event gets stored in these persons' lists. As the figure
  * shows, it is very well possible that a single event appears in the lists of
  * different people: for example a relationship formation event would involve two
- * persons and would therefore be present in two lists.
+ * persons and would therefore be present in two lists. To be able to have global events,
+ * events that in principle don't affect people that are known in advance, a 'dummy'
+ * person is introduced. This 'dummy' person, neither labelled as a 'Man' nor as a 'Woman',
+ * only has such global events in its event list. By definition, these events will not
+ * be present in any other person's list. Note that this implies that PopulationEvent::getNumberOfPersons
+ * will also return 1 for global events.
  *
  * When an event fires, the algorithm assumes that the persons which have the event
  * in their lists are affected and that their events will require a recalculation of
  * the fire times. In case other people are affected as well (who you don't know
- * beforehand), this can be specified using the functions PopulationEvent::getNumberOfOtherAffectedPersons,
- * PopulationEvent::startOtherAffectedPersonIteration and PopulationEvent::getNextOtherAffectedPerson.
- * If such additional people are specified as well, those people's event fire times
- * will be recalculated as well.
+ * beforehand), this can be specified using the functions PopulationEvent::isEveryoneAffected
+ * or PopulationEvent::markOtherAffectedPeople. If such additional people are specified 
+ * as well, those people's event fire times will be recalculated as well. Using PopulationEvent::areGlobalEventsAffected
+ * you can indicate that the fire times of global events should be recalculated.
  *
  * Before recalculating an event fire time, it is checked if the event is still relevant.
  * If one of the persons specified in the PopulationEvent constructor has died, the
@@ -103,7 +109,7 @@ public:
 
 	/** Returns a list to the current living members in the population, introduced
 	 *  into the simulation using Population::addNewPerson. */
-	PersonBase **getAllPeople()						{ if (m_people.size() == 0) return 0; return &(m_people[0]); }
+	PersonBase **getAllPeople()						{ if (m_people.size() == m_numGlobalDummies) return 0; return &(m_people[m_numGlobalDummies]); }
 
 	/** Same as Population::getAllPeople, but only the men are returned. */
 	PersonBase **getMen();
@@ -111,14 +117,21 @@ public:
 	/** Same as Population::getAllPeople, but only the women are returned. */
 	PersonBase **getWomen();
 
+	/** Returns the people who were part of the simulation but who are now deceased
+	 *  (intended for result analysis, not to be used during the simulation). */
+	PersonBase **getDeceasedPeople()					{ if (m_deceasedPersons.size() == 0) return 0; return &(m_deceasedPersons[0]); }
+
 	/** Returns the number of people in the array returned by Population::getAllPeople. */
-	int getNumberOfPeople() const						{ return m_people.size(); }
+	int getNumberOfPeople() const						{ int num = (int)m_people.size() - m_numGlobalDummies; assert(num >= 0); return num; }
 
 	/** Returns the number of people in the array returned by Population::getMen. */
 	int getNumberOfMen() const						{ return m_numMen; }
 
 	/** Returns the number of people in the array returned by Population::getWomen. */
 	int getNumberOfWomen() const						{ return m_numWomen; }
+
+	/** Returns the number of people in the array returned by Population::getDeceasedPeople. */
+	int getNumberOfDeceasedPeople() const					{ return m_deceasedPersons.size(); }
 
 	/** When a new person is introduced into the population, this function must be
 	 *  used to tell the simulation about this. In essence this function will make
@@ -135,6 +148,11 @@ public:
 	/** When a new event has been created, it must be injected into the simulation using
 	 *  this function. */
 	void onNewEvent(PopulationEvent *pEvt);
+
+	/** This should only be called from within the PopulationEvent::markOtherAffectedPeople function,
+	 *  to indicate which other persons are also affected by the event (other that the persons
+	 *  mentioned in the event constructor. */
+	void markAffectedPerson(PersonBase *pPerson) const;
 
 	// TODO: shield these from the user somehow? These functions should not be used
 	//       directly by the user, they are used internally by the algorithm
@@ -167,60 +185,82 @@ private:
 	// These are living persons, the first part men, the second are women
 	std::vector<PersonBase *> m_people;
 	int m_numMen, m_numWomen;
+	int m_numGlobalDummies;
 
 	// Deceased persons
 	std::vector<PersonBase *> m_deceasedPersons;
 
+#ifndef DISABLEOPENMP
 	Mutex m_eventsToRemoveMutex;
+#endif // !DISABLEOPENMP
 	std::vector<EventBase *> m_eventsToRemove;
 
 	// For the parallel version
 	bool m_parallel;
 
 	int64_t m_nextEventID, m_nextPersonID;
+#ifndef DISABLEOPENMP
 	Mutex m_nextEventIDMutex, m_nextPersonIDMutex;
+#endif // !DISABLEOPENMP
 
 	std::vector<PopulationEvent *> m_tmpEarliestEvents;
 	std::vector<double> m_tmpEarliestTimes;
 
+	mutable std::vector<PersonBase *> m_otherAffectedPeople;
+
+#ifndef DISABLEOPENMP
 	mutable std::vector<Mutex> m_eventMutexes;
 	mutable std::vector<Mutex> m_personMutexes;
+#endif // !DISABLEOPENMP
 };
 
 inline int64_t Population::getNextEventID()
 {
+#ifndef DISABLEOPENMP
 	if (m_parallel)
 		m_nextEventIDMutex.lock();
+#endif // !DISABLEOPENMP
 	
 	int64_t id = m_nextEventID++;
 
+#ifndef DISABLEOPENMP
 	if (m_parallel)
 		m_nextEventIDMutex.unlock();
+#endif // !DISABLEOPENMP
 
 	return id;
 }
 
 inline int64_t Population::getNextPersonID()
 {
+#ifndef DISABLEOPENMP
 	if (m_parallel)
 		m_nextPersonIDMutex.lock();
+#endif // !DISABLEOPENMP
 	
 	int64_t id = m_nextPersonID++;
 
+#ifndef DISABLEOPENMP
 	if (m_parallel)
 		m_nextPersonIDMutex.unlock();
+#endif // !DISABLEOPENMP
 
 	return id;
 }
 
 #ifdef NDEBUG
 
+inline void Population::markAffectedPerson(PersonBase *pPerson) const
+{ 
+	m_otherAffectedPeople.push_back(pPerson); 
+}
+
 inline PersonBase **Population::getMen()
 {
 	if (m_numMen == 0)
 		return 0;
 
-	return &(m_people[0]);
+	return &(m_people[m_numGlobalDummies]);
 }
 
 inline PersonBase **Population::getWomen()
@@ -228,7 +268,7 @@ inline PersonBase **Population::getWomen()
 	if (m_numWomen == 0)
 		return 0;
 
-	return &(m_people[m_numMen]);
+	return &(m_people[m_numMen+m_numGlobalDummies]);
 }
 
 #endif // NDEBUG

@@ -4,3 +4,6 @@ add_subdirectory(program)
 # Some tests
 add_subdirectory(tests/test1)
 add_subdirectory(tests/test_mort)
+add_subdirectory(tests/global)
+add_subdirectory(tests/config)
+add_subdirectory(tests/varia)

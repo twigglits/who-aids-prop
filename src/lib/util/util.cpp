@@ -4,6 +4,10 @@
 #include <string.h>
 #include <iostream>
 #include <time.h>
+#include <stdlib.h>
+#include <assert.h>
+
+using namespace std;
 
 /*
 long double GetSystemTime()
@@ -17,11 +21,12 @@ long double GetSystemTime()
 
 #define MAXLEN 4096
 
-bool ReadInputLine(FILE *fi, std::string &line)
+bool ReadInputLine(FILE *fi, string &line)
 {
 	if (fi == 0)
 		return false;
 	
+	/*
 	char str[MAXLEN];
 	int len;
 	
@@ -36,11 +41,42 @@ bool ReadInputLine(FILE *fi, std::string &line)
 		str[len] = 0;
 	}
 	
-	line = std::string(str);
+	line = string(str);
+	return true;*/
+
+	vector<char> data;
+	bool gotchar = false;
+	int c;
+
+	while ((c = fgetc(fi)) != EOF)
+	{
+		gotchar = true;
+		if (c == '\n') // stop here
+			break;
+
+		data.push_back((char)c);
+	}
+
+	if (!gotchar)
+		return false;
+
+	size_t l = data.size();
+	if (l == 0)
+		line = "";
+	else
+	{
+		// Make sure it's null-terminated
+		if (data[l-1] == '\r')
+			data[l-1] = 0;
+		else
+			data.push_back(0);
+
+		line = string(&(data[0]));
+	}
 	return true;
 }
 
-bool HasCharacter(const std::string &charList, char c)
+bool HasCharacter(const string &charList, char c)
 {
 	for (int i = 0 ; i < charList.length() ; i++)
 	{
@@ -50,10 +86,10 @@ bool HasCharacter(const std::string &charList, char c)
 	return false;
 }
 
-void SplitLine(const std::string &line, std::vector<std::string> &args, const std::string &separatorChars,
-	       const std::string &quoteChars, const std::string &commentStartChars, bool ignoreZeroLengthFields)
+void SplitLine(const string &line, vector<string> &args, const string &separatorChars,
+	       const string &quoteChars, const string &commentStartChars, bool ignoreZeroLengthFields)
 {
-	std::vector<std::string> arguments;
+	vector<string> arguments;
 	int startPos = 0;
 
 	while (startPos < line.length() && HasCharacter(separatorChars, line[startPos]))
@@ -64,7 +100,7 @@ void SplitLine(const std::string &line, std::vector<std::string> &args, const st
 			arguments.push_back("");
 	}
 
-	std::string curString("");
+	string curString("");
 	bool done = false;
 
 	if (startPos >= line.length())
@@ -129,7 +165,7 @@ void SplitLine(const std::string &line, std::vector<std::string> &args, const st
 		else
 		{
 			startPos = endPos;
-			curString = std::string("");
+			curString = string("");
 
 
 			while (startPos < line.length() && HasCharacter(separatorChars, line[startPos]))
@@ -155,89 +191,148 @@ void SplitLine(const std::string &line, std::vector<std::string> &args, const st
 	args = arguments;
 }
 
-#if 0
-bool Load2DMatlabArray(const std::string &fileName, std::vector<double> &destArray, int &numX, int &numY, std::string &errStr)
+string trim(const std::string &str, const std::string &trimChars)
 {
-	MatFile f;
+	if (str.length() == 0)
+		return "";
 
-	if (!f.read(fileName))
+	bool foundStart = false;
+	int startIdx = 0;
+
+	while (startIdx < str.length() && !foundStart)
 	{
-		errStr = "Can't read from " + fileName + ": " + f.getErrorString();
-		return false;
+		char c = str[startIdx];
+
+		if (!HasCharacter(trimChars, c))
+			foundStart = true;
+		else
+			startIdx++;
 	}
 
-	const std::vector<MatFileEntry *> &entries = f.getEntries();
+	if (!foundStart || startIdx == str.length()) // trimmed everything
+		return "";
 
-	if (entries.size() != 1)
+	bool foundEnd = false;
+	int endIdx = (int)(str.length()) - 1;
+
+	while (endIdx >= 0 && !foundEnd)
 	{
-		char str[1024];
+		char c = str[endIdx];
 
-		sprintf(str, "Can handle only one entry, but got %d", (int)entries.size());
-		errStr = std::string(str);
-		return false;
+		if (!HasCharacter(trimChars, c))
+			foundEnd = true;
+		else
+			endIdx--;
 	}
 
-	std::string errStr2;
+	assert(foundEnd);
 
-	MatClassBase *pParsedEntry = MatClassBase::interpret(entries[0], errStr2);
-	if (pParsedEntry == 0)
-	{
-		errStr = "Unable to interpret: " + errStr2;
-		return false;
-	}
-	else
-	{
-		if (pParsedEntry->getType() != MATCLASS_TYPE_DOUBLEARRAY)
-		{
-			errStr = "Cannot process entry type";
-			delete pParsedEntry;
-			return false;
-		}
+	int len = endIdx+1 - startIdx;
+	assert(len > 0);
 
-		MatClassDoubleArray *pArr = (MatClassDoubleArray *)pParsedEntry;
-
-		size_t dims = pArr->getNumberOfDimensions();
-		if (dims != 2)
-		{
-			char str[1024];
-
-			sprintf(str, "Can only process two dimensional data, but number of dimensions is %d", (int)dims);
-			delete pParsedEntry;
-			return false;
-		}
-
-		int numRows = pArr->getNumberOfEntries(0);
-		int numCols = pArr->getNumberOfEntries(1);
-
-		numX = numCols;
-		numY = numRows;
-	
-		destArray.resize(numRows*numCols);
-
-		for (int i = 0 ; i < numRows ; i++)
-		{
-			for (int j = 0 ; j < numCols ; j++)
-			{
-				double v =  pArr->getData(i+j*numRows);
-
-				destArray[j+i*numCols] = v;
-			}
-		}
-
-		delete pParsedEntry;
-	}
-
-	return true;
+	return str.substr(startIdx, len);
 }
-#endif
 
-std::string createFullPath(const std::string &dir, const std::string &file)
+string createFullPath(const string &dir, const string &file)
 {
-	std::string full = dir;
+	string full = dir;
 	if (full.length() > 0 && full[full.length()-1] != '/')
 		full += "/";
 	full += file;
 	return full;
 }
 
+void abortWithMessage(const string &msg)
+{
+	cerr << "FATAL ERROR:" << endl;
+	cerr << msg << endl;
+	cerr << endl;
+	abort();
+}
+
+bool parseAsInt(const std::string &str, int &value)
+{
+	string valueStr = trim(str);
+	if (valueStr.length() == 0)
+		return false;
+
+	const char *nptr = valueStr.c_str();
+	char *endptr;
+	
+	long int v = strtol(nptr,&endptr,10); // base 10
+	
+	if (*nptr != '\0')
+	{
+		if (*endptr != '\0')
+		{
+			return false;
+		}
+	}
+
+	value = (int)v;
+
+	if ((long)value != v)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool parseAsDouble(const std::string &str, double &value)
+{
+	string valueStr = trim(str);
+	if (valueStr.length() == 0)
+		return false;
+
+	const char *nptr;
+	char *endptr;
+	
+	nptr = valueStr.c_str();
+	value = strtod(nptr, &endptr);
+
+	if (*nptr != '\0')
+	{
+		if (*endptr != '\0')
+		{
+			return false;
+		}
+	}
+	
+	return true;
+}
+
+std::string replace(const std::string &input, const std::string &target, const std::string &replacement)
+{
+	string result = "";
+	bool done = false;
+	size_t startPos = 0;
+	
+	while (!done && startPos < input.length())
+	{
+		size_t p = input.find(target, startPos);
+		if (p == string::npos) // no further matches
+		{
+			done = true;
+			result += input.substr(startPos);
+		}
+		else
+		{
+			size_t len = p - startPos;
+			result += input.substr(startPos, len);
+			result += replacement;
+			startPos = p + target.length();
+		}
+	}
+
+	return result;
+}
+
+string doubleToString(double x)
+{
+	char s[256];
+
+	snprintf(s, 255, "%.15g", x);
+	return s;
+}
 

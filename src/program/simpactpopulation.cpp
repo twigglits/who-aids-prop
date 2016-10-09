@@ -1,20 +1,23 @@
 #include "simpactpopulation.h"
 #include "eventmortality.h"
+#include "eventaidsmortality.h"
 #include "eventformation.h"
 #include "eventdebut.h"
-#include "eventhivtest.h"
 #include "eventchronicstage.h"
+#include "eventtreatment.h"
+#include "eventtransmission.h"
+#include "eventhivseed.h"
+#include "eventintervention.h"
 #include "populationdistribution.h"
 #include "person.h"
 #include "gslrandomnumbergenerator.h"
+#include "util.h"
 
 SimpactPopulationConfig::SimpactPopulationConfig()
 {
-	// TODO: init default values!
-	
 	m_initialMen = 100;
 	m_initialWomen = 100;
-	m_initialInfectionFraction = 0;
+	m_eyeCapsFraction = 1;
 }
 
 SimpactPopulationConfig::~SimpactPopulationConfig()
@@ -24,6 +27,7 @@ SimpactPopulationConfig::~SimpactPopulationConfig()
 SimpactPopulation::SimpactPopulation(bool parallel, GslRandomNumberGenerator *pRndGen) : Population(parallel, pRndGen)
 {
 	m_initialPopulationSize = -1;
+	m_eyeCapsFraction = 1;
 	m_init = false;
 }
 
@@ -39,6 +43,23 @@ bool SimpactPopulation::init(const SimpactPopulationConfig &config, const Popula
 		return false;
 	}
 
+	double eyeCapsFraction = config.getEyeCapsFraction();
+	assert(eyeCapsFraction >= 0 && eyeCapsFraction <= 1.0);
+
+	m_eyeCapsFraction = eyeCapsFraction;
+
+	if (!createInitialPopulation(config, popDist))
+		return false;
+
+	if (!scheduleInitialEvents())
+		return false;
+
+	m_init = true;
+	return true;
+}
+
+bool SimpactPopulation::createInitialPopulation(const SimpactPopulationConfig &config, const PopulationDistribution &popDist)
+{
 	int numMen = config.getInitialMen();
 	int numWomen = config.getInitialWomen();
 
@@ -48,9 +69,6 @@ bool SimpactPopulation::init(const SimpactPopulationConfig &config, const Popula
 		return false;
 	}
 
-	GslRandomNumberGenerator *pRngGen = getRandomNumberGenerator();
-	double initialInfectionFraction = config.getInitialInfectionFraction();
-
 	// Time zero is at the start of the simulation, so the birth dates are negative
 
 	for (int i = 0 ; i < numMen ; i++)
@@ -59,11 +77,8 @@ bool SimpactPopulation::init(const SimpactPopulationConfig &config, const Popula
 
 		Person *pPerson = new Man(-age);
 
-		if (age > getDebutAge())
-			pPerson->setSexuallyActive();
-
-		if (pRngGen->pickRandomDouble() < initialInfectionFraction)
-			pPerson->setInfected(0, 0, Person::Seed); // TODO: what about the infection time here?
+		if (age > EventDebut::getDebutAge())
+			pPerson->setSexuallyActive(0);
 
 		addNewPerson(pPerson);
 	}
@@ -73,26 +88,18 @@ bool SimpactPopulation::init(const SimpactPopulationConfig &config, const Popula
 		double age = popDist.pickAge(false);
 
 		Person *pPerson = new Woman(-age);
-		if (age > getDebutAge())
-			pPerson->setSexuallyActive();
-
-		if (pRngGen->pickRandomDouble() < initialInfectionFraction)
-			pPerson->setInfected(0, 0, Person::Seed); // TODO: what about the infection time here?
+		if (age > EventDebut::getDebutAge())
+			pPerson->setSexuallyActive(0);
 
 		addNewPerson(pPerson);
 	}
 
 	m_initialPopulationSize = numMen + numWomen;
 
-	// Start with the events
-
-	onScheduleInitialEvents();
-
-	m_init = true;
 	return true;
 }
 
-void SimpactPopulation::onScheduleInitialEvents()
+bool SimpactPopulation::scheduleInitialEvents()
 {
 	int numMen = getNumberOfMen();
 	int numWomen = getNumberOfWomen();
@@ -103,51 +110,17 @@ void SimpactPopulation::onScheduleInitialEvents()
 	Person **ppPeople = getAllPeople();
 
 	// Initialize the event list with the mortality events
-	// Depending on the infection status of the person, a different
-	// kind of mortality will be used
+	// both normal and AIDS based
 	for (int i = 0 ; i < numPeople ; i++)
 	{
-		EventMortality *pEvt = new EventMortality(ppPeople[i]);
+		Person *pPerson = ppPeople[i];
+
+		EventMortality *pEvt = new EventMortality(pPerson);
 		onNewEvent(pEvt);
 	}
 
-	// For the people who are infected, schedule an HIV test event
-	// TODO: do we need to add some randomness here to avoid all these
-	// events firing on the same day?
-
-	for (int i = 0 ; i < numPeople ; i++)
-	{
-		if (ppPeople[i]->isInfected())
-		{
-			EventHIVTest *pEvt = new EventHIVTest(ppPeople[i]);
-			onNewEvent(pEvt);
-		}
-	}
-
-	// Check if we're in the acute stage, in that case we should schedule
-	// an event to mark the transition to the chronic stage
-
-	for (int i = 0 ; i < numPeople ; i++)
-	{
-		if (ppPeople[i]->isInfected())
-		{
-			double infTime = ppPeople[i]->getInfectionTime();
-			double curTime = 0; // we're at time zero
-
-			if (curTime-infTime >= getAcuteStageTime()) // we're past the acute stage, set a flag in the person
-				ppPeople[i]->setInChronicStage();
-			else
-			{
-				// we're still in the acute stage and should schedule
-				// an event to mark the transition to the chronic stage
-
-				EventChronicStage *pEvtChronic = new EventChronicStage(ppPeople[i]);
-				onNewEvent(pEvtChronic);
-			}
-		}
-	}
-
-	// Relationship formation (every active man with every active woman)
+	// Relationship formation, using eyecaps approach
+	GslRandomNumberGenerator *pRngGen = getRandomNumberGenerator();
 
 	for (int i = 0 ; i < numWomen ; i++)
 	{
@@ -163,8 +136,12 @@ void SimpactPopulation::onScheduleInitialEvents()
 		
 				if (pMan->isSexuallyActive())
 				{
-					EventFormation *pEvt = new EventFormation(pMan, pWoman, -1);
-					onNewEvent(pEvt);
+					// Don't necessarily schedule all possible events, but just a fraction
+					if (m_eyeCapsFraction >= 1.0 || pRngGen->pickRandomDouble() < m_eyeCapsFraction)
+					{
+						EventFormation *pEvt = new EventFormation(pMan, pWoman, -1);
+						onNewEvent(pEvt);
+					}
 				}
 			}
 		}
@@ -182,13 +159,34 @@ void SimpactPopulation::onScheduleInitialEvents()
 			onNewEvent(pEvt);
 		}
 	}
+
+	if (EventHIVSeed::getSeedTime() >= 0)
+	{
+		EventHIVSeed *pEvt = new EventHIVSeed(); // this is a global event
+		onNewEvent(pEvt);
+	}
+
+	if (EventIntervention::hasNextIntervention()) // We need to schedule a first intervention event
+	{
+		// Note: the fire time will be determined by the event itself, in the
+		//       getNewInternalTimeDifference function
+		EventIntervention *pEvt = new EventIntervention(); // global event
+		onNewEvent(pEvt);
+	}
+
+	return true;
 }
 
 void SimpactPopulation::onAboutToFire(EventBase *pEvt)
 {
-	PopulationEvent *pEvent = static_cast<PopulationEvent *>(pEvt);
+	SimpactEvent *pEvent = static_cast<SimpactEvent *>(pEvt);
+	assert(pEvent != 0);
 
 	double t = getTime();
-	std::cout << t << "\t" << pEvent->getDescription(t) << std::endl;
+	assert(t >= 0);
+
+//	std::cout << t << "\t" << pEvent->getDescription(t) << std::endl;
+
+	pEvent->writeLogs(t);
 }
 

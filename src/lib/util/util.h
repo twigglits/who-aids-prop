@@ -12,8 +12,16 @@ void SplitLine(const std::string &line, std::vector<std::string> &args, const st
 	       const std::string &quoteChars = "\"'", const std::string &commentStartChars = "#", 
 	       bool ignoreZeroLengthFields = true);
 
-//bool Load2DMatlabArray(const std::string &fileName, std::vector<double> &destArray, int &numX, int &numY, std::string &errStr);
 std::string createFullPath(const std::string &dir, const std::string &file);
+
+void abortWithMessage(const std::string &msg);
+
+bool parseAsInt(const std::string &str, int &number);
+bool parseAsDouble(const std::string &str, double &number);
+std::string doubleToString(double x);
+
+std::string trim(const std::string &str, const std::string &trimChars = " \t\r\n");
+std::string replace(const std::string &input, const std::string &target, const std::string &replacement);
 
 #endif // UTIL_H
 

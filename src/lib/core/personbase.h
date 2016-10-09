@@ -29,7 +29,9 @@ public:
 		/** The person is a man. */
 		Male, 
 		/** The person is a woman. */
-		Female 
+		Female,
+		// This is for internal use only, global events will be registered with a 'dummy' person instance
+		GlobalEventDummy
 	};
 protected:
 	/** Create a new person of gender \c g and which was born at the
@@ -62,6 +64,9 @@ public:
 	/** Marks the person as deceased and stores the specified time of death. */
 	void setTimeOfDeath(double t)							{ assert(m_timeOfDeath < 0); m_timeOfDeath = t; }
 
+	/** Retrieves the time of death of the person, negative meaning that the person is still alive. */
+	double getTimeOfDeath() const							{ return m_timeOfDeath; }
+
 	// TODO: Move this to a base class or shield from user in
 	//       some other way?
 	//       "PersonalEventList" is a good candidate, but conceptually
@@ -75,6 +80,13 @@ private:
 
 	int64_t m_personID;
 	int m_listIndex;
+};
+
+class GlobalEventDummyPerson : public PersonBase
+{
+public:
+	GlobalEventDummyPerson() : PersonBase(GlobalEventDummy, -11111) 		{ }
+	~GlobalEventDummyPerson()							{ }
 };
 
 #endif // PERSONBASE_H

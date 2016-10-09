@@ -21,13 +21,17 @@ class PersonBase;
  *  use the Population class. Such an event should always specify at creation
  *  time which people are always involved in the event. For example, one
  *  person is always involved in a 'mortality' event, and two persons will
- *  be involved in an event for the formation of a relationship. 
+ *  be involved in an event for the formation of a relationship. It's also
+ *  possible to specify global events, for example to trigger the start of
+ *  an infection by marking specific persons as infected. In this case, the
+ *  no persons will be specified in the constructor, but internally the
+ *  event will be stored using a 'dummy' person for global events.
  *
  *  Of course, it is also possible that some people are affected because of
  *  an event, but that these people were not yet known at the time the event
  *  was created. For example, the hazard of a relationship formation event
  *  could depend on the number of relationships a person is in. When someone
- *  dies (i.e. a morality event), this ends all relationships that person was
+ *  dies (i.e. a mortality event), this ends all relationships that person was
  *  involved in, so all these people are affected by the event as well (they
  *  will need to recalculate event times since their number of relationships
  *  will have changed).
@@ -35,29 +39,34 @@ class PersonBase;
  *  For this purpose, the following functions can be implemented, if not it
  *  means that no extra people are affected:
  *
- *  - PopulationEvent::getNumberOfOtherAffectedPersons: this should return the number of persons
- *    that are also affected by the event (and were not specified in the
- *    constructor). If this is negative, it means that all people in the entire
- *    population are affected (due the adjustment of some global property that's
- *    used in the hazard calculations). Of course, avoiding this is a very
- *    good idea, since having to recalculate everything will slow things down.
- *  - PopulationEvent::startOtherAffectedPersonIteration: to iterate over the persons that are
- *    affected, this function will be called a the start of this iteration.
- *  - PopulationEvent::getNextOtherAffectedPerson: when the iteration is started, calling this
- *    function should always return the next affected person. This will be
- *    called \c getNumberOfOtherAffectedPersons times, and if it is called more than
- *    that (so no more persons are available), the function should return 0.
+ *  - PopulationEvent::isEveryoneAffected: by default this returns false, but
+ *    if everyone in the population is affected by the event, you can override
+ *    this and return true. Since this will cause all event fire times to be
+ *    recalculated, it should be avoided. But it can be useful for testing purposes.
+ *  - PopulationEvent::markOtherAffectedPeople: if other people are affected,
+ *    you should implement this function and mark which persons are affected
+ *    by calling the Population::markAffectedPerson function.
+ *  - PopulationEvent::areGlobalEventsAffected: it's also possible that no other
+ *    persons are involved than those (if any) specified at creation time, but
+ *    that global events should be recalculated. This function can be used to
+ *    indicate this.
  *
- *  The people specified in the constructor of the class should not be returned
- *  or counted by these functions, they are automatically taken into account. When
- *  one of the people specified in the constructor has died, the event will be
- *  considered useless in the rest of the simulation and will be discarded. Other
- *  conditions which can cause an event to become useless can be checked in the
+ *  The people specified in the constructor of the class should not be included
+ *  in the PopulationEvent::markOtherAffectedPeople function, they are automatically 
+ *  taken into account. When one of the people specified in the constructor has died, the 
+ *  event will be considered useless in the rest of the simulation and will be discarded. 
+ *  Other conditions which can cause an event to become useless can be checked in the
  *  optional function PopulationEvent::isUseless.
  */
 class PopulationEvent : public EventBase
 {
 public:
+	/** Constructs a 'global' event. 
+	 *
+	 *  Note that while no people are specified here, internally the algorithm will store
+	 *  the event in the list of a 'dummy' person, which is neither labelled as a 'Man' nor
+	 *  as a 'Woman'.
+	 */
 	PopulationEvent();
 
 	/** Constructs an event relevant to one person. */
@@ -67,27 +76,32 @@ public:
 	PopulationEvent(PersonBase *pPerson1, PersonBase *pPerson2);
 	~PopulationEvent();
 
+	// These are for internal use
+	void setGlobalEventPerson(PersonBase *pDummyPerson);
 	void setEventID(int64_t id)								{ assert(m_eventID < 0); assert(id >= 0); m_eventID = id; }
 	int64_t getEventID() const								{ return m_eventID; }
 
 	/** Returns the number of people specified during the creation of
-	 *  the event. */
+	 *  the event (will be one for global events since these are registered
+	 *  with the 'dummy' person mentioned above).
+	 */
 	int getNumberOfPersons() const								{ assert(m_numPersons >= 0 && m_numPersons <= POPULATIONEVENT_MAXPERSONS); return (int)m_numPersons; }
 
 	/** Returns a person that was specified when the event was constructed,
 	 *  where \c idx can range from 0 to PopulationEvent::getNumberOfPersons() - 1. */
 	PersonBase *getPerson(int idx) const;
 
-	/** Returns the number of persons that are also affected by the firing of the event
-	 *  (see the detailed description of the class for more info). */
-	virtual int getNumberOfOtherAffectedPersons() const					{ return 0; }
+	/** If the entire population is affected by this event (should be avoided!), this
+	 *  function can be overridden to indicate this. */
+	virtual bool isEveryoneAffected() const							{ return false; }
 
-	/** Starts the iteration of the other affected persons. */
-	virtual void startOtherAffectedPersonIteration()					{ }
+	/** If other people than the one(s) mentioned in the constructor are also affected
+	 *  by this event, it should be indicated in this function. */
+	virtual void markOtherAffectedPeople(const Population &population)			{ }
 
-	/** Retrieves an affected person and advaces the iteration (should return 0 if
-	 *  no more persons are affected). */
-	virtual PersonBase *getNextOtherAffectedPerson()					{ return 0; }
+	/** If global events (not referring to a particular person) are affected, this function
+	 *  can be overridden to indicate this. */
+	virtual bool areGlobalEventsAffected() const						{ return false; }
 
 	/** Returns a short description of the event, can be useful for logging/debugging
 	 *  purposes. */
@@ -136,7 +150,7 @@ inline void PopulationEvent::setEventIndex(PersonBase *pPerson, int idx)
 	}
 	
 	std::cerr << "PopulationEvent::setEventIndex: Consistency error: invalid Person object in setEventIndex" << std::endl;
-	exit(-1);
+	abort();
 }
 
 inline int PopulationEvent::getEventIndex(PersonBase *pPerson) const
@@ -153,7 +167,7 @@ inline int PopulationEvent::getEventIndex(PersonBase *pPerson) const
 	}
 
 	std::cerr << "PopulationEvent::getEventIndex: Consistency error: invalid Person object in getEventIndex" << std::endl;
-	exit(-1);
+	abort();
 }
 
 #ifdef NDEBUG

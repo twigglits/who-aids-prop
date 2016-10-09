@@ -1,8 +1,11 @@
+#ifndef DISABLEOPENMP
 #include <omp.h>
+#endif // !DISABLEOPENMP
 #include "parallel.h"
 #include "population.h"
 #include "personbase.h"
 #include "debugwarning.h"
+#include "util.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
@@ -16,9 +19,14 @@ Population::Population(bool parallel, GslRandomNumberGenerator *pRnd) : State(pR
 Population::Population(bool parallel, GslRandomNumberGenerator *pRnd) : SimpleState(parallel, pRnd) 
 #endif
 {
+#ifdef DISABLEOPENMP
+	if (parallel)
+		abortWithMessage("Parallel version requested but OpenMP was not available when creating the program");
+#endif // DISABLEOPENMP
+
 	m_numMen = 0; 
 	m_numWomen = 0;
-	m_people.resize(0);
+	m_numGlobalDummies = 1;
 
 #ifndef SIMPLEMNRM
 	std::cerr << "# mNRM: using advanced algorithm" << std::endl;
@@ -40,6 +48,7 @@ Population::Population(bool parallel, GslRandomNumberGenerator *pRnd) : SimpleSt
 
 	if (m_parallel)
 	{
+#ifndef DISABLEOPENMP
 		std::cerr << "# Population: using parallel version with " << omp_get_max_threads() << " threads" << std::endl;
 		m_tmpEarliestEvents.resize(omp_get_max_threads());
 		m_tmpEarliestTimes.resize(m_tmpEarliestEvents.size());
@@ -48,11 +57,23 @@ Population::Population(bool parallel, GslRandomNumberGenerator *pRnd) : SimpleSt
 		m_personMutexes.resize(256); // TODO: same
 
 		// TODO: in windows it seems that the omp mutex initialization is not ok
+#endif // !DISABLEOPENMP
 	}
 
 #ifdef DISABLE_PARALLEL
 	DEBUGWARNING("#pragma omp is disabled")
 #endif // DISABLE_PARALLEL
+
+	// Note: we can't do this too soon since m_nextPersonID must be initialized
+	m_people.resize(m_numGlobalDummies);
+
+	for (int i = 0 ; i < m_numGlobalDummies ; i++)
+	{
+		m_people[i] = new GlobalEventDummyPerson();
+
+		int64_t id = getNextPersonID();
+		m_people[i]->setPersonID(id);
+	}
 }
 
 Population::~Population()
@@ -74,6 +95,7 @@ void Population::onAlgorithmLoop()
 void Population::setPersonDied(PersonBase *pPerson)
 {
 	assert(pPerson != 0);
+	assert(pPerson->getGender() != PersonBase::GlobalEventDummy);
 
 	// Set the time of death
 	pPerson->setTimeOfDeath(getTime());	
@@ -91,9 +113,9 @@ void Population::setPersonDied(PersonBase *pPerson)
 
 	if (pPerson->getGender() == PersonBase::Female) // second part of the list
 	{
-		int lastFemaleIdx = m_numMen + m_numWomen - 1;
+		int lastFemaleIdx = m_numGlobalDummies + m_numMen + m_numWomen - 1;
 
-		assert(lastFemaleIdx >= 0 && lastFemaleIdx < m_people.size());
+		assert(lastFemaleIdx >= 0 && lastFemaleIdx+1 == m_people.size());
 
 		if (lastFemaleIdx != listIndex) // we need to move someone
 		{
@@ -102,7 +124,7 @@ void Population::setPersonDied(PersonBase *pPerson)
 			m_people[listIndex] = pWoman;
 			pWoman->setListIndex(listIndex);
 
-			assert(listIndex >= m_numMen); // in m_people there are first a number of men, then a number of women
+			assert(listIndex >= (m_numMen+m_numGlobalDummies)); // in m_people there are first a number of global event dummies, then men, then a number of women
 
 			// m_firstEventTracker.taint(listIndex);
 		}
@@ -116,7 +138,7 @@ void Population::setPersonDied(PersonBase *pPerson)
 	{
 		assert(pPerson->getGender() == PersonBase::Male);
 
-		int lastMaleIdx = m_numMen - 1;
+		int lastMaleIdx = m_numGlobalDummies + m_numMen - 1;
 
 		assert(lastMaleIdx >= 0 && lastMaleIdx < m_people.size());
 
@@ -138,17 +160,18 @@ void Population::setPersonDied(PersonBase *pPerson)
 
 		if (m_numWomen > 0)
 		{
-			int lastFemaleIdx = m_numMen + m_numWomen; // no -1 here since we've already decremented m_numMen
+			int newIdx = m_numMen + m_numGlobalDummies;
+			int lastFemaleIdx = m_numGlobalDummies + m_numMen + m_numWomen; // no -1 here since we've already decremented m_numMen
 
 			PersonBase *pWoman = m_people[lastFemaleIdx];
 
-			m_people[m_numMen] = pWoman;
-			pWoman->setListIndex(m_numMen);
+			m_people[newIdx] = pWoman;
+			pWoman->setListIndex(newIdx);
 
 			// m_firstEventTracker.tain(m_numMen);
 		}
 
-		m_people.resize(m_numMen+m_numWomen);
+		m_people.resize(m_numGlobalDummies+m_numMen+m_numWomen);
 
 		// m_firstEventTracker.removedLast();
 	}
@@ -186,6 +209,7 @@ EventBase *Population::getNextScheduledEvent(double &dt)
 	}
 	else
 	{
+#ifndef DISABLEOPENMP
 		int numPeople = m_people.size();
 
 #ifndef DISABLE_PARALLEL
@@ -193,6 +217,7 @@ EventBase *Population::getNextScheduledEvent(double &dt)
 #endif // DISABLE_PARALLEL
 		for (int i = 0 ; i < numPeople ; i++)
 			m_people[i]->processUnsortedEvents(*this, curTime);
+#endif // !DISABLEOPENMP
 	}
 
 #ifdef STATE_SHOW_EVENTS
@@ -224,6 +249,20 @@ EventBase *Population::getNextScheduledEvent(double &dt)
 	}
 
 	dt = pEarliestEvent->getEventTime() - getTime();
+
+#ifndef NDEBUG
+	// This is the event that's going to be fired. In debug mode we'll
+	// perform a check to make sure that all the people involved directly
+	// in the event are still alive
+	int num = pEarliestEvent->getNumberOfPersons();
+	for (int i = 0 ; i < num ; i++)
+	{
+		PersonBase *pPerson = pEarliestEvent->getPerson(i);
+
+		assert(pPerson != 0);
+		assert(!pPerson->hasDied());
+	}
+#endif // NDEBUG
 	return pEarliestEvent;
 }
 
@@ -254,33 +293,49 @@ void Population::advanceEventTimes(EventBase *pScheduledEvent, double dt)
 	// also get a list of other persons that are affected
 	// with just the mortality event this way should suffice
 
-	numPersons = pEvt->getNumberOfOtherAffectedPersons();
-	// TODO: for a quick test, we're using -1 to signal the whole
-	//       population. Is this the best way?
-	if (numPersons < 0)
+	m_otherAffectedPeople.clear();
+	if (pEvt->isEveryoneAffected())
 	{
 		int num = m_people.size();
-
-		for (int i = 0 ; i < num ; i++)
+		for (int i = m_numGlobalDummies ; i < num ; i++)
 		{
 			PersonBase *pPerson = m_people[i];
+
 			assert(pPerson != 0);
+			assert(pPerson->getGender() == PersonBase::Male || pPerson->getGender() == PersonBase::Female);
+
 			pPerson->advanceEventTimes(*this, newRefTime);
 		}
 	}
 	else
 	{
-		pEvt->startOtherAffectedPersonIteration();
+		pEvt->markOtherAffectedPeople(*this);
 
-		for (int i = 0 ; i < numPersons ; i++)
+		int num = m_otherAffectedPeople.size();
+		for (int i = 0 ; i < num ; i++)
 		{
-			PersonBase *pPerson = pEvt->getNextOtherAffectedPerson();
+			PersonBase *pPerson = m_otherAffectedPeople[i];
+
 			assert(pPerson != 0);
+			assert(pPerson->getGender() == PersonBase::Male || pPerson->getGender() == PersonBase::Female);
+
 			pPerson->advanceEventTimes(*this, newRefTime);
 		}
+	}
 
-		// If we call getNextOtherAffectedPerson, it should return null because there's nobody left
-		assert(pEvt->getNextOtherAffectedPerson() == 0);
+	if (pEvt->areGlobalEventsAffected())
+	{
+		int num = m_numGlobalDummies;
+
+		for (int i = 0 ; i < num ; i++)
+		{
+			PersonBase *pPerson = m_people[i];
+
+			assert(pPerson != 0);
+			assert(pPerson->getGender() == PersonBase::GlobalEventDummy);
+
+			pPerson->advanceEventTimes(*this, newRefTime);
+		}
 	}
 }
 #endif // !SIMPLEMNRM
@@ -310,6 +365,7 @@ PopulationEvent *Population::getEarliestEvent(const std::vector<PersonBase *> &p
 	}
 	else
 	{
+#ifndef DISABLEOPENMP
 		int numPeople = people.size();
 
 		for (int i = 0 ; i < m_tmpEarliestEvents.size() ; i++)
@@ -354,6 +410,7 @@ PopulationEvent *Population::getEarliestEvent(const std::vector<PersonBase *> &p
 			}
 
 		}
+#endif // !DISABLEOPENMP
 	}
 
 	return pBest;
@@ -363,17 +420,22 @@ void Population::scheduleForRemoval(PopulationEvent *pEvt)
 {
 	pEvt->setScheduledForRemoval();
 
+#ifndef DISABLEOPENMP
 	if (m_parallel)
 		m_eventsToRemoveMutex.lock();
+#endif // !DISABLEOPENMP
 
 	m_eventsToRemove.push_back(pEvt);
 
+#ifndef DISABLEOPENMP
 	if (m_parallel)
 		m_eventsToRemoveMutex.unlock();
+#endif // !DISABLEOPENMP
 }
 
 void Population::lockEvent(PopulationEvent *pEvt) const
 {
+#ifndef DISABLEOPENMP
 	if (!m_parallel)
 		return;
 
@@ -383,10 +445,12 @@ void Population::lockEvent(PopulationEvent *pEvt) const
 	int mutexId = (int)(id%l);
 
 	m_eventMutexes[mutexId].lock();
+#endif // !DISABLEOPENMP
 }
 
 void Population::unlockEvent(PopulationEvent *pEvt) const
 {
+#ifndef DISABLEOPENMP
 	if (!m_parallel)
 		return;
 
@@ -396,10 +460,12 @@ void Population::unlockEvent(PopulationEvent *pEvt) const
 	int mutexId = (int)(id%l);
 
 	m_eventMutexes[mutexId].unlock();
+#endif // !DISABLEOPENMP
 }
 
 void Population::lockPerson(PersonBase *pPerson) const
 {
+#ifndef DISABLEOPENMP
 	if (!m_parallel)
 		return;
 
@@ -409,10 +475,12 @@ void Population::lockPerson(PersonBase *pPerson) const
 	int mutexId = (int)(id%l);
 
 	m_personMutexes[mutexId].lock();
+#endif // !DISABLEOPENMP
 }
 
 void Population::unlockPerson(PersonBase *pPerson) const
 {
+#ifndef DISABLEOPENMP
 	if (!m_parallel)
 		return;
 
@@ -422,9 +490,17 @@ void Population::unlockPerson(PersonBase *pPerson) const
 	int mutexId = (int)(id%l);
 
 	m_personMutexes[mutexId].unlock();
+#endif // !DISABLEOPENMP
 }
 
 #ifndef NDEBUG
+
+void Population::markAffectedPerson(PersonBase *pPerson) const
+{ 
+	assert(pPerson != 0);
+	assert(!pPerson->hasDied());
+	m_otherAffectedPeople.push_back(pPerson); 
+}
 
 PersonBase **Population::getMen()
 {
@@ -433,10 +509,10 @@ PersonBase **Population::getMen()
 	if (m_numMen == 0)
 		return 0;
 
-	PersonBase *pFirstMan = m_people[0];
+	PersonBase *pFirstMan = m_people[m_numGlobalDummies];
 	assert(pFirstMan->getGender() == PersonBase::Male);
 
-	return &(m_people[0]);
+	return &(m_people[m_numGlobalDummies]);
 }
 
 PersonBase **Population::getWomen()
@@ -446,10 +522,12 @@ PersonBase **Population::getWomen()
 	if (m_numWomen == 0)
 		return 0;
 
-	PersonBase *pFirstWoman = m_people[m_numMen];
+	int idx = m_numGlobalDummies+m_numMen;
+	PersonBase *pFirstWoman = m_people[idx];
+
 	assert(pFirstWoman->getGender() == PersonBase::Female);
 
-	return &(m_people[m_numMen]);
+	return &(m_people[idx]);
 }
 
 #endif // NDEBUG
@@ -466,10 +544,25 @@ void Population::onNewEvent(PopulationEvent *pEvt)
 	pEvt->generateNewInternalTimeDifference(getRandomNumberGenerator(), this);
 
 	int numPersons = pEvt->getNumberOfPersons();
-	for (int i = 0 ; i < numPersons ; i++)
+
+	if (numPersons == 0) // A global event
 	{
-		PersonBase *pPerson = pEvt->getPerson(i);
-		pPerson->registerPersonalEvent(pEvt);
+		PersonBase *pGlobalEventPerson = m_people[0];
+		assert(pGlobalEventPerson->getGender() == PersonBase::GlobalEventDummy);
+
+		pEvt->setGlobalEventPerson(pGlobalEventPerson);
+		pGlobalEventPerson->registerPersonalEvent(pEvt);
+	}
+	else
+	{
+		for (int i = 0 ; i < numPersons ; i++)
+		{
+			PersonBase *pPerson = pEvt->getPerson(i);
+
+			assert(!pPerson->hasDied());
+
+			pPerson->registerPersonalEvent(pEvt);
+		}
 	}
 
 #ifdef SIMPLEMNRM
@@ -514,15 +607,16 @@ void Population::addNewPerson(PersonBase *pPerson)
 {
 	assert(pPerson != 0);
 	assert(pPerson->getPersonID() < 0); // should not be initialized for now
+	assert(pPerson->getGender() == PersonBase::Male || pPerson->getGender() == PersonBase::Female);
 
 	int64_t id = getNextPersonID();
 	pPerson->setPersonID(id);
 
-	if (pPerson->getGender() == PersonBase::Male) // first part of the list
+	if (pPerson->getGender() == PersonBase::Male) // first part of the list (but after the global event dummies)
 	{
 		if (m_numWomen == 0) // then it's easy
 		{
-			assert(m_people.size() == m_numMen);
+			assert(m_people.size() == m_numMen+m_numGlobalDummies);
 
 			int pos = m_people.size();
 			m_people.resize(pos+1);
@@ -532,26 +626,28 @@ void Population::addNewPerson(PersonBase *pPerson)
 
 			m_numMen++;
 		}
-		else // since the women are the second part of the list, we need to the first one to the last position
+		else // since the women are the second part of the list, we need to move the first one to the last position
 		{
-			PersonBase *pFirstWoman = m_people[m_numMen];
+			PersonBase *pFirstWoman = m_people[m_numMen+m_numGlobalDummies];
 
 			assert(pFirstWoman->getGender() == PersonBase::Female);
+
 			int s = m_people.size();
 			m_people.resize(s+1);
 
 			m_people[s] = pFirstWoman;
 			pFirstWoman->setListIndex(s);
 
-			m_people[m_numMen] = pPerson;
-			pPerson->setListIndex(m_numMen);
+			int newIdx = m_numMen+m_numGlobalDummies;
+			m_people[newIdx] = pPerson;
+			pPerson->setListIndex(newIdx);
 
 			m_numMen++;
 		}
 	}
-	else // second part of the list
+	else // Female, second part of the list
 	{
-		int pos = m_numMen + m_numWomen;
+		int pos = m_numGlobalDummies + m_numMen + m_numWomen;
 
 		assert(pos == m_people.size());
 		m_people.resize(pos+1);
