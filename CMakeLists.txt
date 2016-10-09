@@ -6,11 +6,14 @@ else()
 endif()
 
 project(simpact-cyan)
-set(VERSION 0.13.0)
+set(VERSION 0.13.1)
 include(${PROJECT_SOURCE_DIR}/cmake/SimpactMacros.cmake)
 
 simpact_setup()
 
 # This contains the main simpact program
 add_subdirectory(src)
+
+# Install everything from the data dir in e.g. /usr/local/share/simpact-cyan/
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/ DESTINATION ${CMAKE_INSTALL_PREFIX}/share/simpact-cyan/)
 

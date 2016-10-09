@@ -1,5 +1,6 @@
 # The 'program' subdirectory contains the main simpact program
 add_subdirectory(program)
+add_subdirectory(program-maxart)
 
 # Some tests
 add_subdirectory(tests/test1)

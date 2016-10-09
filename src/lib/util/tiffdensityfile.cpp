@@ -15,7 +15,7 @@ TIFFDensityFile::~TIFFDensityFile()
 {
 }
 
-bool TIFFDensityFile::init(const string &fileName)
+bool TIFFDensityFile::init(const string &fileName, bool noNegativeValues)
 {
 	if (m_values.size() > 0)
 	{
@@ -25,7 +25,7 @@ bool TIFFDensityFile::init(const string &fileName)
 
 	TIFFErrorHandler oldHandler = TIFFSetWarningHandler(NULL);
 
-	bool status = readTiffFile(fileName);
+	bool status = readTiffFile(fileName, noNegativeValues);
 
 	TIFFSetWarningHandler(oldHandler);
 
@@ -43,7 +43,7 @@ private:
 
 #define TIFFDENSITYFILE_ERRRETURN(x) { setErrorString(x); return false; }
 
-bool TIFFDensityFile::readTiffFile(const string &fileName)
+bool TIFFDensityFile::readTiffFile(const string &fileName, bool noNeg)
 {
 	TIFF *pTiff = TIFFOpen(fileName.c_str(), "r");
 	if (pTiff == 0)
@@ -142,7 +142,7 @@ bool TIFFDensityFile::readTiffFile(const string &fileName)
 				float *pData = tiles[ty][tx].getData();
 				float val = pData[xp+yp*tileWidth];
 
-				if (val < 0)
+				if (val < 0 && noNeg)
 				{
 					gotNeg = true;
 					val = 0;

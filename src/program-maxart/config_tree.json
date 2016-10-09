@@ -1,0 +1,423 @@
+{
+    "distTypes": { 
+
+        "fixed": { 
+            "params": [ ["value", 0] ],
+            "info": [ ]
+        },
+        "uniform": {
+            "params": [ ["min", 0], ["max", 1] ],
+            "info": [ "Parameters for a uniform distribution" ]
+        },
+        "beta": { 
+            "params": [ ["a", null], ["b", null], ["min", null], ["max", null] ],
+            "info": [ 
+                "Parameters for a beta distribution (rescaled)",
+                "prob(x) = gamma(a+b)/(gamma(a)*gamma(b))*((x-min)/(max-min))^(a-1.0)*(1.0-((x-min)/(max-min)))^(b-1.0) * 1.0/(max-min)" 
+            ]
+        },
+        "gamma": { 
+            "params": [ ["a", null], ["b", null] ],
+            "info": [ 
+                "Parameters for a gamma distribution",
+                "prob(x) = (x^(a-1.0))*exp(-x/b)/((b^a)*gamma(a))"
+            ]
+        },
+        "lognormal": { 
+            "params": [ ["zeta", 0], ["sigma", null] ],
+            "info": [ 
+                "Parameters for a log-normal distribution",
+                "prob(x) = 1.0/(x*s*sqrt(2.0*pi)) * exp(- (ln(x)-z)^2 / (2.0*s^2))"
+            ]
+        }
+    },
+
+    "configNames": {
+
+        "EventChronicStage": { 
+            "depends": null,
+            "params": [ ["chronicstage.acutestagetime", 0.25 ] ],
+            "info": [ "Duration of the acute stage. 3 months = 3/12 = 0.25" ]
+        },
+
+        "EventAIDSStage": { 
+            "depends": null,
+            "params": [ ["aidsstage.start", 1.25], ["aidsstage.final", 0.5] ],
+            "info": [ 
+                "Indicates the time interval before death that the AIDS stages occur",
+                "The defaults are 15 and 6 months before death"
+            ]
+        },
+
+        "EventBirth": { 
+            "depends": null,
+            "params": [ ["birth.boygirlratio", 0.49751243781094534 ] ],
+            "info": [ 
+                "When someone is born, a random number is chosen from [0,1],",
+                "and if smaller than this boygirlratio, the new child is male. Otherwise, a ",
+                "woman is added to the population.",
+                "",
+                "Default is 1.0/2.01"
+            ]
+        },
+
+        "EventBirth_pregduration": { 
+            "depends": null,
+            "params": [ [ 
+                "birth.pregnancyduration.dist", "distTypes", ["fixed", [ ["value", 0.7342465753424657 ] ] ] 
+                ] 
+            ],
+            "info": [ 
+                "This parameter is used to specify the pregnancy duration. The default",
+                "is the fixed value of 268/365"
+            ]
+        },
+
+        "EventConception": { 
+            "depends": null,
+            "params": [ 
+                ["conception.alpha_base", -3],
+                ["conception.alpha_ageman", 0],
+                ["conception.alpha_agewoman", 0],
+                ["conception.alpha_wsf", 0],
+                ["conception.beta", 0],
+                ["conception.t_max", 200],
+                ["conception.wsf.dist", "distTypes" ] 
+            ],
+            "info": [ 
+                "Parameters for the conception event. Hazard is ",
+                "    h = exp(alpha_base + alpha_ageman * AgeMan(t) + alpha_agewoman * AgeWoman(t) ",
+                "            + alpha_wsf * WSF + beta*(t-t_ref) )",
+                "",
+                "Here, WSF is a number that's generated at random from the specified distribution",
+                "when a conception event is scheduled."
+            ]
+        },
+
+        "EventDebut": { 
+            "depends": null, 
+            "params" : [ [ "debut.debutage", 15] ],
+            "info": [
+                "Age at which a person becomes sexually active and can form",
+                "relationships"
+            ]
+        },
+
+        "EventDissolution": { 
+            "depends": null,
+            "params": [ 
+                ["dissolution.alpha_0", 0.1],
+                ["dissolution.alpha_1", 0],
+                ["dissolution.alpha_2", 0],
+                ["dissolution.alpha_3", 0],
+                ["dissolution.alpha_4", 0],
+                ["dissolution.alpha_5", 0],
+                ["dissolution.Dp", 0],
+                ["dissolution.beta", 0],
+                ["dissolution.t_max", 200] ],
+            "info": [ 
+                "These are the parameters for the hazard in the dissolution event.",
+                "see http://research.edm.uhasselt.be/~jori/simpact/documentation/simpactcyan.html",
+                "for more information."
+            ]
+        },
+        
+        "EventFormationTypes": { 
+            "depends": null,
+            "params": [ ["formation.hazard.type", "agegap", [ "simple", "agegap" ] ] ],
+            "info": null 
+        },
+
+        "EventFormation_simple": { 
+            "depends": ["EventFormationTypes", "formation.hazard.type", "simple"],
+            "params": [ 
+                ["formation.hazard.simple.alpha_0", 0.1],
+                ["formation.hazard.simple.alpha_1", 0],
+                ["formation.hazard.simple.alpha_2", 0],
+                ["formation.hazard.simple.alpha_3", 0],
+                ["formation.hazard.simple.alpha_4", 0],
+                ["formation.hazard.simple.alpha_5", 0],
+                ["formation.hazard.simple.alpha_6", 0],
+                ["formation.hazard.simple.alpha_7", 0],
+                ["formation.hazard.simple.Dp", 0],
+                ["formation.hazard.simple.beta", 0],
+                ["formation.hazard.simple.t_max", 200] ],
+            "info": [
+                "These are the parameters for the hazard in the simple formation event.",
+                "see http://research.edm.uhasselt.be/~jori/simpact/documentation/simpactcyan.html",
+                "for more information."
+            ]
+        },
+
+        "EventFormation_agegap": { 
+            "depends": [ "EventFormationTypes", "formation.hazard.type", "agegap" ],
+            "params": [ 
+                ["formation.hazard.agegap.baseline", 0.1],
+                ["formation.hazard.agegap.numrel_man", 0],
+                ["formation.hazard.agegap.numrel_woman", 0],
+                ["formation.hazard.agegap.numrel_diff", 0],
+                ["formation.hazard.agegap.meanage", 0],
+                ["formation.hazard.agegap.eagerness_sum", 0],
+                ["formation.hazard.agegap.eagerness_diff", 0],
+                ["formation.hazard.agegap.gap_factor_man", 0],
+                ["formation.hazard.agegap.gap_agescale_man", 0],
+                ["formation.hazard.agegap.gap_factor_woman", 0],
+                ["formation.hazard.agegap.gap_agescale_woman", 0],
+                ["formation.hazard.agegap.beta", 0],
+                ["formation.hazard.agegap.t_max", 200] ],
+            "info": [ 
+                "These are the parameters for the hazard in the 'agegap' formation event.",
+                "see http://research.edm.uhasselt.be/~jori/simpact/documentation/simpactcyan.html",
+                "for more information."
+            ]
+        },
+
+        "EventIntervention": { 
+            "depends": null,
+            "params": [ ["intervention.enabled", "no", [ "yes", "no"] ] ],
+            "info": [ 
+                "If you enable the intervention event, you need to specify a number of times",
+                "at which this event should fire. On these times, some new configuration lines",
+                "will be read, overriding the initial parameters read from config file."
+            ]
+        },
+
+        "EventIntervention_enabled": { 
+            "depends": [ "EventIntervention", "intervention.enabled", "yes"],
+            "params": [ 
+                 ["intervention.baseconfigname", null],
+                 ["intervention.times", null],
+                 ["intervention.fileids", null] ],
+            "info": [ 
+                "In 'intervention.times' you need to specify the times at which the ",
+                "intervention event should fire. All times must be positive and the list",
+                "of times must be increasing.",
+                "",
+                "The 'intervention.baseconfigname' is the filename template that should be",
+                "used to read the config settings from for the intervention events. For each",
+                "intervention time, the '%' character will either be replaced by the ",
+                "corresponding string from 'intervention.fileids', or by the time specified ",
+                "in 'intervention.times' if you leave 'intervention.fileids' empty.",
+                "",
+                "For example:",
+                "  intervention.baseconfigname = intconfig_%.txt",
+                "  intervention.times = 1,2,3",
+                "  intervention.fileids = A,B,C",
+                "will read intervention settings from 'intconfig_A.txt', 'intconfig_B.txt' and",
+                "'intconfig_C.txt'.",
+                "",
+                "If you leave the file IDs empty,",
+                "  intervention.fileids =",
+                "then the files used would be 'intconfig_1.txt', 'intconfig_2.txt' and",
+                "'intconfig_3.txt'."
+            ]
+        },
+
+        "EventMortality_AIDS": { 
+            "depends": null,
+            "params": [ 
+                ["mortality.aids.survtime.C", 1325.0],
+                ["mortality.aids.survtime.k", -0.49] ],
+            "info": [ 
+                "Parameters for the calculation of the survival time from the",
+                "set-point viral load: t_surv = C/Vsp^(-k)"
+            ]
+        },
+
+        "EventMortality_Normal": { 
+            "depends": null,
+            "params":  [ 
+                ["mortality.normal.weibull.shape", 4.0],
+                ["mortality.normal.weibull.scale", 70.0],
+                ["mortality.normal.weibull.genderdiff", 5.0] ],
+            "info": [ 
+                "Parameters for the weibull distribution from which a non-aids",
+                "time of death is picked."
+            ]
+        },
+
+        "EventTransmission": { 
+            "depends": null,
+            "params": [ 
+                ["transmission.param.a", -1.3997],
+                ["transmission.param.b", -12.0220],
+                ["transmission.param.c", 0.1649],
+                ["transmission.param.d1", 0],
+                ["transmission.param.d2", 0] ],
+            "info": [ 
+                "The hazard of transmission is h = exp(a + b * V^(-c) + d1*Pi + d2*Pj), ",
+                "where V can be either the set-point viral load or the acute stage ",
+                "viral load. ",
+                "",
+                "Default parameters originate from a fit to the Lingappa et al. data."
+            ]
+        },
+
+        "EventTreatment": { 
+            "depends": null,
+            "params": [ 
+                ["treatment.fraction.time", 0.8],
+                ["treatment.fraction.log_viralload", 0.7],
+                ["treatment.enabled", "yes", ["yes", "no"] ] ],
+            "info": [ 
+                "A person receives treatment after a certain fraction of t_surv has passed.",
+                "The effect will be to lower the set-point viral load in such a way that",
+                "on a log scale the Vsp value will be multiplied by the specified fraction."
+            ]
+        },
+
+        "EventSeeding": { 
+            "depends": null, 
+            "params": [ 
+                ["hivseed.time", 0],
+                ["hivseed.fraction", 0.2] ],
+            "info": [ 
+                "Controls when the initial HIV seeders are introduced. If the time is negative,",
+                "no seeders will be introduced since the event will be ignored (simulation time",
+                "starts at t = 0)."
+            ]
+        },
+
+        "PersonVspAcute": { 
+            "depends": null,
+            "params": [ 
+                ["person.vsp.toacute.x", 10.0],
+                ["person.vsp.toaids.x", 7.0],
+                ["person.vsp.tofinalaids.x", 12.0],
+                ["person.vsp.maxvalue", 1e9] ],
+            "info": [ 
+                "The viral load during the other stages is based on the set point viral load:",
+                "   V = [ max(ln(x)/b + Vsp^(-c), maxvalue^(-c)) ]^(-1/c)",
+                "The b and c parameters are specified in the parameters from the transmission",
+                "event."
+            ]
+        },
+
+        "PersonEagerness": { 
+            "depends": null, 
+            "params": [ ["person.eagerness.dist", "distTypes" ] ],
+            "info": [ 
+                "The per-person parameter for the eagerness to form a relationship is chosen",
+                "from a specific distribution with certain parameters."
+            ]
+        },
+
+        "PersonAgeGapMen": { 
+            "depends": null, 
+            "params": [ ["person.agegap.man.dist", "distTypes" ] ],
+            "info": null
+        },
+
+        "PersonAgeGapWomen": { 
+            "depends": null, 
+            "params": [ ["person.agegap.woman.dist", "distTypes" ] ],
+            "info": null
+        },
+
+        "PersonVspModelTypes": { 
+            "depends": null, 
+            "params": [ ["person.vsp.model.type", "logbinormal", [ "logweibullwithnoise", "logbinormal"] ] ],
+            "info": [ 
+                "The type of model to use for the Vsp value of the seeders and for inheriting",
+                "Vsp values."
+            ]
+        },
+
+        "PersonVspModel_weibullnoise": { 
+            "depends": ["PersonVspModelTypes", "person.vsp.model.type", "logweibullwithnoise"],
+            "params": [ 
+                ["person.vsp.model.logweibullwithnoise.weibullscale", 5.05],
+                ["person.vsp.model.logweibullwithnoise.weibullshape", 7.2],
+                ["person.vsp.model.logweibullwithnoise.fracsigma", 0.1],
+                ["person.vsp.model.logweibullwithnoise.onnegative", "logweibull", [ "logweibull", "noiseagain"] ] 
+            ],
+            "info": [ 
+                "For 'seeders', people marked as infected at the start of the simulation,",
+                "the logarithm of set-point viral load is chosen from a weibull distribution.",
+                "",
+                "In Vsp heritability, added random noise uses a sigma that's 10% of the ",
+                "original Vsp. When after adding noise upon inheriting the Vsp value, the",
+                "Vsp is negative: use 'noiseagain' to pick from gaussian(VspOrigin,sigma) ",
+                "again, or use 'logweibull' to pick from the initial distribution again."
+            ]
+        },
+
+        "PersonVspModel_binormal": { 
+            "depends": ["PersonVspModelTypes", "person.vsp.model.type", "logbinormal"],
+            "params": [ 
+                ["person.vsp.model.logbinormal.mean", 4],
+                ["person.vsp.model.logbinormal.sigma", 1],
+                ["person.vsp.model.logbinormal.rho", 0.33],
+                ["person.vsp.model.logbinormal.min", 1],
+                ["person.vsp.model.logbinormal.max", 8],
+                ["person.vsp.model.logbinormal.usealternativeseeddist", "no", [ "yes", "no"]]
+            ],
+            "info": [ 
+                "Both the initial 'seed' value and the inherited Vsp value are",
+                "chosen so that the 2D distribution is a clipped binormal distribution ",
+                "(on a log scale). The shape parameters (mean, sigma), clipping parameters ",
+                "(min, max) and the correlation parameter (rho) are all configurable here.",
+                "",
+                "Additionally, you can also specify that an alternative distribution must",
+                "be used to pick the Vsp values of the seeders. Note that these will also",
+                "be limited to the (min,max) interval."
+            ]                                         
+        },
+
+        "PersonVspModel_binormal_altseed": { 
+            "depends": ["PersonVspModel_binormal", "person.vsp.model.logbinormal.usealternativeseeddist", "yes"],
+            "params": [ ["person.vsp.model.logbinormal.alternativeseed.dist", "distTypes" ] ],
+            "info": null 
+        },
+
+        "PersonGeoDist": {
+            "depends": null,
+            "params": [
+                [ "person.geo.dist", "%DATADIR%/SWZ10adjv4.tif" ],
+                [ "person.geo.dist.mask", "%DATADIR%/hhohho_mask.tiff" ],
+                [ "person.geo.dist.width", 149.459 ],
+                [ "person.geo.dist.height", 177.808 ]
+            ],
+            "info": [ 
+                "TODO"
+            ]
+        },
+
+        "Population_1": { 
+            "depends": null,
+            "params": [ 
+                ["population.nummen", 100],
+                ["population.numwomen", 100],
+                ["population.simtime", 15],
+                ["population.maxevents", -1],
+                ["population.agedistfile", null] ],
+            "info": [
+                "By default, the 'maxevents' parameter is negative, causing it to be",
+                "ignored. Set this to a positive value to make sure the simulation stops",
+                "when this number of events has been exceeded."
+            ]
+        },
+
+        "Population_2": { 
+            "depends": null,
+            "params": [ ["population.eyecap.fraction", 1] ],
+            "info": [ 
+                "If set to 1, formation events will be scheduled for all man,woman",
+                "pairs (who are both sexually active). This is the default behaviour.",
+                "If set to a smaller number, only a fraction of the formation events ",
+                "that would otherwise be scheduled are now used. This fraction is not ",
+                "only used in the initial scheduling of formation events, but also ",
+                "when a debut event fires, to limit the newly scheduled formation events."
+            ]  
+        },
+
+        "LogSystem": { 
+            "depends": null,
+            "params": [ 
+                ["logsystem.filename.events", null],
+                ["logsystem.filename.persons", null],
+                ["logsystem.filename.relations", null] ],
+            "info": null                          
+        }
+    }
+}
