@@ -21,7 +21,7 @@ public:
 	// intervention event, so everyone must be assumed to be (possibly) affected
 	bool isEveryoneAffected() const									{ return true; }
 
-	static void processConfig(ConfigSettings &config);
+	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
 	static bool hasNextIntervention();
 private:

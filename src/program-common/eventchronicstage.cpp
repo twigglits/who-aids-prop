@@ -3,6 +3,7 @@
 #include "eventaidsstage.h"
 #include "gslrandomnumbergenerator.h"
 #include "jsonconfig.h"
+#include "configfunctions.h"
 #include <stdio.h>
 #include <iostream>
 
@@ -42,7 +43,6 @@ std::string EventChronicStage::getDescription(double tNow) const
 
 	sprintf(str, "Chronic infection stage for %s", pPerson->getName().c_str());
 	return std::string(str);
-
 }
 
 void EventChronicStage::writeLogs(double tNow) const
@@ -68,7 +68,7 @@ void EventChronicStage::fire(State *pState, double t)
 
 double EventChronicStage::m_acuteTime = -1;
 
-void EventChronicStage::processConfig(ConfigSettings &config)
+void EventChronicStage::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	if (!config.getKeyValue("chronicstage.acutestagetime", m_acuteTime, 0))
 		abortWithMessage(config.getErrorString());
@@ -79,6 +79,8 @@ void EventChronicStage::obtainConfig(ConfigWriter &config)
 	if (!config.addKey("chronicstage.acutestagetime", m_acuteTime))
 		abortWithMessage(config.getErrorString());
 }
+
+ConfigFunctions chronicStageConfigFunctions(EventChronicStage::processConfig, EventChronicStage::obtainConfig, "EventChronicStage");
 
 JSONConfig chronicStageJSONConfig(R"JSON(
         "EventChronicStage": { 

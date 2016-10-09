@@ -2,10 +2,11 @@
 #include "configsettings.h"
 #include "configwriter.h"
 #include "jsonconfig.h"
+#include "configfunctions.h"
 
 using namespace std;
 
-void LogSystem::processConfig(ConfigSettings &config)
+void LogSystem::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	string eventLogFile, personLogFile, relationLogFile, treatmentLogFile;
 
@@ -59,6 +60,8 @@ LogFile LogSystem::logEvents;
 LogFile LogSystem::logPersons;
 LogFile LogSystem::logRelations;
 LogFile LogSystem::logTreatment;
+
+ConfigFunctions logSystemConfigFunctions(LogSystem::processConfig, LogSystem::obtainConfig, "00_LogSystem", "__first__");
 
 JSONConfig logSystemJSONConfig(R"JSON(
         "LogSystem": { 

@@ -1,5 +1,6 @@
 #include "eventperiodiclogging.h"
 #include "jsonconfig.h"
+#include "configfunctions.h"
 #include <stdio.h>
 #include <iostream>
 
@@ -64,7 +65,7 @@ double EventPeriodicLogging::s_loggingInterval = -1;
 string EventPeriodicLogging::s_logFileName;
 LogFile EventPeriodicLogging::s_logFile;
 
-void EventPeriodicLogging::processConfig(ConfigSettings &config)
+void EventPeriodicLogging::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	string oldLogFileName = s_logFileName;
 
@@ -94,6 +95,9 @@ void EventPeriodicLogging::obtainConfig(ConfigWriter &config)
 	    !config.addKey("periodiclogging.outfile.logperiodic", s_logFileName) )
 	    	abortWithMessage(config.getErrorString());
 }
+
+ConfigFunctions periodicLoggingConfigFunctions(EventPeriodicLogging::processConfig, EventPeriodicLogging::obtainConfig, 
+		                                       "EventPeriodicLogging");
 
 JSONConfig periodicLoggingJSONConfig(R"JSON(
         "EventPeriodicLogging": {

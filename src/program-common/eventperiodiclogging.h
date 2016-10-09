@@ -20,7 +20,7 @@ public:
 
 	void fire(State *pState, double t);
 
-	static void processConfig(ConfigSettings &config);
+	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
 
 	static bool isEnabled() 								{ return (s_loggingInterval > 0); }

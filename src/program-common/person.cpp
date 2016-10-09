@@ -13,6 +13,7 @@
 #include "discretedistribution2d.h"
 #include "tiffdensityfile.h"
 #include "jsonconfig.h"
+#include "configfunctions.h"
 #include <stdlib.h>
 #include <iostream>
 #include <limits>
@@ -654,6 +655,8 @@ Woman::Woman(double dateOfBirth) : Person(dateOfBirth, Female)
 Woman::~Woman()
 {
 }
+
+ConfigFunctions personConfigFunctions(Person::processConfig, Person::obtainConfig, "Person");
 
 JSONConfig personJSONConfig(R"JSON(
         "PersonVspAcute": { 

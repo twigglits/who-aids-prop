@@ -18,7 +18,7 @@ public:
 	void fire(State *pState, double t);
 #endif // !NDEBUG
 
-	static void processConfig(ConfigSettings &config);
+	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
 
 	static double getExpectedSurvivalTime(const Person *pPerson);

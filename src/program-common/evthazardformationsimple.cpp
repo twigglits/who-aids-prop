@@ -96,7 +96,8 @@ double EvtHazardFormationSimple::solveForRealTimeInterval(const SimpactPopulatio
 
 double EvtHazardFormationSimple::getA0(const SimpactPopulation &population, Person *pPerson1, Person *pPerson2)
 {
-	double n = population.getInitialPopulationSize();
+	double lastKnownPopSizeTime = 0;
+	double n = population.getLastKnownPopulationSize(lastKnownPopSizeTime);
 	double a0i = pPerson1->getFormationEagernessParameter();
 	double a0j = pPerson2->getFormationEagernessParameter();
 	double a0_base = m_a0 + (a0i + a0j)*m_a6 * std::abs(a0i-a0j)*m_a7;

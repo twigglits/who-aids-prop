@@ -14,21 +14,20 @@ JSONConfig personImplJSONConfig(R"JSON(
         "PersonGeoDist": {
             "depends": null,
             "params": [
-		[ "person.geo.dist2d", "distTypes2D", [
-				"discrete",
-	    		        [
-					[ "densfile", "${SIMPACT_DATA_DIR}SWZ10adjv4.tif" ],
-				        [ "maskfile", "${SIMPACT_DATA_DIR}hhohho_mask.tiff" ],
-					[ "width", 149.459 ],
-					[ "height", 177.808 ],
-					[ "flipy", "no" ]
-				]
-			]
-		]
+                [ "person.geo.dist2d", "distTypes2D", [
+                                "discrete",
+                                    [
+                                        [ "densfile", "${SIMPACT_DATA_DIR}SWZ10adjv4.tif" ],
+                                        [ "maskfile", "${SIMPACT_DATA_DIR}hhohho_mask.tiff" ],
+                                        [ "width", 134.654 ],
+                                        [ "height", 177.997 ],
+                                        [ "flipy", "no" ]
+                                ]
+                        ]
+                ]
             ],
             "info": [ 
                 "TODO"
             ]
         })JSON");
-
 

@@ -1,6 +1,7 @@
 #include "eventaidsstage.h"
 #include "eventaidsmortality.h"
 #include "jsonconfig.h"
+#include "configfunctions.h"
 
 using namespace std;
 
@@ -121,7 +122,7 @@ double EventAIDSStage::getNewStageTime(double currentTime) const
 double EventAIDSStage::m_relativeStartTime = -1;
 double EventAIDSStage::m_relativeFinalTime = -1;
 
-void EventAIDSStage::processConfig(ConfigSettings &config)
+void EventAIDSStage::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	if (!config.getKeyValue("aidsstage.final", m_relativeFinalTime, 0) ||
 	    !config.getKeyValue("aidsstage.start", m_relativeStartTime, m_relativeFinalTime) )
@@ -134,6 +135,8 @@ void EventAIDSStage::obtainConfig(ConfigWriter &config)
 	    !config.addKey("aidsstage.start", m_relativeStartTime) )
 		abortWithMessage(config.getErrorString());
 }
+
+ConfigFunctions aidsStageConfigFunctions(EventAIDSStage::processConfig, EventAIDSStage::obtainConfig, "EventAIDSStage");
 
 JSONConfig aidsStageJSONConfig(R"JSON(
         "EventAIDSStage": { 

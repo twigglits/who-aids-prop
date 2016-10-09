@@ -4,6 +4,7 @@
 #include "eventchronicstage.h"
 #include "eventdiagnosis.h"
 #include "jsonconfig.h"
+#include "configfunctions.h"
 #include <stdio.h>
 #include <cmath>
 #include <iostream>
@@ -183,7 +184,7 @@ double EventTransmission::calculateHazardFactor()
 	return h;
 }
 
-void EventTransmission::processConfig(ConfigSettings &config)
+void EventTransmission::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	if (!config.getKeyValue("transmission.param.a", m_a) ||
 	    !config.getKeyValue("transmission.param.b", m_b) ||
@@ -204,6 +205,9 @@ void EventTransmission::obtainConfig(ConfigWriter &config)
 		
 		abortWithMessage(config.getErrorString());
 }
+
+ConfigFunctions transmissionConfigFunctions(EventTransmission::processConfig, EventTransmission::obtainConfig, 
+		                                    "EventTransmission");
 
 JSONConfig transmissionJSONConfig(R"JSON(
         "EventTransmission": { 

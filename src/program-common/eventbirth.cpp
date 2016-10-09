@@ -5,6 +5,7 @@
 #include "eventconception.h"
 #include "eventdebut.h"
 #include "jsonconfig.h"
+#include "configfunctions.h"
 #include <assert.h>
 
 using namespace std;
@@ -141,7 +142,9 @@ void EventBirth::obtainConfig(ConfigWriter &config)
 		abortWithMessage(config.getErrorString());
 }
 
-JSONConfig birthConfig(R"JSON(
+ConfigFunctions birthConfigFunctions(EventBirth::processConfig, EventBirth::obtainConfig, "EventBirth");
+
+JSONConfig birthJSONConfig(R"JSON(
         "EventBirth": {
             "depends": null,
             "params": [ ["birth.boygirlratio", 0.49751243781094534 ] ],

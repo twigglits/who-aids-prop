@@ -3,6 +3,7 @@
 #include "util.h"
 #include "configsettings.h"
 #include "jsonconfig.h"
+#include "configfunctions.h"
 #include <stdio.h>
 #include <iostream>
 
@@ -51,10 +52,10 @@ void EventIntervention::fire(State *pState, double t)
 	assert(interventionTime == t); // make sure we're at the correct time
 
 	GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
-	// Re-read the event configs
-	processNonInterventionEventConfig(interventionConfig, pRndGen);
-	// Re-read the person config
-	Person::processConfig(interventionConfig, pRndGen);
+	
+	// Re-read the configurations, excluding the ones in the "initonce" category
+	vector<string> excludes { "initonce", "__first__" };
+	ConfigFunctions::processConfigurations(interventionConfig, pRndGen, excludes);
 
 	if (EventIntervention::hasNextIntervention()) // check if we need to schedule a next intervention
 	{
@@ -63,7 +64,7 @@ void EventIntervention::fire(State *pState, double t)
 	}
 }
 
-void EventIntervention::processConfig(ConfigSettings &config)
+void EventIntervention::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	// This event can only be initialized once!
 	if (m_interventionsProcessed)
@@ -216,6 +217,9 @@ void EventIntervention::popNextInterventionInfo(double &t, ConfigSettings &confi
 	m_interventionTimes.pop_front();
 	m_interventionSettings.pop_front();
 }
+
+ConfigFunctions interventionConfigFunctions(EventIntervention::processConfig, EventIntervention::obtainConfig,
+		                                    "EventIntervention", "initonce");
 
 JSONConfig interventionJSONConfig(R"JSON(
         "EventIntervention": { 

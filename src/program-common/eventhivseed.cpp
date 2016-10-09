@@ -4,6 +4,7 @@
 #include "eventchronicstage.h"
 #include "gslrandomnumbergenerator.h"
 #include "jsonconfig.h"
+#include "configfunctions.h"
 #include <stdio.h>
 #include <iostream>
 #include <cmath>
@@ -125,7 +126,7 @@ bool EventHIVSeed::m_stopOnShort = false;
 bool EventHIVSeed::m_useFraction = true;
 bool EventHIVSeed::m_seeded = false;
 
-void EventHIVSeed::processConfig(ConfigSettings &config)
+void EventHIVSeed::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	vector<string> fractionOrAmountStrings;
 	string fractionOrAmount;
@@ -188,6 +189,8 @@ void EventHIVSeed::obtainConfig(ConfigWriter &config)
 			abortWithMessage(config.getErrorString());
 	}
 }
+
+ConfigFunctions hivseedingConfigFunctions(EventHIVSeed::processConfig, EventHIVSeed::obtainConfig, "EventHIVSeed");
 
 JSONConfig hivseedingJSONConfig(R"JSON(
         "EventSeeding": { 

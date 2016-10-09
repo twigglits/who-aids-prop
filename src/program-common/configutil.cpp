@@ -20,6 +20,7 @@
 #include "util.h"
 #include "populationdistributioncsv.h"
 #include "gslrandomnumbergenerator.h"
+#include "configfunctions.h"
 #include <vector>
 
 using namespace std;
@@ -27,32 +28,12 @@ using namespace std;
 void checkConfiguration(const ConfigSettings &loadedConfig, const SimpactPopulationConfig &populationConfig, double tMax,
 		        int64_t maxEvents);
 
-void processNonInterventionEventConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
-{
-	EventAIDSMortality::processConfig(config);
-	EventChronicStage::processConfig(config);
-	EventDebut::processConfig(config);
-	EventDissolution::processConfig(config);
-	EventFormation::processConfig(config);
-	EventMortality::processConfig(config);
-	EventTransmission::processConfig(config);
-	EventHIVSeed::processConfig(config);
-	EventAIDSStage::processConfig(config);
-	EventConception::processConfig(config, pRndGen);
-	EventBirth::processConfig(config, pRndGen);
-	EventDiagnosis::processConfig(config);
-	EventMonitoring::processConfig(config, pRndGen);
-	EventDropout::processConfig(config, pRndGen);
-	EventPeriodicLogging::processConfig(config);
-}
-
 bool configure(ConfigSettings &config, SimpactPopulationConfig &populationConfig, PopulationDistributionCSV &ageDist,
 	       GslRandomNumberGenerator *pRndGen, double &tMax, int64_t &maxEvents)
 {
-	LogSystem::processConfig(config);
-	processNonInterventionEventConfig(config, pRndGen);
-	EventIntervention::processConfig(config);
-	Person::processConfig(config, pRndGen);
+	ConfigFunctions::processConfigurations(config, pRndGen);
+
+	// TODO: absorb these things into similar process/obtain functions?
 
 	int numMen, numWomen;
 	double eyecapFraction;
@@ -179,24 +160,9 @@ void checkConfiguration(const ConfigSettings &loadedConfig, const SimpactPopulat
 {
 	ConfigWriter config;
 
-	LogSystem::obtainConfig(config);
-	EventAIDSMortality::obtainConfig(config);
-	EventChronicStage::obtainConfig(config);
-	EventDebut::obtainConfig(config);
-	EventDissolution::obtainConfig(config);
-	EventFormation::obtainConfig(config);
-	EventMortality::obtainConfig(config);
-	EventTransmission::obtainConfig(config);
-	EventHIVSeed::obtainConfig(config);
-	EventAIDSStage::obtainConfig(config);
-	EventConception::obtainConfig(config);
-	EventBirth::obtainConfig(config);
-	EventDiagnosis::obtainConfig(config);
-	EventMonitoring::obtainConfig(config);
-	EventDropout::obtainConfig(config);
-	EventPeriodicLogging::obtainConfig(config);
-	EventIntervention::obtainConfig(config);
-	Person::obtainConfig(config);
+	ConfigFunctions::obtainConfigurations(config);
+
+	// TODO: absorb these things into similar process/obtain functions?
 
 	if (!config.addKey("population.nummen", populationConfig.getInitialMen()) ||
 	    !config.addKey("population.numwomen", populationConfig.getInitialWomen()) ||
@@ -205,6 +171,9 @@ void checkConfiguration(const ConfigSettings &loadedConfig, const SimpactPopulat
 	    !config.addKey("population.maxevents", maxEvents) ||
 	    !config.addKey("population.eyecap.fraction", populationConfig.getEyeCapsFraction()) )
 		abortWithMessage(config.getErrorString());
+
+	// We've built up the config from the values stored in the simulation, compare
+	// with the values from the read config file
 
 	vector<string> keys;
 

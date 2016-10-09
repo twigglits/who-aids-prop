@@ -2,6 +2,7 @@
 #include "eventformation.h"
 #include "gslrandomnumbergenerator.h"
 #include "jsonconfig.h"
+#include "configfunctions.h"
 #include <stdio.h>
 #include <iostream>
 
@@ -61,7 +62,7 @@ void EventDebut::fire(State *pState, double t)
 
 double EventDebut::m_debutAge = -1;
 
-void EventDebut::processConfig(ConfigSettings &config)
+void EventDebut::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	if (!config.getKeyValue("debut.debutage", m_debutAge, 0, 100))
 		abortWithMessage(config.getErrorString());
@@ -72,6 +73,8 @@ void EventDebut::obtainConfig(ConfigWriter &config)
 	if (!config.addKey("debut.debutage", m_debutAge))
 		abortWithMessage(config.getErrorString());
 }
+
+ConfigFunctions debutConfigFunctions(EventDebut::processConfig, EventDebut::obtainConfig, "EventDebut");
 
 JSONConfig debutJSONConfig(R"JSON(
         "EventDebut": { 

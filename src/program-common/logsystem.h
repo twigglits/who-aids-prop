@@ -6,11 +6,12 @@
 
 class ConfigSettings;
 class ConfigWriter;
+class GslRandomNumberGenerator;
 
 class LogSystem
 {
-public:
-	static void processConfig(ConfigSettings &config);
+public: 
+	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
 	static LogFile logEvents, logPersons, logRelations, logTreatment;
 };

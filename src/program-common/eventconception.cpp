@@ -3,6 +3,7 @@
 #include "probabilitydistribution.h"
 #include "eventbirth.h"
 #include "jsonconfig.h"
+#include "configfunctions.h"
 #include <assert.h>
 
 using namespace std;
@@ -180,6 +181,8 @@ EventConception::HazardFunctionConception::HazardFunctionConception(const Person
 EventConception::HazardFunctionConception::~HazardFunctionConception()
 {
 }
+
+ConfigFunctions conceptionConfigFunctions(EventConception::processConfig, EventConception::obtainConfig, "EventConception");
 
 JSONConfig conceptionJSONConfig(R"JSON(
         "EventConception": { 

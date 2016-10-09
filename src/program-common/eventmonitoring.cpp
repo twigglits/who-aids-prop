@@ -7,6 +7,7 @@
 #include "piecewiselinearfunction.h"
 #include "point2d.h"
 #include "jsonconfig.h"
+#include "configfunctions.h"
 
 #include <iostream>
 
@@ -176,6 +177,8 @@ void EventMonitoring::obtainConfig(ConfigWriter &config)
 	    !config.addKey("monitoring.interval.piecewise.right", s_pRecheckInterval->getRightValue()) )
 		abortWithMessage(config.getErrorString());
 }
+
+ConfigFunctions monitoringConfigFunctions(EventMonitoring::processConfig, EventMonitoring::obtainConfig, "EventMonitoring");
 
 JSONConfig monitoringJSONConfig(R"JSON(
         "EventMonitoring" : {

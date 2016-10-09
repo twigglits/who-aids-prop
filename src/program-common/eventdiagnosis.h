@@ -38,13 +38,12 @@ public:
 	// is possible) needs to be marked as affected
 	void markOtherAffectedPeople(const Population &population);
 
-	static void processConfig(ConfigSettings &config);
+	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
 private:
 	double calculateInternalTimeInterval(const State *pState, double t0, double dt);
 	double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);
 	static double getTMax(const Person *pPerson);
-
 
 	static double s_baseline;
 	static double s_ageFactor;

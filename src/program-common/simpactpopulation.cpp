@@ -8,6 +8,7 @@
 #include "eventhivseed.h"
 #include "eventintervention.h"
 #include "eventperiodiclogging.h"
+#include "eventsyncpopstats.h"
 #include "populationdistribution.h"
 #include "person.h"
 #include "gslrandomnumbergenerator.h"
@@ -29,7 +30,9 @@ SimpactPopulationConfig::~SimpactPopulationConfig()
 
 SimpactPopulation::SimpactPopulation(bool parallel, GslRandomNumberGenerator *pRndGen) : Population(parallel, pRndGen)
 {
-	m_initialPopulationSize = -1;
+	//m_initialPopulationSize = -1;
+	m_lastKnownPopulationSize = -1;
+	m_lastKnownPopulationSizeTime = -1;
 	m_eyeCapsFraction = 1;
 	m_init = false;
 }
@@ -97,7 +100,8 @@ bool SimpactPopulation::createInitialPopulation(const SimpactPopulationConfig &c
 		addNewPerson(pPerson);
 	}
 
-	m_initialPopulationSize = numMen + numWomen;
+	//m_initialPopulationSize = numMen + numWomen;
+	setLastKnownPopulationSize();
 
 	return true;
 }
@@ -164,6 +168,12 @@ bool SimpactPopulation::scheduleInitialEvents()
 	if (EventPeriodicLogging::isEnabled())
 	{
 		EventPeriodicLogging *pEvt = new EventPeriodicLogging(); // gloval event
+		onNewEvent(pEvt);
+	}
+
+	if (EventSyncPopulationStatistics::isEnabled())
+	{
+		EventSyncPopulationStatistics *pEvt = new EventSyncPopulationStatistics(); // global event, recalcs everything
 		onNewEvent(pEvt);
 	}
 
@@ -331,6 +341,15 @@ void SimpactPopulation::getInterestsForPerson(const Person *pPerson, vector<Pers
 			interests[i] = pMan;
 		}
 	}
+}
+
+void SimpactPopulation::setLastKnownPopulationSize()
+{
+	double t = getTime();
+	assert(t >= 0);
+
+	m_lastKnownPopulationSizeTime = t;
+	m_lastKnownPopulationSize = getNumberOfPeople();
 }
 
 JSONConfig populationJSONConfig(R"JSON(

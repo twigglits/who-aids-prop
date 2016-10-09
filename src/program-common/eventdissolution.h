@@ -16,7 +16,7 @@ public:
 	void writeLogs(double tNow) const;
 	void fire(State *pState, double t);
 
-	static void processConfig(ConfigSettings &config);
+	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
 protected:
 	double calculateInternalTimeInterval(const State *pState, double t0, double dt);

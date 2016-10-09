@@ -16,7 +16,7 @@ public:
 	std::string getDescription(double tNow) const;
 	void writeLogs(double tNow) const;
 
-	static void processConfig(ConfigSettings &config);
+	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
 private:
 	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);

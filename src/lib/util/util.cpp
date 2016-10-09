@@ -7,6 +7,9 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#define __STDC_FORMAT_MACROS // Need this for PRId64
+#include <inttypes.h>
+
 using namespace std;
 
 /*
@@ -375,6 +378,22 @@ string doubleToString(double x)
 	char s[256];
 
 	sprintf(s, "%.15g", x);
+	return s;
+}
+
+std::string intToString(int x)
+{
+	char s[256];
+
+	sprintf(s, "%d", x);
+	return s;
+}
+
+std::string intToString(int64_t x)
+{
+	char s[256];
+
+	sprintf(s, "%" PRId64, x);
 	return s;
 }
 

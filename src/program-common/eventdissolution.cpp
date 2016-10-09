@@ -2,6 +2,7 @@
 #include "eventformation.h"
 #include "hazardfunctionformationsimple.h"
 #include "jsonconfig.h"
+#include "configfunctions.h"
 #include <stdio.h>
 #include <cmath>
 #include <iostream>
@@ -114,7 +115,7 @@ double EventDissolution::Dp   = 0;		// preferred_age_difference
 double EventDissolution::b    = 0;		// last_change_factor
 double EventDissolution::tMaxDiff = 0;		// t_max
 
-void EventDissolution::processConfig(ConfigSettings &config)
+void EventDissolution::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	if (!config.getKeyValue("dissolution.alpha_0", a0) ||
 	    !config.getKeyValue("dissolution.alpha_1", a1) ||
@@ -141,6 +142,8 @@ void EventDissolution::obtainConfig(ConfigWriter &config)
 	    !config.addKey("dissolution.t_max", tMaxDiff) )
 		abortWithMessage(config.getErrorString());
 }
+
+ConfigFunctions dissolutionConfigFunctions(EventDissolution::processConfig, EventDissolution::obtainConfig, "EventDissolution");
 
 JSONConfig dissolutionJSONConfig(R"JSON(
         "EventDissolution": { 

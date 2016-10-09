@@ -5,6 +5,7 @@
 #include "configdistributionhelper.h"
 #include "gslrandomnumbergenerator.h"
 #include "jsonconfig.h"
+#include "configfunctions.h"
 
 #include <iostream>
 
@@ -113,7 +114,7 @@ double EventDiagnosis::s_isDiagnosedFactor = 0;
 double EventDiagnosis::s_beta = 0;
 double EventDiagnosis::s_tMax = 0;
 
-void EventDiagnosis::processConfig(ConfigSettings &config)
+void EventDiagnosis::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	if (!config.getKeyValue("diagnosis.baseline", s_baseline) ||
 	    !config.getKeyValue("diagnosis.agefactor", s_ageFactor) ||
@@ -184,6 +185,8 @@ double HazardFunctionDiagnosis::evaluate(double t)
 	return std::exp(m_baseline + m_ageFactor*age + m_genderFactor*G + m_diagPartnersFactor*D +
 			m_isDiagnosedFactor*hasBeenDiagnosed + m_beta*(t-tinf));
 }
+
+ConfigFunctions diagnosisConfigFunctions(EventDiagnosis::processConfig, EventDiagnosis::obtainConfig, "EventDiagnosis");
 
 JSONConfig diagnosisJSONConfig(R"JSON(
         "EventDiagnosis": {

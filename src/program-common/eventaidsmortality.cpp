@@ -1,6 +1,7 @@
 #include "eventaidsmortality.h"
 #include "gslrandomnumbergenerator.h"
 #include "jsonconfig.h"
+#include "configfunctions.h"
 #include <stdio.h>
 #include <iostream>
 
@@ -97,7 +98,7 @@ void EventAIDSMortality::fire(State *pState, double t)
 }
 #endif // !NDEBUG
 
-void EventAIDSMortality::processConfig(ConfigSettings &config)
+void EventAIDSMortality::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	if (!config.getKeyValue("mortality.aids.survtime.C", m_C, 0) ||
 	    !config.getKeyValue("mortality.aids.survtime.k", m_k))
@@ -110,6 +111,8 @@ void EventAIDSMortality::obtainConfig(ConfigWriter &config)
 	    !config.addKey("mortality.aids.survtime.k", m_k) )
 		abortWithMessage(config.getErrorString());
 }
+
+ConfigFunctions aidsMortalityConfigFunctions(EventAIDSMortality::processConfig, EventAIDSMortality::obtainConfig, "EventAIDSMortality");
 
 JSONConfig aidsMortalityConfig(R"JSON(
         "EventMortality_AIDS": { 

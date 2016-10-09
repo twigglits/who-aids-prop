@@ -18,7 +18,7 @@ public:
 	void fire(State *pState, double t);
 
 	static double getDebutAge()								{ return m_debutAge; }
-	static void processConfig(ConfigSettings &config);
+	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
 private:
 	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);

@@ -1,6 +1,7 @@
 #include "eventmortality.h"
 #include "gslrandomnumbergenerator.h"
 #include "jsonconfig.h"
+#include "configfunctions.h"
 #include <stdio.h>
 #include <iostream>
 
@@ -67,7 +68,7 @@ void EventMortality::writeLogs(double tNow) const
 	writeEventLogStart(true, "normalmortality", tNow, pPerson1, 0);
 }
 
-void EventMortality::processConfig(ConfigSettings &config)
+void EventMortality::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	if (!config.getKeyValue("mortality.normal.weibull.shape", m_shape, 0) ||
 	    !config.getKeyValue("mortality.normal.weibull.scale", m_scale, 0) ||
@@ -82,6 +83,8 @@ void EventMortality::obtainConfig(ConfigWriter &config)
 	    !config.addKey("mortality.normal.weibull.genderdiff", m_genderDiff))
 		abortWithMessage(config.getErrorString());
 }
+
+ConfigFunctions normalmortalityConfigFunctions(EventMortality::processConfig, EventMortality::obtainConfig, "EventMortality");
 
 JSONConfig normalmortalityJSONConfig(R"JSON(
         "EventMortality_Normal": { 

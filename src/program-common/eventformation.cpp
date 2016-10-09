@@ -8,6 +8,7 @@
 #include "evthazardformationagegap.h"
 #include "eventconception.h"
 #include "jsonconfig.h"
+#include "configfunctions.h"
 #include <stdio.h>
 #include <cmath>
 #include <algorithm>
@@ -133,7 +134,7 @@ double EventFormation::solveForRealTimeInterval(const State *pState, double Tdif
 
 EvtHazard *EventFormation::m_pHazard = 0;
 
-void EventFormation::processConfig(ConfigSettings &config)
+void EventFormation::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	string hazardType;
 
@@ -161,6 +162,8 @@ void EventFormation::obtainConfig(ConfigWriter &config)
 
 	m_pHazard->obtainConfig(config);
 }
+
+ConfigFunctions formationConfigFunctions(EventFormation::processConfig, EventFormation::obtainConfig, "EventFormation");
 
 JSONConfig formationTypesJSONConfig(R"JSON(
         "EventFormationTypes": { 

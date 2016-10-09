@@ -22,6 +22,8 @@ bool parseAsInt(const std::string &str, int64_t &number);
 bool parseAsDouble(const std::string &str, double &number);
 bool parseAsDoubleVector(const std::string &str, std::vector<double> &numbers, std::string &badField);
 std::string doubleToString(double x);
+std::string intToString(int x);
+std::string intToString(int64_t x);
 
 std::string trim(const std::string &str, const std::string &trimChars = " \t\r\n");
 std::string replace(const std::string &input, const std::string &target, const std::string &replacement);

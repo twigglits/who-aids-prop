@@ -20,7 +20,7 @@ public:
 	// This can be made more fine grained, but for now this should suffice
 	bool isEveryoneAffected() const									{ return true; }
 
-	static void processConfig(ConfigSettings &config);
+	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
 	static double getSeedTime()									{ return m_seedTime; }
 private:

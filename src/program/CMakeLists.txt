@@ -20,6 +20,7 @@ set(SOURCES_SIMPACT
 	../program-common/eventmonitoring.cpp
 	../program-common/eventdropout.cpp
 	../program-common/eventperiodiclogging.cpp
+	../program-common/eventsyncpopstats.cpp
 	../program-common/vspmodellogweibullwithnoise.cpp
 	../program-common/vspmodellogdist.cpp
 	../program-common/simpactevent.cpp
