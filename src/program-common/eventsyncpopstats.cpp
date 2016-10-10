@@ -17,7 +17,7 @@ string EventSyncPopulationStatistics::getDescription(double tNow) const
 	return "syncpopstats";
 }
 
-void EventSyncPopulationStatistics::writeLogs(double tNow) const
+void EventSyncPopulationStatistics::writeLogs(const Population &pop, double tNow) const
 {
 	writeEventLogStart(true, "syncpopstats", tNow, 0, 0);
 }
@@ -66,12 +66,21 @@ ConfigFunctions eventSyncPopStatsConfigFunctions(EventSyncPopulationStatistics::
 												 "EventSyncPopulationStatistics");
 
 JSONConfig eventSyncPopStatsJSONConfig(R"JSON(
-		"EventSyncPopStats": {
-			"depends": null,
-			"params": [
-				[ "syncpopstats.interval", "-1" ]
-			],
-			"info": [
-				"TODO"
-			]
-		})JSON");
+        "EventSyncPopStats": {
+            "depends": null,
+            "params": [
+                [ "syncpopstats.interval", "-1" ]
+            ],
+            "info": [
+                "Some events (e.g. a relationship formation event) use the last known ",
+                "population size to normalize a hazard. By default, the population size ",
+                "at the start of the simulation is used for this, which is fine if the ",
+                "population size remains roughly constant. For rapidly growing or ",
+                "shrinking populations, this is not correct however.",
+                "",
+                "By setting this interval to a positive number, the last known population",
+                "size will be recalculated periodically. Note that this will also cause all",
+                "event times in the simulation to be recalculated, so settings this to a low",
+                "value can certainly slow things down."
+            ]
+        })JSON");

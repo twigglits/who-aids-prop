@@ -5,7 +5,7 @@
 #include "gslrandomnumbergenerator.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
-#include <stdio.h>
+#include "util.h"
 #include <iostream>
 #include <cmath>
 
@@ -30,12 +30,12 @@ double EventHIVSeed::getNewInternalTimeDifference(GslRandomNumberGenerator *pRnd
 	return dt;
 }
 
-std::string EventHIVSeed::getDescription(double tNow) const
+string EventHIVSeed::getDescription(double tNow) const
 {
-	return std::string("HIV seeding");
+	return "HIV seeding";
 }
 
-void EventHIVSeed::writeLogs(double tNow) const
+void EventHIVSeed::writeLogs(const Population &pop, double tNow) const
 {
 	writeEventLogStart(true, "HIV seeding", tNow, 0, 0);
 }
@@ -109,12 +109,7 @@ void EventHIVSeed::fire(State *pState, double t)
 	}
 
 	if (!m_useFraction && m_stopOnShort && countSeeded != m_seedAmount)
-	{
-		char str[1024];
-
-		sprintf(str, "Could not seed the requested amount of people: %d were seeded, but %d requested", countSeeded, m_seedAmount);
-		abortWithMessage(str);
-	}
+		abortWithMessage(strprintf("Could not seed the requested amount of people: %d were seeded, but %d requested", countSeeded, m_seedAmount));
 }
 
 double EventHIVSeed::m_seedTime = -1;

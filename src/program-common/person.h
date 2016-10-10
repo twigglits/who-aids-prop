@@ -114,6 +114,8 @@ public:
 	static void writeToRelationLog(const Person *pMan, const Person *pWoman, double formationTime, double dissolutionTime);
 	void writeToPersonLog();
 	void writeToTreatmentLog(double dropoutTime, bool justDied);
+
+	Point2D getLocation() const															{ return m_location; }
 private:
 	double initializeEagerness();
 	double getViralLoadFromSetPointViralLoad(double x) const;

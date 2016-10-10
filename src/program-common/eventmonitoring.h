@@ -15,7 +15,7 @@ public:
 	~EventMonitoring();
 
 	std::string getDescription(double tNow);
-	void writeLogs(double tNow) const;
+	void writeLogs(const Population &pop, double tNow) const;
 	void fire(State *pState, double t);
 
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);

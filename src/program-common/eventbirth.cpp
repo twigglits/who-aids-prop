@@ -26,7 +26,7 @@ string EventBirth::getDescription(double tNow) const
 	return "birth";
 }
 
-void EventBirth::writeLogs(double tNow) const
+void EventBirth::writeLogs(const Population &pop, double tNow) const
 {
 	Person *pMother = getPerson(0);
 

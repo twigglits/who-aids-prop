@@ -21,6 +21,9 @@ void runHazardTests(SimpactPopulation &pop);
 void logOnGoingRelationships(SimpactPopulation &pop);
 void logAllPersons(SimpactPopulation &pop);
 
+SimpactPopulation *createSimpactPopulation(const SimpactPopulationConfig &popConfig, const PopulationDistribution &popDist,
+		                                   bool parallel, GslRandomNumberGenerator *pRng);
+
 void usage(const string &progName)
 {
 	//cerr << "Usage: " << progName << " numMen numWomen parallel(0/1) tMax(years) initialInfectionFraction" << endl;
@@ -69,40 +72,37 @@ int real_main(int argc, char **argv)
 
 	bool parallel = (intParallel == 1);
 
-	SimpactPopulation pop(parallel, &rng);
-	
-	if (!pop.init(populationConfig, ageDist))
-	{
-		cerr << pop.getErrorString() << endl;
+	SimpactPopulation *pPop = createSimpactPopulation(populationConfig, ageDist, parallel, &rng);
+	if (!pPop)
 		return -1;
-	}
-
-	int numInitPeople = pop.getNumberOfPeople();
+	
+	int numInitPeople = pPop->getNumberOfPeople();
 
 	// TODO: For hazard testing! Stops after the test
 #if 0
-	runHazardTests(pop);
+	runHazardTests(*pPop);
 #endif
 
 	cerr << "# Simpact version is: " << SIMPACT_CYAN_VERSION << endl;
 
-	if (!pop.run(tMax, maxEvents))
+	if (!pPop->run(tMax, maxEvents))
 	{
-		cerr << "# Error running simulation: " << pop.getErrorString() << endl;
-		cerr << "# Current simulation time is " << pop.getTime() << endl;
+		cerr << "# Error running simulation: " << pPop->getErrorString() << endl;
+		cerr << "# Current simulation time is " << pPop->getTime() << endl;
 	}
 
-	int numEndPeople = pop.getNumberOfPeople();
+	int numEndPeople = pPop->getNumberOfPeople();
 
 	cerr << "# Number of events executed is " << maxEvents << endl;
 	cerr << "# Started with " << numInitPeople << " people, ending with " << numEndPeople << " (difference is " << numEndPeople-numInitPeople << ")" << endl;
 
 	// Log ongoing relationships
-	logOnGoingRelationships(pop);
+	logOnGoingRelationships(*pPop);
 
 	// Log different persons, both alive and deceased
-	logAllPersons(pop);
+	logAllPersons(*pPop);
 
+	delete pPop;
 	return 0;
 }
 

@@ -16,7 +16,7 @@ public:
 	~EventPeriodicLogging();
 
 	std::string getDescription(double tNow) const;
-	void writeLogs(double tNow) const;
+	void writeLogs(const Population &pop, double tNow) const;
 
 	void fire(State *pState, double t);
 

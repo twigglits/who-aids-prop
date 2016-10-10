@@ -2,6 +2,9 @@
 
 #define UTIL_H
 
+#define __STDC_FORMAT_MACROS // Need this for PRId64
+#include <inttypes.h>
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
@@ -24,9 +27,58 @@ bool parseAsDoubleVector(const std::string &str, std::vector<double> &numbers, s
 std::string doubleToString(double x);
 std::string intToString(int x);
 std::string intToString(int64_t x);
+std::string stringToString(const std::string &str);
 
 std::string trim(const std::string &str, const std::string &trimChars = " \t\r\n");
 std::string replace(const std::string &input, const std::string &target, const std::string &replacement);
+
+std::string strprintf_cstr(const char *format, ...);
+
+#define strprintf(format, ...) strprintf_cstr(stringToString(format).c_str(), __VA_ARGS__ )
+
+// 
+// inline implementations
+//
+
+//inline std::string strprintf(const std::string &format, ...)
+inline std::string strprintf_cstr(const char *format, ...)
+{
+	const int MAXBUFLEN = 8192;
+	char buf[MAXBUFLEN+1];
+	va_list ap;
+
+	va_start(ap, format);
+	vsnprintf(buf, MAXBUFLEN, format, ap);
+	va_end(ap);
+
+	buf[MAXBUFLEN] = 0;
+	return std::string(buf);
+}
+
+inline std::string doubleToString(double x)
+{
+	std::string s = strprintf("%.15g", x);
+	if (s == "1.#INF")
+		return "inf";
+	if (s == "-1.#INF")
+		return "-inf";
+	return s;
+}
+
+inline std::string intToString(int x)
+{
+	return strprintf("%d", x);
+}
+
+inline std::string intToString(int64_t x)
+{
+	return strprintf("%" PRId64, x);
+}
+
+inline std::string stringToString(const std::string &str)
+{
+	return str;
+}
 
 #endif // UTIL_H
 

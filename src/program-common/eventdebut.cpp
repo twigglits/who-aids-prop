@@ -3,7 +3,7 @@
 #include "gslrandomnumbergenerator.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
-#include <stdio.h>
+#include "util.h"
 #include <iostream>
 
 EventDebut::EventDebut(Person *pPerson) : SimpactEvent(pPerson)
@@ -33,13 +33,10 @@ double EventDebut::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGe
 std::string EventDebut::getDescription(double tNow) const
 {
 	Person *pPerson = getPerson(0);
-	char str[1024];
-
-	sprintf(str, "Debut of %s", pPerson->getName().c_str());
-	return std::string(str);
+	return strprintf("Debut of %s", pPerson->getName().c_str());
 }
 
-void EventDebut::writeLogs(double tNow) const
+void EventDebut::writeLogs(const Population &pop, double tNow) const
 {
 	Person *pPerson = getPerson(0);
 	writeEventLogStart(true, "debut", tNow, pPerson, 0);

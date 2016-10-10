@@ -2,6 +2,7 @@
 #include "eventaidsmortality.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
+#include "util.h"
 
 using namespace std;
 
@@ -17,17 +18,14 @@ EventAIDSStage::~EventAIDSStage()
 string EventAIDSStage::getDescription(double tNow) const
 {
 	Person *pPerson = getPerson(0);
-	char str[1024];
 
 	if (m_finalStage)
-		sprintf(str, "Final AIDS stage of %s", pPerson->getName().c_str());
-	else
-		sprintf(str, "AIDS stage of %s", pPerson->getName().c_str());
+		return strprintf("Final AIDS stage of %s", pPerson->getName().c_str());
 
-	return string(str);
+	return strprintf("AIDS stage of %s", pPerson->getName().c_str());
 }
 
-void EventAIDSStage::writeLogs(double tNow) const
+void EventAIDSStage::writeLogs(const Population &pop, double tNow) const
 {
 	Person *pPerson = getPerson(0);
 	string name;

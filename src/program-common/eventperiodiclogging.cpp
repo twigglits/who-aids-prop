@@ -1,7 +1,6 @@
 #include "eventperiodiclogging.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
-#include <stdio.h>
 #include <iostream>
 
 using namespace std;
@@ -26,7 +25,7 @@ string EventPeriodicLogging::getDescription(double tNow) const
 	return "Periodic logging";
 }
 
-void EventPeriodicLogging::writeLogs(double tNow) const
+void EventPeriodicLogging::writeLogs(const Population &pop, double tNow) const
 {
 	writeEventLogStart(true, "periodiclogging", tNow, 0, 0);
 }

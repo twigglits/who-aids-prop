@@ -190,7 +190,7 @@ void SimpactPopulation::onAboutToFire(EventBase *pEvt)
 
 //	std::cout << t << "\t" << pEvent->getDescription(t) << std::endl;
 
-	pEvent->writeLogs(t);
+	pEvent->writeLogs(*this, t);
 }
 
 void SimpactPopulation::initializeFormationEvents(Person *pPerson)

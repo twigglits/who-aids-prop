@@ -27,7 +27,7 @@ string EventConception::getDescription(double tNow) const
 	return "Conception";
 }
 
-void EventConception::writeLogs(double tNow) const
+void EventConception::writeLogs(const Population &pop, double tNow) const
 {
 	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);

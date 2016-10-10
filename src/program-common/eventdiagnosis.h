@@ -30,7 +30,7 @@ public:
 	~EventDiagnosis();
 
 	std::string getDescription(double tNow);
-	void writeLogs(double tNow) const;
+	void writeLogs(const Population &pop, double tNow) const;
 	void fire(State *pState, double t);
 
 	// Since the hazard depends on the number of diagnosed partners,

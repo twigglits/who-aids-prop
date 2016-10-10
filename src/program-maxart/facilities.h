@@ -14,16 +14,24 @@ class GslRandomNumberGenerator;
 class Facility
 {
 public:
-	Facility(const std::string &name, Point2D pos, int step) : m_pos(pos), m_name(name),m_step(step)	{ }
+	enum StageType { ControlStage, TransitionStage, InterventionStage };
+
+	Facility(const std::string &name, Point2D pos, int step);
 	~Facility()																				{ }
 
 	Point2D getPosition() const																{ return m_pos; }
 	std::string getName() const																{ return m_name; }
 	int getRandomizationStep() const														{ return m_step; }
+
+	StageType getStage() const																{ return m_stage; }
+	std::string getStageName() const;
+	void advanceStage();
 private:
 	Point2D m_pos;
 	std::string m_name;
 	int m_step;
+
+	StageType m_stage;
 };
 
 class Facilities

@@ -1,6 +1,12 @@
 set(SOURCES_SIMPACT
 	personimpl.cpp
 	facilities.cpp
+	start.cpp
+	maxartpopulation.cpp
+	eventstudystart.cpp
+	eventstudystep.cpp
+	eventstudyend.cpp
+	eventmonitoring.cpp
 	../program-common/logsystem.cpp
 	../program-common/person.cpp
 	../program-common/simpactpopulation.cpp
@@ -18,7 +24,6 @@ set(SOURCES_SIMPACT
 	../program-common/eventconception.cpp
 	../program-common/eventbirth.cpp
 	../program-common/eventdiagnosis.cpp
-	../program-common/eventmonitoring.cpp
 	../program-common/eventdropout.cpp
 	../program-common/eventperiodiclogging.cpp
 	../program-common/eventsyncpopstats.cpp

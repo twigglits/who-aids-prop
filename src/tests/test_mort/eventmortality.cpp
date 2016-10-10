@@ -2,7 +2,7 @@
 #include "simpactpopulation.h"
 #include "person.h"
 #include "gslrandomnumbergenerator.h"
-#include <stdio.h>
+#include "util.h"
 #include <iostream>
 
 EventMortality::EventMortality(Person *pPerson) : SimpactEvent(pPerson)
@@ -44,11 +44,7 @@ double EventMortality::getNewInternalTimeDifference(GslRandomNumberGenerator *pR
 std::string EventMortality::getDescription(double tNow) const
 {
 	Person *pPerson = getPerson(0);
-	char str[1024];
-
-	sprintf(str, "Death of %s (current age %g)", pPerson->getName().c_str(), pPerson->getAgeAt(tNow));
-	return std::string(str);
-
+	return strprintf("Death of %s (current age %g)", pPerson->getName().c_str(), pPerson->getAgeAt(tNow));
 }
 
 void EventMortality::fire(State *pState, double t)

@@ -1,0 +1,82 @@
+#include "eventstudystart.h"
+#include "eventstudystep.h"
+#include "gslrandomnumbergenerator.h"
+#include "jsonconfig.h"
+#include "configfunctions.h"
+#include "maxartpopulation.h"
+#include "util.h"
+#include "facilities.h"
+#include <iostream>
+
+EventStudyStart::EventStudyStart()
+{
+}
+
+EventStudyStart::~EventStudyStart()
+{
+}
+
+double EventStudyStart::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
+{
+	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
+	assert(s_startTime >= 0);
+
+	double dt = s_startTime - population.getTime();
+	assert(dt >= 0);
+
+	return dt;
+}
+
+std::string EventStudyStart::getDescription(double tNow) const
+{
+	return "Study start";
+}
+
+void EventStudyStart::writeLogs(const Population &pop, double tNow) const
+{
+	writeEventLogStart(true, "studystart", tNow, 0, 0);
+}
+
+void EventStudyStart::fire(State *pState, double t)
+{
+	MaxARTPopulation &population = MAXARTPOPULATION(pState);
+
+	// Mark the beginning of the study
+	population.setInStudy(); 
+
+	// Schedule the event to proceed to the first step
+	Facilities *pFacilities = Facilities::getInstance();
+	assert(pFacilities && pFacilities->getNumberOfRandomizationSteps() > 0);
+
+	EventStudyStep *pEvt = new EventStudyStep((int)0);
+	population.onNewEvent(pEvt);
+
+	//pFacilities->dump();
+}
+
+double EventStudyStart::s_startTime = -1;
+
+void EventStudyStart::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
+{
+	if (!config.getKeyValue("maxart.starttime", s_startTime, 0))
+		abortWithMessage(config.getErrorString());
+}
+
+void EventStudyStart::obtainConfig(ConfigWriter &config)
+{
+	if (!config.addKey("maxart.starttime", s_startTime))
+		abortWithMessage(config.getErrorString());
+}
+
+ConfigFunctions studyStartConfigFunctions(EventStudyStart::processConfig, EventStudyStart::obtainConfig, "EventStudyStart");
+
+JSONConfig studyStartJSONConfig(R"JSON(
+        "EventStudyStart": { 
+            "depends": null, 
+            "params" : [ [ "maxart.starttime", 5] ],
+            "info": [
+                "Time in the simulation at which the MaxART study starts. Set to a negative",
+                "value to disable"
+            ]
+        })JSON");
+

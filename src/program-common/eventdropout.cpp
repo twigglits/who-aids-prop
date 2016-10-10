@@ -6,7 +6,7 @@
 #include "gslrandomnumbergenerator.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
-
+#include "util.h"
 #include <iostream>
 
 using namespace std;
@@ -23,13 +23,10 @@ EventDropout::~EventDropout()
 
 string EventDropout::getDescription(double tNow)
 {
-	char str[1024];
-
-	sprintf(str, "Dropout event for %s", getPerson(0)->getName().c_str());
-	return string(str);
+	return strprintf("Dropout event for %s", getPerson(0)->getName().c_str());
 }
 
-void EventDropout::writeLogs(double tNow) const
+void EventDropout::writeLogs(const Population &pop, double tNow) const
 {
 	Person *pPerson = getPerson(0);
 	writeEventLogStart(true, "dropout", tNow, pPerson, 0);

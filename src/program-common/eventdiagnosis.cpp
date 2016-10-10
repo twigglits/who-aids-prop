@@ -6,7 +6,7 @@
 #include "gslrandomnumbergenerator.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
-
+#include "util.h"
 #include <iostream>
 
 using namespace std;
@@ -21,13 +21,10 @@ EventDiagnosis::~EventDiagnosis()
 
 string EventDiagnosis::getDescription(double tNow)
 {
-	char str[1024];
-
-	sprintf(str, "Diagnosis event for %s", getPerson(0)->getName().c_str());
-	return string(str);
+	return strprintf("Diagnosis event for %s", getPerson(0)->getName().c_str());
 }
 
-void EventDiagnosis::writeLogs(double tNow) const
+void EventDiagnosis::writeLogs(const Population &pop, double tNow) const
 {
 	Person *pPerson = getPerson(0);
 	writeEventLogStart(true, "diagnosis", tNow, pPerson, 0);

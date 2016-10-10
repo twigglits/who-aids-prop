@@ -2,7 +2,7 @@
 #include "eventdissolution.h"
 #include "hazardutility.h"
 #include "person.h"
-#include <stdio.h>
+#include "util.h"
 #include <cmath>
 #include <algorithm>
 #include <iostream>
@@ -20,10 +20,7 @@ EventFormation::~EventFormation()
 
 std::string EventFormation::getDescription(double tNow) const
 {
-	char str[1024];
-
-	sprintf(str, "Formation between %s and %s", getPerson(0)->getName().c_str(), getPerson(1)->getName().c_str());
-	return std::string(str);
+	return strprintf("Formation between %s and %s", getPerson(0)->getName().c_str(), getPerson(1)->getName().c_str());
 }
 
 void EventFormation::fire(State *pState, double t)

@@ -4,7 +4,6 @@
 #include "configsettings.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
-#include <stdio.h>
 #include <iostream>
 
 using namespace std;
@@ -32,12 +31,12 @@ double EventIntervention::getNewInternalTimeDifference(GslRandomNumberGenerator 
 	return dt;
 }
 
-std::string EventIntervention::getDescription(double tNow) const
+string EventIntervention::getDescription(double tNow) const
 {
-	return std::string("Intervention event");
+	return "Intervention event";
 }
 
-void EventIntervention::writeLogs(double tNow) const
+void EventIntervention::writeLogs(const Population &pop, double tNow) const
 {
 	writeEventLogStart(true, "intervention", tNow, 0, 0);
 }

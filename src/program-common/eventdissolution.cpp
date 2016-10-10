@@ -3,7 +3,7 @@
 #include "hazardfunctionformationsimple.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
-#include <stdio.h>
+#include "util.h"
 #include <cmath>
 #include <iostream>
 
@@ -20,15 +20,11 @@ EventDissolution::~EventDissolution()
 
 std::string EventDissolution::getDescription(double tNow) const
 {
-	char str[1024];
-
-	sprintf(str, "Dissolution between %s and %s, relationship was formed at %g (%g ago)", 
+	return strprintf("Dissolution between %s and %s, relationship was formed at %g (%g ago)", 
 		     getPerson(0)->getName().c_str(), getPerson(1)->getName().c_str(), m_formationTime, tNow-m_formationTime);
-
-	return std::string(str);
 }
 
-void EventDissolution::writeLogs(double tNow) const
+void EventDissolution::writeLogs(const Population &pop, double tNow) const
 {
 	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);

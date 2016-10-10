@@ -13,7 +13,7 @@ public:
 	~EventAIDSMortality();
 
 	std::string getDescription(double tNow) const;
-	void writeLogs(double tNow) const;
+	void writeLogs(const Population &pop, double tNow) const;
 #ifndef NDEBUG
 	void fire(State *pState, double t);
 #endif // !NDEBUG

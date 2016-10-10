@@ -3,7 +3,7 @@
 #include "person.h"
 #include "eventformation.h"
 #include "gslrandomnumbergenerator.h"
-#include <stdio.h>
+#include "util.h"
 #include <iostream>
 
 EventDebut::EventDebut(Person *pPerson) : SimpactEvent(pPerson)
@@ -31,11 +31,7 @@ double EventDebut::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGe
 std::string EventDebut::getDescription(double tNow) const
 {
 	Person *pPerson = getPerson(0);
-	char str[1024];
-
-	sprintf(str, "Debut of %s", pPerson->getName().c_str());
-	return std::string(str);
-
+	return strprintf("Debut of %s", pPerson->getName().c_str());
 }
 
 void EventDebut::fire(State *pState, double t)

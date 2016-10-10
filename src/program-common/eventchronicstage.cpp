@@ -4,7 +4,7 @@
 #include "gslrandomnumbergenerator.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
-#include <stdio.h>
+#include "util.h"
 #include <iostream>
 
 EventChronicStage::EventChronicStage(Person *pPerson) : SimpactEvent(pPerson)
@@ -39,13 +39,10 @@ double EventChronicStage::getNewInternalTimeDifference(GslRandomNumberGenerator 
 std::string EventChronicStage::getDescription(double tNow) const
 {
 	Person *pPerson = getPerson(0);
-	char str[1024];
-
-	sprintf(str, "Chronic infection stage for %s", pPerson->getName().c_str());
-	return std::string(str);
+	return strprintf("Chronic infection stage for %s", pPerson->getName().c_str());
 }
 
-void EventChronicStage::writeLogs(double tNow) const
+void EventChronicStage::writeLogs(const Population &pop, double tNow) const
 {
 	Person *pPerson = getPerson(0);
 	writeEventLogStart(true, "chronicstage", tNow, pPerson, 0);

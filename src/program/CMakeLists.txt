@@ -1,5 +1,6 @@
 set(SOURCES_SIMPACT
 	personimpl.cpp
+	start.cpp
 	../program-common/person.cpp
 	../program-common/logsystem.cpp
 	../program-common/simpactpopulation.cpp

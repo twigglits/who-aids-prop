@@ -27,7 +27,8 @@ JSONConfig personImplJSONConfig(R"JSON(
                 ]
             ],
             "info": [ 
-                "TODO"
+                "The distribution specified by 'person.geo.dist2d' is used to assign (x,y)",
+                "location coordinates to a person."
             ]
         })JSON");
 

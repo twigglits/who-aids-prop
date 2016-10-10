@@ -34,7 +34,7 @@ public:
 	SimpactPopulation(bool parallel, GslRandomNumberGenerator *pRng);
 	~SimpactPopulation();
 
-	bool init(const SimpactPopulationConfig &popConfig, const PopulationDistribution &popDist);
+	virtual bool init(const SimpactPopulationConfig &popConfig, const PopulationDistribution &popDist);
 
 	Person **getAllPeople()											{ return reinterpret_cast<Person**>(Population::getAllPeople()); }
 	Man **getMen()													{ return reinterpret_cast<Man**>(Population::getMen()); }
@@ -49,13 +49,13 @@ public:
 	double getEyeCapsFraction() const								{ return m_eyeCapsFraction; }
 
 	// Is called by debut event
-	void initializeFormationEvents(Person *pPerson);
+	virtual void initializeFormationEvents(Person *pPerson);
 protected:
-	bool createInitialPopulation(const SimpactPopulationConfig &config, const PopulationDistribution &popDist);
-	bool scheduleInitialEvents();
+	virtual bool createInitialPopulation(const SimpactPopulationConfig &config, const PopulationDistribution &popDist);
+	virtual bool scheduleInitialEvents();
+	virtual void getInterestsForPerson(const Person *pPerson, std::vector<Person *> &interests);
 private:
 	void onAboutToFire(EventBase *pEvt);
-	void getInterestsForPerson(const Person *pPerson, std::vector<Person *> &interests);
 
 	//int m_initialPopulationSize;
 	double m_eyeCapsFraction;

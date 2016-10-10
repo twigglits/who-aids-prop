@@ -5,7 +5,7 @@
 #include "eventdiagnosis.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
-#include <stdio.h>
+#include "util.h"
 #include <cmath>
 #include <iostream>
 
@@ -30,13 +30,10 @@ EventTransmission::~EventTransmission()
 
 string EventTransmission::getDescription(double tNow) const
 {
-	char str[1024];
-
-	sprintf(str, "Transmission event from %s to %s", getPerson(0)->getName().c_str(), getPerson(1)->getName().c_str());
-	return string(str);
+	return strprintf("Transmission event from %s to %s", getPerson(0)->getName().c_str(), getPerson(1)->getName().c_str());
 }
 
-void EventTransmission::writeLogs(double tNow) const
+void EventTransmission::writeLogs(const Population &pop, double tNow) const
 {
 	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);

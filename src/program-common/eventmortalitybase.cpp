@@ -2,7 +2,6 @@
 #include "eventmortality.h"
 #include "eventdebut.h"
 #include "gslrandomnumbergenerator.h"
-#include <stdio.h>
 #include <iostream>
 
 using namespace std;

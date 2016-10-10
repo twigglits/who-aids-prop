@@ -8,7 +8,7 @@
 #include "point2d.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
-
+#include "util.h"
 #include <iostream>
 
 using namespace std;
@@ -24,13 +24,10 @@ EventMonitoring::~EventMonitoring()
 
 string EventMonitoring::getDescription(double tNow)
 {
-	char str[1024];
-
-	sprintf(str, "Monitoring event for %s", getPerson(0)->getName().c_str());
-	return string(str);
+	return strprintf("Monitoring event for %s", getPerson(0)->getName().c_str());
 }
 
-void EventMonitoring::writeLogs(double tNow) const
+void EventMonitoring::writeLogs(const Population &pop, double tNow) const
 {
 	Person *pPerson = getPerson(0);
 	writeEventLogStart(false, "monitoring", tNow, pPerson, 0);

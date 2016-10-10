@@ -6,9 +6,8 @@
 #include <time.h>
 #include <stdlib.h>
 #include <assert.h>
-
-#define __STDC_FORMAT_MACROS // Need this for PRId64
-#include <inttypes.h>
+#include <stdarg.h>
+#include <limits>
 
 using namespace std;
 
@@ -312,6 +311,17 @@ bool parseAsDouble(const string &str, double &value)
 	if (valueStr.length() == 0)
 		return false;
 
+	if (valueStr == "inf" || valueStr == "+inf")
+	{
+		value = std::numeric_limits<double>::infinity();
+		return true;
+	}
+	if (valueStr == "-inf")
+	{
+		value = -std::numeric_limits<double>::infinity();
+		return true;
+	}
+
 	const char *nptr;
 	char *endptr;
 	
@@ -373,27 +383,4 @@ string replace(const string &input, const string &target, const string &replacem
 	return result;
 }
 
-string doubleToString(double x)
-{
-	char s[256];
-
-	sprintf(s, "%.15g", x);
-	return s;
-}
-
-std::string intToString(int x)
-{
-	char s[256];
-
-	sprintf(s, "%d", x);
-	return s;
-}
-
-std::string intToString(int64_t x)
-{
-	char s[256];
-
-	sprintf(s, "%" PRId64, x);
-	return s;
-}
 

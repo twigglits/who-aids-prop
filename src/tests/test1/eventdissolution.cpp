@@ -2,7 +2,7 @@
 #include "eventformation.h"
 #include "hazardutility.h"
 #include "person.h"
-#include <stdio.h>
+#include "util.h"
 #include <cmath>
 #include <iostream>
 
@@ -19,12 +19,8 @@ EventDissolution::~EventDissolution()
 
 std::string EventDissolution::getDescription(double tNow) const
 {
-	char str[1024];
-
-	sprintf(str, "Dissolution between %s and %s, relationship was formed at %g (%g ago)", 
+	return strprintf("Dissolution between %s and %s, relationship was formed at %g (%g ago)", 
 		     getPerson(0)->getName().c_str(), getPerson(1)->getName().c_str(), m_formationTime, tNow-m_formationTime);
-
-	return std::string(str);
 }
 
 void EventDissolution::fire(State *pState, double t)

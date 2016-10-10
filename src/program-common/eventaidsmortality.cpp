@@ -2,7 +2,7 @@
 #include "gslrandomnumbergenerator.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
-#include <stdio.h>
+#include "util.h"
 #include <iostream>
 
 using namespace std;
@@ -18,13 +18,10 @@ EventAIDSMortality::~EventAIDSMortality()
 string EventAIDSMortality::getDescription(double tNow) const
 {
 	Person *pPerson = getPerson(0);
-	char str[1024];
-
-	sprintf(str, "AIDS death of %s (current age %g, in treatment: %d)", pPerson->getName().c_str(), pPerson->getAgeAt(tNow), (int)pPerson->hasLoweredViralLoad());
-	return string(str);
+	return strprintf("AIDS death of %s (current age %g, in treatment: %d)", pPerson->getName().c_str(), pPerson->getAgeAt(tNow), (int)pPerson->hasLoweredViralLoad());
 }
 
-void EventAIDSMortality::writeLogs(double tNow) const
+void EventAIDSMortality::writeLogs(const Population &pop, double tNow) const
 {
 	Person *pPerson = getPerson(0);
 	writeEventLogStart(false, "aidsmortality", tNow, pPerson, 0);

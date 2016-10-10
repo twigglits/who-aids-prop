@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES 
+
 #include "facilities.h"
 #include "configsettings.h"
 #include "configwriter.h"
@@ -5,9 +7,9 @@
 #include "configfunctions.h"
 #include "util.h"
 #include "point2d.h"
+#include <cmath>
 #include <vector>
 #include <limits>
-#include <cmath>
 #include <map>
 
 #include <iostream>
@@ -20,6 +22,43 @@ double toRad(double deg)
 }
 
 using namespace std;
+
+//
+// Facility
+//
+
+Facility::Facility(const std::string &name, Point2D pos, int step) : m_pos(pos), m_name(name),m_step(step)
+{
+	m_stage = ControlStage;
+}
+
+void Facility::advanceStage()
+{
+	assert(m_stage != InterventionStage);
+
+	if (m_stage == ControlStage)
+		m_stage = TransitionStage;
+	else
+	{
+		assert(m_stage == TransitionStage);
+		m_stage = InterventionStage;
+	}
+}
+
+std::string Facility::getStageName() const
+{
+	if (m_stage == ControlStage)
+		return "ControlStage";
+	if (m_stage == TransitionStage)
+		return "TransitionStage";
+	if (m_stage == InterventionStage)
+		return "InterventionStage";
+	return "Unknown facility stage!";
+}
+
+//
+// Facilities
+//
 
 Facilities::Facilities(const vector<Facility> &f)
 {
@@ -54,11 +93,30 @@ void Facilities::getFacilitiesForRandomizationStep(int step, vector<Facility *> 
 	}
 }
 
+string getStageName(Facility::StageType t)
+{
+	switch(t)
+	{
+	case Facility::ControlStage:
+		return "ControlStage";
+	case Facility::TransitionStage:
+		return "TransitionStage";
+	case Facility::InterventionStage:
+		return "InterventionStage";
+	default:
+		break;
+	}
+	return "UnknownStage";
+}
+
 void Facilities::dump()
 {
-	for (size_t i = 0 ; i < m_facilities.size() ; i++)
-		cout << m_facilities[i].getName() << "," << m_facilities[i].getPosition().x << "," << m_facilities[i].getPosition().y << endl;
+	cout << endl;
 
+	for (size_t i = 0 ; i < m_facilities.size() ; i++)
+		cout << m_facilities[i].getName() << "," << m_facilities[i].getPosition().x << "," << m_facilities[i].getPosition().y << "," << getStageName(m_facilities[i].getStage()) << endl;
+
+	/*
 	for (int i = 0 ; i < m_numSteps ; i++)
 	{
 		vector<Facility *> v;
@@ -69,7 +127,9 @@ void Facilities::dump()
 			cout << "," << v[j]->getName();
 
 		cout << endl;
-	}
+	}*/
+
+	cout << endl;
 }
 
 double Facilities::s_startLongitude = numeric_limits<double>::quiet_NaN();
@@ -280,7 +340,9 @@ JSONConfig facilitiesJSONConfig(R"JSON(
                 [ "facilities.randomization", "${SIMPACT_DATA_DIR}maxart-randomization.csv" ]
             ],
             "info": [
-                "TODO"
+                "The 'facilities.geo' configuration names specify the locations of the",
+                "clinics that are participating in the study. The 'facilities.randomization'",
+                "option describes how these clinics are randomized."
             ]
         })JSON");
 
