@@ -13,7 +13,9 @@
 #include "populationdistribution.h"
 #include "populationalgorithmadvanced.h"
 #include "populationalgorithmsimple.h"
+#include "populationalgorithmtesting.h"
 #include "populationstateadvanced.h"
+#include "populationstatetesting.h"
 #include "populationstatesimple.h"
 #include "person.h"
 #include "gslrandomnumbergenerator.h"
@@ -363,38 +365,6 @@ void SimpactPopulation::setLastKnownPopulationSize()
 
 	m_lastKnownPopulationSizeTime = t;
 	m_lastKnownPopulationSize = getNumberOfPeople();
-}
-
-bool_t selectAlgorithmAndState(const string &algo, GslRandomNumberGenerator &rng, bool parallel,
-		                       PopulationAlgorithmInterface **ppAlgo, PopulationStateInterface **ppState)
-{
-	if (algo == "opt")
-	{
-		// TODO: figure out how to get this to work better in this algorithm
-		//EventBase::setCheckInverse(true); // Only does something in release mode
-		PopulationStateAdvanced *pPopState = new PopulationStateAdvanced();
-		*ppState = pPopState;
-		*ppAlgo = new PopulationAlgorithmAdvanced(*pPopState, rng, parallel);
-	}
-	else if (algo == "simple")
-	{
-		EventBase::setCheckInverse(true); // Only does something in release mode
-		PopulationStateSimple *pPopState = new PopulationStateSimple();
-		*ppState = pPopState;
-		*ppAlgo = new PopulationAlgorithmSimple(*pPopState, rng, parallel);
-	}
-	else
-		return "Invalid algorithm: " + algo;
-
-	bool_t r = (*ppAlgo)->init();
-	if (!r)
-	{
-		delete *ppState;
-		delete *ppAlgo;
-		return r;
-	}
-
-	return true;
 }
 
 JSONConfig populationJSONConfig(R"JSON(

@@ -2,6 +2,7 @@
 #include "eventbase.h"
 #include "gslrandomnumbergenerator.h"
 #include "debugwarning.h"
+#include "debugtimer.h"
 #include <assert.h>
 #include <iostream>
 #include <limits>
@@ -14,9 +15,9 @@ Algorithm::Algorithm(State &state, GslRandomNumberGenerator &rng)
 	m_pState = &state;
 	m_time = 0;
 
-#ifdef STATE_SHOW_EVENTS
+#ifdef ALGORITHM_SHOW_EVENTS
 	DEBUGWARNING("debug code to list events is enabled")
-#endif // STATE_SHOW_EVENTS
+#endif // ALGORITHM_SHOW_EVENTS
 }
 
 Algorithm::~Algorithm()
@@ -38,12 +39,28 @@ bool_t Algorithm::evolve(double &tMax, int64_t &maxEvents, double startTime, boo
 	bool done = false;
 	int64_t eventCount = 0;
 
+#ifdef ALGORITHM_DEBUG_TIMER
+	DebugTimer *pLoopTimer = DebugTimer::getTimer("loop");
+	DebugTimer *pNextTimer = DebugTimer::getTimer("getNextScheduledEvent");
+	DebugTimer *pAdvanceTimer = DebugTimer::getTimer("advanceEventTimes");
+#endif // ALGORITHM_DEBUG_TIMER
+
 	while (!done)
 	{
 		// Ask for the next scheduled event and for the time until it takes place
 		double dtMin = -1;
 		EventBase *pNextScheduledEvent = 0;
+
+#ifdef ALGORITHM_DEBUG_TIMER
+		pLoopTimer->start();
+		pNextTimer->start();
+#endif // ALGORITHM_DEBUG_TIMER
+
 		bool_t r = getNextScheduledEvent(dtMin, &pNextScheduledEvent);
+
+#ifdef ALGORITHM_DEBUG_TIMER
+		pNextTimer->stop();
+#endif // ALGORITHM_DEBUG_TIMER
 
 		if (!r)
 		{
@@ -55,8 +72,16 @@ bool_t Algorithm::evolve(double &tMax, int64_t &maxEvents, double startTime, boo
 		//std::cerr << "dtMin = " << dtMin << std::endl;
 		assert(dtMin >= 0);
 
+#ifdef ALGORITHM_DEBUG_TIMER
+		pAdvanceTimer->start();
+#endif // ALGORITHM_DEBUG_TIMER
+
 		// Advance the times of all events but the next scheduled one
 		advanceEventTimes(pNextScheduledEvent, dtMin);
+
+#ifdef ALGORITHM_DEBUG_TIMER
+		pAdvanceTimer->stop();
+#endif // ALGORITHM_DEBUG_TIMER
 	
 		// ok, advance time and fire the event, which may adjust the current state
 		// and generate a new internal time difference
@@ -78,6 +103,10 @@ bool_t Algorithm::evolve(double &tMax, int64_t &maxEvents, double startTime, boo
 
 		onFiredEvent(pNextScheduledEvent);
 		onAlgorithmLoop(done);
+
+#ifdef ALGORITHM_DEBUG_TIMER
+		pLoopTimer->stop();
+#endif // ALGORITHM_DEBUG_TIMER
 	}
 
 	// inform the caller of the current time and number of events

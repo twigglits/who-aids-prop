@@ -8,6 +8,7 @@
 #include "configutil.h"
 #include "signalhandlers.h"
 #include "jsonconfig.h"
+#include "populationutil.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -77,11 +78,9 @@ int real_main(int argc, char **argv)
 	PopulationAlgorithmInterface *pAlgo = 0;
 	PopulationStateInterface *pState = 0;
 
-	if (!(r = selectAlgorithmAndState(algo, rng, parallel, &pAlgo, &pState)))
+	if (!(r = PopulationUtil::selectAlgorithmAndState(algo, rng, parallel, &pAlgo, &pState)))
 	{
 		cerr << r.getErrorString() << endl;
-		delete pAlgo;
-		delete pState;
 		return -1;
 	}
 

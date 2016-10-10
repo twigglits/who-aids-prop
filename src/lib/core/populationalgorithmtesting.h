@@ -1,9 +1,9 @@
-#ifndef POPULATIONALGORITHMADVANCED_H
+#ifndef POPULATIONALGORITHMTESTING_H
 
-#define POPULATIONALGORITHMADVANCED_H
+#define POPULATIONALGORITHMTESTING_H
 
 /**
- * \file populationalgorithmadvanced.h
+ * \file populationalgorithmtesting.h
  */
 
 #include "algorithm.h"
@@ -11,13 +11,13 @@
 #include "personbase.h"
 #include "populationinterfaces.h"
 #include "populationevent.h"
-#include "personaleventlist.h"
+#include "personaleventlisttesting.h"
 #include <assert.h>
 
 class GslRandomNumberGenerator;
 class PersonBase;
 class PopulationEvent;
-class PopulationStateAdvanced;
+class PopulationStateTesting;
 
 /**
  * This class provides functions for a population-based simulation using
@@ -79,14 +79,14 @@ class PopulationStateAdvanced;
  * event in the entire simulation will fire first, the algorithm then just needs to
  * check the first event times for all the people.
  */
-class PopulationAlgorithmAdvanced : public Algorithm, public PopulationAlgorithmInterface
+class PopulationAlgorithmTesting : public Algorithm, public PopulationAlgorithmInterface
 {
 public:
 	/** Constructor of the class, indicating if a parallel version
 	 *  should be used, which random number generator should be
 	 *  used and which simulation state. */
-	PopulationAlgorithmAdvanced(PopulationStateAdvanced &state, GslRandomNumberGenerator &rng, bool parallel);
-	~PopulationAlgorithmAdvanced();
+	PopulationAlgorithmTesting(PopulationStateTesting &state, GslRandomNumberGenerator &rng, bool parallel);
+	~PopulationAlgorithmTesting();
 
 	bool_t init();
 
@@ -97,8 +97,6 @@ public:
 	// TODO: shield these from the user somehow? These functions should not be used
 	//       directly by the user, they are used internally by the algorithm
 	void scheduleForRemoval(PopulationEvent *pEvt);
-	void lockEvent(PopulationEvent *pEvt) const;
-	void unlockEvent(PopulationEvent *pEvt) const;
 
 	double getTime() const															{ return Algorithm::getTime(); }
 	GslRandomNumberGenerator *getRandomNumberGenerator() const						{ return Algorithm::getRandomNumberGenerator(); }
@@ -110,9 +108,9 @@ private:
 	void advanceEventTimes(EventBase *pScheduledEvent, double dt);
 	void onAboutToFire(EventBase *pEvt)												{ if (m_pOnAboutToFire) m_pOnAboutToFire->onAboutToFire(static_cast<PopulationEvent *>(pEvt)); }
 	PopulationEvent *getEarliestEvent(const std::vector<PersonBase *> &people);
-	PersonalEventList *personalEventList(PersonBase *pPerson);
+	PersonalEventListTesting *personalEventList(PersonBase *pPerson);
 
-	PopulationStateAdvanced &m_popState;
+	PopulationStateTesting &m_popState;
 	bool m_init;
 
 #ifdef ALGORITHM_SHOW_EVENTS
@@ -122,52 +120,28 @@ private:
 
 	int64_t getNextEventID();
 
-#ifndef DISABLEOPENMP
-	Mutex m_eventsToRemoveMutex;
-#endif // !DISABLEOPENMP
 	std::vector<EventBase *> m_eventsToRemove;
 
 	// For the parallel version
 	bool m_parallel;
 
 	int64_t m_nextEventID;
-#ifndef DISABLEOPENMP
-	Mutex m_nextEventIDMutex;
-#endif // !DISABLEOPENMP
-
-	std::vector<PopulationEvent *> m_tmpEarliestEvents;
-	std::vector<double> m_tmpEarliestTimes;
-
-#ifndef DISABLEOPENMP
-	mutable std::vector<Mutex> m_eventMutexes;
-#endif // !DISABLEOPENMP
 
 	PopulationAlgorithmAboutToFireInterface *m_pOnAboutToFire;
 };
 
-inline int64_t PopulationAlgorithmAdvanced::getNextEventID()
+inline int64_t PopulationAlgorithmTesting::getNextEventID()
 {
-#ifndef DISABLEOPENMP
-	if (m_parallel)
-		m_nextEventIDMutex.lock();
-#endif // !DISABLEOPENMP
-	
 	int64_t id = m_nextEventID++;
-
-#ifndef DISABLEOPENMP
-	if (m_parallel)
-		m_nextEventIDMutex.unlock();
-#endif // !DISABLEOPENMP
-
 	return id;
 }
 
-inline PersonalEventList *PopulationAlgorithmAdvanced::personalEventList(PersonBase *pPerson)
+inline PersonalEventListTesting *PopulationAlgorithmTesting::personalEventList(PersonBase *pPerson)
 {
 	assert(pPerson);
-	PersonalEventList *pEvtList = static_cast<PersonalEventList *>(pPerson->getAlgorithmInfo());
+	PersonalEventListTesting *pEvtList = static_cast<PersonalEventListTesting *>(pPerson->getAlgorithmInfo());
 	assert(pEvtList);
 	return pEvtList;
 }
 
-#endif // POPULATIONALGORITHMADVANCED_H
+#endif // POPULATIONALGORITHMTESTING_H

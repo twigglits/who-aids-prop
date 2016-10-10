@@ -131,7 +131,7 @@ void PopulationAlgorithmSimple::onFiredEvent(EventBase *pEvt, int position)
 	}
 }
 
-#ifdef STATE_SHOW_EVENTS
+#ifdef ALGORITHM_SHOW_EVENTS
 void PopulationAlgorithmSimple::showEvents()
 {
 	std::map<int64_t, PopulationEvent *> m;
@@ -153,6 +153,6 @@ void PopulationAlgorithmSimple::showEvents()
 	for (it = m.begin() ; it != m.end() ; it++)
 		std::cout << "   " << it->first << " -> " << it->second->getEventTime() << "," << it->second->getDescription(0) << std::endl;
 }
-#endif // STATE_SHOW_EVENTS
+#endif // ALGORITHM_SHOW_EVENTS
 
 

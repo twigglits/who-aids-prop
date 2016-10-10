@@ -105,9 +105,9 @@ private:
 	void advanceEventTimes(EventBase *pScheduledEvent, double dt);
 	void onFiredEvent(EventBase *pEvt);
 
-#ifdef STATE_SHOW_EVENTS
+#ifdef ALGORITHM_SHOW_EVENTS
 	virtual void showEvents() { } // For debugging
-#endif // STATE_SHOW_EVENTS
+#endif // ALGORITHM_SHOW_EVENTS
 
 	std::vector<EventBase *> m_dummyEventList;
 	const std::vector<EventBase *> *m_pTmpEventList;

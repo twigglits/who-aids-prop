@@ -144,33 +144,3 @@ void SimpactPopulation::onAboutToFire(PopulationEvent *pEvt)
 	std::cout << t << "\t" << pEvt->getDescription(t) << std::endl;
 }
 
-bool_t selectAlgorithmAndState(const string &algo, GslRandomNumberGenerator &rng, bool parallel,
-		                     PopulationAlgorithmInterface **ppAlgo, PopulationStateInterface **ppState)
-{
-	if (algo == "opt")
-	{
-		PopulationStateAdvanced *pPopState = new PopulationStateAdvanced();
-		*ppState = pPopState;
-		*ppAlgo = new PopulationAlgorithmAdvanced(*pPopState, rng, parallel);
-	}
-	else if (algo == "simple")
-	{
-		PopulationStateSimple *pPopState = new PopulationStateSimple();
-		*ppState = pPopState;
-		*ppAlgo = new PopulationAlgorithmSimple(*pPopState, rng, parallel);
-	}
-	else
-		return "Invalid algorithm: " + algo;
-
-	bool_t r = (*ppAlgo)->init();
-	if (!r)
-	{
-		delete *ppState;
-		delete *ppAlgo;
-		return r;
-	}
-
-	return true;
-}
-	
-

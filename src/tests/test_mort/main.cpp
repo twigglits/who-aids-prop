@@ -3,6 +3,7 @@
 #include "populationinterfaces.h"
 #include "person.h"
 #include "simpactpopulation.h"
+#include "populationutil.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -66,7 +67,7 @@ int main(int argc, char *argv[])
 	PopulationAlgorithmInterface *pAlgo = 0;
 	PopulationStateInterface *pState = 0;
 	
-	bool_t r = selectAlgorithmAndState(algo, rng, parallel, &pAlgo, &pState);
+	bool_t r = PopulationUtil::selectAlgorithmAndState(algo, rng, parallel, &pAlgo, &pState);
 	if (!r)
 	{
 		cerr << "Couldn't create requested algorithm:" << r.getErrorString() << endl;

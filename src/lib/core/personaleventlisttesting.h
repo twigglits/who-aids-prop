@@ -1,6 +1,6 @@
-#ifndef PERSONALEVENTLIST_H
+#ifndef PERSONALEVENTLISTTESTING_H
 
-#define PERSONALEVENTLIST_H
+#define PERSONALEVENTLISTTESTING_H
 
 #include "booltype.h"
 #include "populationevent.h"
@@ -12,18 +12,18 @@
 //#define PERSONALEVENTLIST_EXTRA_DEBUGGING
 
 class PersonBase;
-class PopulationStateAdvanced;
-class PopulationAlgorithmAdvanced;
+class PopulationStateTesting;
+class PopulationAlgorithmTesting;
 
-class PersonalEventList : public PersonAlgorithmInfo
+class PersonalEventListTesting : public PersonAlgorithmInfo
 {
 public:
-	PersonalEventList(PersonBase *pPerson);
-	~PersonalEventList();
+	PersonalEventListTesting(PersonBase *pPerson);
+	~PersonalEventListTesting();
 
 	void registerPersonalEvent(PopulationEvent *pEvt);
-	void processUnsortedEvents(PopulationAlgorithmAdvanced &alg, PopulationStateAdvanced &pop, double t0);
-	void advanceEventTimes(PopulationAlgorithmAdvanced &alg, const PopulationStateAdvanced &pop, double t1);
+	void processUnsortedEvents(PopulationAlgorithmTesting &alg, PopulationStateTesting &pop, double t0);
+	void advanceEventTimes(PopulationAlgorithmTesting &alg, const PopulationStateTesting &pop, double t1);
 	void adjustingEvent(PopulationEvent *pEvt);
 	void removeTimedEvent(PopulationEvent *pEvt);
 
@@ -32,7 +32,7 @@ public:
 	void setListIndex(int i) 							{ m_listIndex = i; }
 	int getListIndex() const							{ return m_listIndex; }
 private:
-	static PersonalEventList *personalEventList(PersonBase *pPerson);
+	static PersonalEventListTesting *personalEventList(PersonBase *pPerson);
 #ifndef PERSONALEVENTLIST_EXTRA_DEBUGGING
 	void checkEarliestEvent() { }
 	void checkEvents() { }
@@ -41,8 +41,10 @@ private:
 	void checkEvents();
 #endif // PERSONALEVENTLIST_EXTRA_DEBUGGING
 
-	std::vector<PopulationEvent *> m_timedEvents;
-	std::vector<PopulationEvent *> m_untimedEvents;
+	std::vector<PopulationEvent *> m_timedEventsPrimary;
+	std::vector<PopulationEvent *> m_untimedEventsPrimary;
+
+	std::vector<PopulationEvent *> m_secondaryEvents;
 	
 	PopulationEvent *m_pEarliestEvent;
 	PersonBase *m_pPerson;
@@ -50,9 +52,9 @@ private:
 	int m_listIndex;
 
 #ifdef ALGORITHM_SHOW_EVENTS
-	friend class PopulationAlgorithmAdvanced;
+	friend class PopulationAlgorithmTesting;
 #endif // ALGORITHM_SHOW_EVENTS
 };
 
-#endif // PERSONALEVENTLIST_H
+#endif // PERSONALEVENTLISTTESTING_H
 

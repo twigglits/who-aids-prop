@@ -1,33 +1,32 @@
-SIMPACTEVENT_MAXPERSONS: src/core/simpactevent.h
+POPULATIONEVENT_MAXPERSONS: src/lib/core/populationevent.h
 
-	The maximum number of Persons that can be stored in an event
+	The maximum number of persons that can be stored in an event
 	on creation. 
 
-DISABLE_PARALLEL: src/core/parallel.h
+DISABLE_PARALLEL: src/lib/core/parallel.h
 
 	This disables the use of the '#pragma omp' stuff, so that when
 	the parallel version is executed you actually get a single core
 	version. But in this version, the extra overhead code (mutexes
 	etc) is still executed, so this may be useful for benchmarking.
 
-PERSONALEVENTLIST_EXTRA_DEBUGGING: src/core/personaleventlist.h
+PERSONALEVENTLIST_EXTRA_DEBUGGING: src/lib/core/personaleventlist.h
 	
 	If enabled, extra checks will be performed in the optimized
 	version to see if the earliest event is tracked correctly
 
-STATE_SHOW_EVENTS: src/mnrm/state.h:
+ALGORITHM_SHOW_EVENTS: src/lib/mnrm/algorithm.h:
 	
 	Will cause the events in the system to be listed each time
 	an event fires. Very useful to check at which point exactly
 	basic and optimized version start diverging.
 
-RELATIONSHIPLIST_CHECK_CONSISTENCY: src/person.h
+ALGORITHM_DEBUG_TIMER: src/lib/mnrm/algorithm.h:
 
-	Currently, a person has both a vector and a set containing the 
-	relationships he/she is in. This define performs an additional check
-	on the consistency of these two representations
+	Enable timing info about certain functions. Can be helpful while
+	profiling, to compare to another version.
 
-EVENTBASE_ALWAYS_CHECK_NANTIME: used in src/mnrm/eventbase.h
+EVENTBASE_ALWAYS_CHECK_NANTIME: used in src/lib/mnrm/eventbase.h
 
 	If set, after calculation timing info, a check is always done to see
 	if the time has not become a NaN value.

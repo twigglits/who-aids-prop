@@ -10,7 +10,9 @@
 #include <stdint.h>
 #include <vector>
 
-//#define STATE_SHOW_EVENTS
+//#define ALGORITHM_SHOW_EVENTS
+
+//#define ALGORITHM_DEBUG_TIMER
 
 class GslRandomNumberGenerator;
 class EventBase;

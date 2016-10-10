@@ -11,9 +11,6 @@ class Person;
 class Man;
 class Woman;
 
-bool_t selectAlgorithmAndState(const std::string &algName, GslRandomNumberGenerator &rng, bool parallel,
-							   PopulationAlgorithmInterface **ppAlg, PopulationStateInterface **ppState);
-
 class SimpactPopulationConfig
 {
 public:

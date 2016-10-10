@@ -127,9 +127,9 @@ bool_t SimpleAlgorithm::getNextScheduledEvent(double &dt, EventBase **ppEvt)
 	EventBase *pNextEvent = events[eventPos];
 	dt = dtMin;
 
-#ifdef STATE_SHOW_EVENTS
+#ifdef ALGORITHM_SHOW_EVENTS
 	showEvents();
-#endif // STATE_SHOW_EVENTS
+#endif // ALGORITHM_SHOW_EVENTS
 
 	*ppEvt = pNextEvent;
 	return true;

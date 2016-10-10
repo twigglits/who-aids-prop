@@ -442,11 +442,15 @@ class PySimpactCyan(object):
             fullPath = os.path.join(self._execDir, fullPath)
         return fullPath
 
-    def runDirect(self, configFile, parallel = False, opt = True, release = True, outputFile = None, seed = -1, destDir = None):
+    def runDirect(self, configFile, parallel = False, opt = True, release = True, outputFile = None, seed = -1, destDir = None, quiet = False):
 
         fullPath = self._getExecPath(opt, release)
         parallelStr = "1" if parallel else "0"
-        algoStr = "opt" if opt else "simple"
+
+        if type(opt) == bool:
+            algoStr = "opt" if opt else "simple"
+        else:
+            algoStr = str(opt)
 
         if destDir is None:
             destDir = os.path.abspath(os.path.dirname(configFile))
@@ -472,8 +476,10 @@ class PySimpactCyan(object):
             if self._dataDirectory is not None:
                 newEnv["SIMPACT_DATA_DIR"] = str(self._dataDirectory)
             
-            print("Results will be stored in directory '%s'" % os.getcwd())
-            print("Running simpact executable...")
+            if not quiet:
+                print("Results will be stored in directory '%s'" % os.getcwd())
+                print("Running simpact executable...")
+
             proc = subprocess.Popen([fullPath, configFile, parallelStr, algoStr], stdout=f, stderr=f, cwd=os.getcwd(), env=newEnv)
             try:
                 proc.wait() # Wait for the process to finish
@@ -484,16 +490,19 @@ class PySimpactCyan(object):
                     pass
                 raise
 
-            print("Done.")
-            print()
-
-            # Show contents of output file or temporary file on screen
             f.flush()
             f.seek(0)
             lines = f.readlines()
-            for l in lines:
-                sys.stdout.write(l)
-            sys.stdout.flush()
+
+            if not quiet:
+                print("Done.")
+                print()
+
+                # Show contents of output file or temporary file on screen
+
+                for l in lines:
+                    sys.stdout.write(l)
+                sys.stdout.flush()
 
             if proc.returncode != 0:
                 raise Exception(self._getProgramExitError(lines, proc.returncode))
@@ -621,7 +630,7 @@ class PySimpactCyan(object):
 
         return v
 
-    def run(self, config, destDir, agedist = None, parallel = False, opt = True, release = True, seed = -1, interventionConfig = None, dryRun = False, identifierFormat = "%T-%y-%m-%d-%H-%M-%S_%p_%r%r%r%r%r%r%r%r-"):
+    def run(self, config, destDir, agedist = None, parallel = False, opt = True, release = True, seed = -1, interventionConfig = None, dryRun = False, identifierFormat = "%T-%y-%m-%d-%H-%M-%S_%p_%r%r%r%r%r%r%r%r-", quiet = False):
 
         if not destDir:
             raise Exception("A destination directory must be specified")
@@ -721,7 +730,8 @@ class PySimpactCyan(object):
 
         else:
             # Create the directory
-            print("Specified destination directory '%s' does not exist, creating it" % destDir)
+            if not quiet:
+                print("Specified destination directory '%s' does not exist, creating it" % destDir)
             os.makedirs(destDir)
 
         # Here, the actual configuration file lines are created
@@ -783,8 +793,9 @@ class PySimpactCyan(object):
         # Set environment variables (if necessary) and start executable
 
         if not dryRun:
-            print("Using identifier '%s'" % idStr)
-            self.runDirect(configFile, parallel, opt, release, outputFile, seed, destDir)
+            if not quiet:
+                print("Using identifier '%s'" % idStr)
+            self.runDirect(configFile, parallel, opt, release, outputFile, seed, destDir, quiet)
 
         # Create the return structure
         results = { }

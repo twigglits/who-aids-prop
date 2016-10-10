@@ -107,16 +107,23 @@ macro(simpact_setup)
 		${PROJECT_SOURCE_DIR}/src/lib/mnrm/algorithm.cpp
 		${PROJECT_SOURCE_DIR}/src/lib/mnrm/simplealgorithm.cpp
 		${PROJECT_SOURCE_DIR}/src/lib/mnrm/booltype.cpp
-		${PROJECT_SOURCE_DIR}/src/lib/mnrm/eventbase.cpp)
+		${PROJECT_SOURCE_DIR}/src/lib/mnrm/eventbase.cpp
+		${PROJECT_SOURCE_DIR}/src/lib/mnrm/debugtimer.cpp
+		)
 	set(SOURCES_CORE
 		${PROJECT_SOURCE_DIR}/src/lib/core/personbase.cpp
 		${PROJECT_SOURCE_DIR}/src/lib/core/populationalgorithmsimple.cpp
 		${PROJECT_SOURCE_DIR}/src/lib/core/populationalgorithmadvanced.cpp
+		${PROJECT_SOURCE_DIR}/src/lib/core/populationalgorithmtesting.cpp
 		${PROJECT_SOURCE_DIR}/src/lib/core/populationstatesimple.cpp
 		${PROJECT_SOURCE_DIR}/src/lib/core/populationstateadvanced.cpp
+		${PROJECT_SOURCE_DIR}/src/lib/core/populationstatetesting.cpp
 		${PROJECT_SOURCE_DIR}/src/lib/core/populationstatesimpleadvancedcommon.cpp
 		${PROJECT_SOURCE_DIR}/src/lib/core/populationevent.cpp
-		${PROJECT_SOURCE_DIR}/src/lib/core/personaleventlist.cpp)
+		${PROJECT_SOURCE_DIR}/src/lib/core/personaleventlist.cpp
+		${PROJECT_SOURCE_DIR}/src/lib/core/personaleventlisttesting.cpp
+		${PROJECT_SOURCE_DIR}/src/lib/core/populationutil.cpp
+		)
 
 	source_group(util FILES ${SOURCES_UTIL})
 	source_group(mnrm FILES ${SOURCES_MRNM})

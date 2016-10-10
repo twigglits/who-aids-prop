@@ -38,7 +38,7 @@ private:
 
 inline double EventPeriodicLogging::getFirstEventTime()
 {
-	if (!isEnabled() < 0)
+	if (!isEnabled())
 		return -1;
 
 	if (s_firstEventTime >= 0)

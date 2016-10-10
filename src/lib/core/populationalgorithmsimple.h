@@ -68,9 +68,9 @@ private:
 	PopulationStateSimple &m_popState;
 	bool m_init;
 
-#ifdef STATE_SHOW_EVENTS
+#ifdef ALGORITHM_SHOW_EVENTS
 	void showEvents(); // FOR DEBUGGING
-#endif // STATE_SHOW_EVENTS
+#endif // ALGORITHM_SHOW_EVENTS
 	void onAlgorithmLoop();
 
 	std::vector<EventBase *> m_eventsToRemove;

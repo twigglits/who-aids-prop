@@ -1,9 +1,6 @@
-#ifndef DISABLEOPENMP
-#include <omp.h>
-#endif // !DISABLEOPENMP
 #include "parallel.h"
-#include "populationalgorithmadvanced.h"
-#include "populationstateadvanced.h"
+#include "populationalgorithmtesting.h"
+#include "populationstatetesting.h"
 #include "personbase.h"
 #include "personaleventlist.h"
 #include "debugwarning.h"
@@ -25,7 +22,7 @@
 #define POPULATION_ALWAYS_RECALCULATE_FLAG 0
 #endif
 
-PopulationAlgorithmAdvanced::PopulationAlgorithmAdvanced(PopulationStateAdvanced &popState, GslRandomNumberGenerator &rng,
+PopulationAlgorithmTesting::PopulationAlgorithmTesting(PopulationStateTesting &popState, GslRandomNumberGenerator &rng,
 		                                 bool parallel) : Algorithm(popState, rng), m_popState(popState)
 {
 	m_init = false;
@@ -33,20 +30,18 @@ PopulationAlgorithmAdvanced::PopulationAlgorithmAdvanced(PopulationStateAdvanced
 	m_pOnAboutToFire = 0;
 }
 
-PopulationAlgorithmAdvanced::~PopulationAlgorithmAdvanced()
+PopulationAlgorithmTesting::~PopulationAlgorithmTesting()
 {
 	// TODO: free memory!
 }
 
-bool_t PopulationAlgorithmAdvanced::init()
+bool_t PopulationAlgorithmTesting::init()
 {
 	if (m_init)
 		return "Already initialized";
 
-#ifdef DISABLEOPENMP
 	if (m_parallel)
-		return "Parallel version requested but OpenMP was not available when creating the program";
-#endif // DISABLEOPENMP
+		return "This algorithm version does not support a parallel execution method";
 
 	std::cerr << "# mNRM: using advanced algorithm" << std::endl;
 #ifdef NDEBUG
@@ -61,26 +56,11 @@ bool_t PopulationAlgorithmAdvanced::init()
 
 	m_nextEventID = 0;
 
-	if (m_parallel)
-	{
-#ifndef DISABLEOPENMP
-		std::cerr << "# PopulationAlgorithmAdvanced: using parallel version with " << omp_get_max_threads() << " threads" << std::endl;
-		m_tmpEarliestEvents.resize(omp_get_max_threads());
-		m_tmpEarliestTimes.resize(m_tmpEarliestEvents.size());
-
-		m_eventMutexes.resize(256); // TODO: what is a good size here?
-		// TODO: in windows it seems that the omp mutex initialization is not ok
-#endif // !DISABLEOPENMP
-	}
-
-#ifdef DISABLE_PARALLEL
-	DEBUGWARNING("#pragma omp is disabled")
-#endif // DISABLE_PARALLEL
 	m_init = true;
 	return true;
 }
 
-bool_t PopulationAlgorithmAdvanced::run(double &tMax, int64_t &maxEvents, double startTime)
+bool_t PopulationAlgorithmTesting::run(double &tMax, int64_t &maxEvents, double startTime)
 {
 	if (!m_init)
 		return "Not initialized";
@@ -89,7 +69,7 @@ bool_t PopulationAlgorithmAdvanced::run(double &tMax, int64_t &maxEvents, double
 }
 
 // Each loop we'll delete events that may be deleted
-void PopulationAlgorithmAdvanced::onAlgorithmLoop()
+void PopulationAlgorithmTesting::onAlgorithmLoop()
 {
 	if (m_eventsToRemove.size() < 10000) // Don't do this too often?
 		return;
@@ -99,14 +79,14 @@ void PopulationAlgorithmAdvanced::onAlgorithmLoop()
 	m_eventsToRemove.resize(0);
 }
 
-bool_t PopulationAlgorithmAdvanced::initEventTimes() const
+bool_t PopulationAlgorithmTesting::initEventTimes() const
 {
 	// All event times should already be initialized, this function should not
 	// be called
 	return "Separate event time initialization not supported in this implementation, events should already be initialized";
 }
 
-bool_t PopulationAlgorithmAdvanced::getNextScheduledEvent(double &dt, EventBase **ppEvt)
+bool_t PopulationAlgorithmTesting::getNextScheduledEvent(double &dt, EventBase **ppEvt)
 {
 	if (!m_init)
 		return "Not initialized";
@@ -123,27 +103,13 @@ bool_t PopulationAlgorithmAdvanced::getNextScheduledEvent(double &dt, EventBase 
 	pProcessTimer->start();
 #endif // ALGORITHM_DEBUG_TIMER
 
-	if (!m_parallel)
-	{
-		for (int i = 0 ; i < m_people.size() ; i++)
-			personalEventList(m_people[i])->processUnsortedEvents(*this, m_popState, curTime);
+	assert(!m_parallel);
+	for (int i = 0 ; i < m_people.size() ; i++)
+		personalEventList(m_people[i])->processUnsortedEvents(*this, m_popState, curTime);
 
-		// TODO: can this be done in a faster way? 
-		// If we still need to iterate over everyone, perhaps there's
-		// really no point in trying to use an m_firstEventTracker?
-	}
-	else
-	{
-#ifndef DISABLEOPENMP
-		int numPeople = m_people.size();
-
-#ifndef DISABLE_PARALLEL
-		#pragma omp parallel for 
-#endif // DISABLE_PARALLEL
-		for (int i = 0 ; i < numPeople ; i++)
-			personalEventList(m_people[i])->processUnsortedEvents(*this, m_popState, curTime);
-#endif // !DISABLEOPENMP
-	}
+	// TODO: can this be done in a faster way? 
+	// If we still need to iterate over everyone, perhaps there's
+	// really no point in trying to use an m_firstEventTracker?
 
 #ifdef ALGORITHM_DEBUG_TIMER
 	pProcessTimer->stop();
@@ -152,7 +118,6 @@ bool_t PopulationAlgorithmAdvanced::getNextScheduledEvent(double &dt, EventBase 
 #ifdef ALGORITHM_SHOW_EVENTS
 	showEvents();
 #endif // ALGORITHM_SHOW_EVENTS
-
 
 #ifdef ALGORITHM_DEBUG_TIMER
 	DebugTimer *pInternEarliestTimer = DebugTimer::getTimer("getEarliestEvent_Internal");
@@ -203,7 +168,7 @@ bool_t PopulationAlgorithmAdvanced::getNextScheduledEvent(double &dt, EventBase 
 
 // all affected event times should be recalculated, again note that an event pointer
 // can be present in both the a man's list and a woman's list
-void PopulationAlgorithmAdvanced::advanceEventTimes(EventBase *pScheduledEvent, double dt)
+void PopulationAlgorithmTesting::advanceEventTimes(EventBase *pScheduledEvent, double dt)
 {
 	assert(m_init);
 
@@ -280,7 +245,7 @@ void PopulationAlgorithmAdvanced::advanceEventTimes(EventBase *pScheduledEvent, 
 	}
 }
 
-PopulationEvent *PopulationAlgorithmAdvanced::getEarliestEvent(const std::vector<PersonBase *> &people)
+PopulationEvent *PopulationAlgorithmTesting::getEarliestEvent(const std::vector<PersonBase *> &people)
 {
 	if (!m_init)
 		return 0;
@@ -288,125 +253,33 @@ PopulationEvent *PopulationAlgorithmAdvanced::getEarliestEvent(const std::vector
 	PopulationEvent *pBest = 0;
 	double bestTime = -1;
 
-	if (!m_parallel)
+	assert(!m_parallel);
+	for (int i = 0 ; i < people.size() ; i++)
 	{
-		for (int i = 0 ; i < people.size() ; i++)
+		PopulationEvent *pFirstEvent = personalEventList(people[i])->getEarliestEvent();
+
+		if (pFirstEvent != 0) // can happen if there are no events for this person
 		{
-			PopulationEvent *pFirstEvent = personalEventList(people[i])->getEarliestEvent();
+			double t = pFirstEvent->getEventTime();
 
-			if (pFirstEvent != 0) // can happen if there are no events for this person
+			if (pBest == 0 || t < bestTime)
 			{
-				double t = pFirstEvent->getEventTime();
-
-				if (pBest == 0 || t < bestTime)
-				{
-					bestTime = t;
-					pBest = pFirstEvent;
-				}
+				bestTime = t;
+				pBest = pFirstEvent;
 			}
 		}
-	}
-	else
-	{
-#ifndef DISABLEOPENMP
-		int numPeople = people.size();
-
-		for (int i = 0 ; i < m_tmpEarliestEvents.size() ; i++)
-		{
-			m_tmpEarliestEvents[i] = 0;
-			m_tmpEarliestTimes[i] = -1;
-		}
-
-#ifndef DISABLE_PARALLEL
-		#pragma omp parallel for 
-#endif // DISABLE_PARALLEL
-		for (int i = 0 ; i < numPeople ; i++)
-		{
-			PopulationEvent *pFirstEvent = personalEventList(people[i])->getEarliestEvent();
-
-			if (pFirstEvent != 0) // can happen if there are no events for this person
-			{
-				double t = pFirstEvent->getEventTime();
-				int threadIdx = omp_get_thread_num();
-
-				if (m_tmpEarliestEvents[threadIdx] == 0 || t < m_tmpEarliestTimes[threadIdx])
-				{
-					m_tmpEarliestTimes[threadIdx] = t;
-					m_tmpEarliestEvents[threadIdx] = pFirstEvent;
-				}
-			}
-		}
-
-		for (int i = 0 ; i < m_tmpEarliestEvents.size() ; i++)
-		{
-			PopulationEvent *pFirstEvent = m_tmpEarliestEvents[i];
-
-			if (pFirstEvent != 0)
-			{
-				double t = pFirstEvent->getEventTime();
-
-				if (pBest == 0 || t < bestTime)
-				{
-					bestTime = t;
-					pBest = pFirstEvent;
-				}
-			}
-
-		}
-#endif // !DISABLEOPENMP
 	}
 
 	return pBest;
 }
 
-void PopulationAlgorithmAdvanced::scheduleForRemoval(PopulationEvent *pEvt)
+void PopulationAlgorithmTesting::scheduleForRemoval(PopulationEvent *pEvt)
 {
 	pEvt->setScheduledForRemoval();
-
-#ifndef DISABLEOPENMP
-	if (m_parallel)
-		m_eventsToRemoveMutex.lock();
-#endif // !DISABLEOPENMP
-
 	m_eventsToRemove.push_back(pEvt);
-
-#ifndef DISABLEOPENMP
-	if (m_parallel)
-		m_eventsToRemoveMutex.unlock();
-#endif // !DISABLEOPENMP
 }
 
-void PopulationAlgorithmAdvanced::lockEvent(PopulationEvent *pEvt) const
-{
-#ifndef DISABLEOPENMP
-	if (!m_parallel)
-		return;
-
-	int64_t id = pEvt->getEventID();
-	int64_t l = m_eventMutexes.size();
-
-	int mutexId = (int)(id%l);
-
-	m_eventMutexes[mutexId].lock();
-#endif // !DISABLEOPENMP
-}
-
-void PopulationAlgorithmAdvanced::unlockEvent(PopulationEvent *pEvt) const
-{
-#ifndef DISABLEOPENMP
-	if (!m_parallel)
-		return;
-
-	int64_t id = pEvt->getEventID();
-	int64_t l = m_eventMutexes.size();
-
-	int mutexId = (int)(id%l);
-
-	m_eventMutexes[mutexId].unlock();
-#endif // !DISABLEOPENMP
-}
-
-void PopulationAlgorithmAdvanced::onNewEvent(PopulationEvent *pEvt)
+void PopulationAlgorithmTesting::onNewEvent(PopulationEvent *pEvt)
 {
 	assert(pEvt != 0);
 	assert(pEvt->getEventID() < 0);
@@ -442,7 +315,7 @@ void PopulationAlgorithmAdvanced::onNewEvent(PopulationEvent *pEvt)
 }
 
 #ifdef ALGORITHM_SHOW_EVENTS
-void PopulationAlgorithmAdvanced::showEvents()
+void PopulationAlgorithmTesting::showEvents()
 {
 	std::map<int64_t, PopulationEvent *> m;
 	std::map<int64_t, PopulationEvent *>::const_iterator it;
@@ -451,12 +324,12 @@ void PopulationAlgorithmAdvanced::showEvents()
 
 	for (int i = 0 ; i < m_people.size() ; i++)
 	{
-		assert(personalEventList(m_people[i])->m_untimedEvents.size() == 0);
+		assert(personalEventList(m_people[i])->m_untimedEventsPrimary.size() == 0);
 
-		int num = personalEventList(m_people[i])->m_timedEvents.size();
+		int num = personalEventList(m_people[i])->m_timedEventsPrimary.size();
 		for (int k = 0 ; k < num ; k++)
 		{
-			PopulationEvent *pEvt = personalEventList(m_people[i])->m_timedEvents[k];
+			PopulationEvent *pEvt = personalEventList(m_people[i])->m_timedEventsPrimary[k];
 			assert(pEvt != 0);
 
 			int64_t id = pEvt->getEventID();

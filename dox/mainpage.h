@@ -1050,17 +1050,11 @@ is called **main.cpp** and contains the following code:
 
 @code
 #include "gslrandomnumbergenerator.h"
-#include "populationalgorithmadvanced.h"
-#include "populationalgorithmsimple.h"
-#include "populationstatesimple.h"
-#include "populationstateadvanced.h"
+#include "populationutil.h"
 #include "simpactpopulation.h"
 #include <iostream>
 
 using namespace std;
-
-bool_t selectAlgorithmAndState(const string &algo, GslRandomNumberGenerator &rng, bool parallel,
-                               PopulationAlgorithmInterface **ppAlgo, PopulationStateInterface **ppState);
 
 int main(void)
 {
@@ -1072,7 +1066,7 @@ int main(void)
     PopulationAlgorithmInterface *pAlgo = 0;
     PopulationStateInterface *pState = 0;
     
-    bool_t r = selectAlgorithmAndState(algo, rng, parallel, &pAlgo, &pState);
+    bool_t r = PopulationUtil::selectAlgorithmAndState(algo, rng, parallel, &pAlgo, &pState);
     if (!r)
     {
         cerr << "Couldn't create requested algorithm:" << r.getErrorString() << endl;
@@ -1102,41 +1096,13 @@ int main(void)
     return 0;
 }
 
-bool_t selectAlgorithmAndState(const string &algo, GslRandomNumberGenerator &rng, bool parallel,
-                               PopulationAlgorithmInterface **ppAlgo, PopulationStateInterface **ppState)
-{
-    if (algo == "opt")
-    {
-        PopulationStateAdvanced *pPopState = new PopulationStateAdvanced();
-        *ppState = pPopState;
-        *ppAlgo = new PopulationAlgorithmAdvanced(*pPopState, rng, parallel);
-    }
-    else if (algo == "simple")
-    {
-        PopulationStateSimple *pPopState = new PopulationStateSimple();
-        *ppState = pPopState;
-        *ppAlgo = new PopulationAlgorithmSimple(*pPopState, rng, parallel);
-    }
-    else
-        return "Invalid algorithm: " + algo;
-
-    bool_t r = (*ppAlgo)->init();
-    if (!r)
-    {
-        delete *ppState;
-        delete *ppAlgo;
-        return r;
-    }
-
-    return true;
-}
 @endcode
 
 In this \c main function, we specify the random number generator (of type GslRandomNumberGenerator) which
 is to be used in the entire simulation. This random number generator must exist the entire time the
 simulation is being used. A helper function called \c selectAlgorithmAndState is used to allocate
-specific PopulationAlgorithmInterface and PopulationStateInterface instances. In the implementation
-of this function, you can see that if "opt" is specified, these will contain objects of types
+specific PopulationAlgorithmInterface and PopulationStateInterface instances. If "opt" is specified,
+these will contain objects of types
 PopulationAlgorithmAdvanced and PopulationStateAdvanced, while if "simple" is specified, PopulationAlgorithmSimple
 and PopulationStateSimple will be used instead.
 
