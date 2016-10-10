@@ -146,8 +146,8 @@ double Person::getViralLoadFromSetPointViralLoad(double x) const
 	assert(m_Vsp > 0);
 	assert(x > 0);
 
-	double b = EventTransmission::m_b;
-	double c = EventTransmission::m_c;
+	double b = EventTransmission::getParamB();
+	double c = EventTransmission::getParamC();
 	double part = std::log(x)/b + std::pow(m_Vsp,-c);
 
 	assert(m_maxViralLoad > 0);
@@ -806,14 +806,16 @@ JSONConfig personJSONConfig(R"JSON(
             ]
         },
 
-		"PersonSurvTimeLogOffset": {
-			"depends": null,
-			"params": [
-				[ "person.survtime.logoffset.dist", "distTypes" ]
-			],
-			"info": [
-				"TODO"
-			]
-		})JSON");
+        "PersonSurvTimeLogOffset": {
+            "depends": null,
+            "params": [
+                [ "person.survtime.logoffset.dist", "distTypes" ]
+            ],
+            "info": [
+                "By configuring this, you can add an offset to the survival time that differs",
+                "per person, so the relationship between survival time and viral load will",
+                "show some scatter. The offset is added to the logarithm of the survival time."
+            ]
+        })JSON");
 
 

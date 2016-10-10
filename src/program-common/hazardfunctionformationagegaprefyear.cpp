@@ -12,6 +12,7 @@ HazardFunctionFormationAgeGapRefYear::HazardFunctionFormationAgeGapRefYear(const
 				   double a8, double a10, 
 				   double agfmConst, double agfmExp, double agfmAge,
 				   double agfwConst, double agfwExp, double agfwAge,
+				   double numRelScaleMan, double numRelScaleWoman,
 				   double b,
 				   double ageRefYear)
 {
@@ -27,15 +28,19 @@ HazardFunctionFormationAgeGapRefYear::HazardFunctionFormationAgeGapRefYear(const
 	double Ai = pPerson1->getAgeAt(ageRefYear);
 	double Aj = pPerson2->getAgeAt(ageRefYear);
 
-	double A = a0 + a1*Pi + a2*Pj + a3*(Pi-Pj) - a4*(tBi+tBj)/2.0 - b*tr;
+	double A = a0 + a3*(Pi-Pj) - a4*(tBi+tBj)/2.0 - b*tr;
 	double B = a4 + b;
 
 	double ageDebut = EventDebut::getDebutAge();
 	double a5 = agfmConst + agfmExp * std::exp( agfmAge*(Ai-ageDebut) );
 	double a9 = agfwConst + agfwExp * std::exp( agfwAge*(Aj-ageDebut) );
 
-	A += a5*std::abs(Ai - Aj- Dpi - a8*Ai);
-	A += a9*std::abs(Ai - Aj- Dpj - a10*Aj);
+	double gapTermMan = Ai - Aj- Dpi - a8*Ai;
+	double gapTermWoman = Ai - Aj- Dpj - a10*Aj;
+	A += a5*std::abs(gapTermMan);
+	A += a9*std::abs(gapTermWoman);
+	A += a1*Pi*(1.0+numRelScaleMan*gapTermMan);
+	A += a2*Pj*(1.0+numRelScaleWoman*gapTermWoman);
 
 	setAB(A, B);
 }

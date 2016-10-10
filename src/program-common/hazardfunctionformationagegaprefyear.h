@@ -14,6 +14,7 @@ public:
 				   double a8, double a10, 
 				   double agfmConst, double agfmExp, double agfmAge,
 				   double agfwConst, double agfwExp, double agfwAge,
+				   double numRelScaleMan, double numRelScaleWoman,
 				   double b,
 				   double ageRefYear);
 	~HazardFunctionFormationAgeGapRefYear();

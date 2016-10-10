@@ -321,6 +321,31 @@ def _replaceVariables(value, variables):
 
     return newValue.strip()
 
+def _getSimpactPathBasedOnModule():
+    
+    possiblePaths = [ ]
+
+    moduleName = __name__
+    paths = sys.path
+    for p in paths:
+        if os.path.isdir(p):
+            full = os.path.join(p, moduleName + ".py")
+            if os.path.exists(full): # Ok, our simpact module exists in this directory
+                full = os.path.abspath(full)
+                dirName = os.path.dirname(full) 
+                baseName = os.path.basename(dirName) # should be 'python'
+                if baseName.lower() == "python":
+                    dirName = os.path.dirname(dirName)
+                    if not dirName.endswith(os.sep): # Make sure it ends with "/" or "\"
+                        dirName += os.sep
+
+                    possiblePaths.append(dirName)
+
+    #print("Possible paths:")
+    #print(possiblePaths)
+
+    return possiblePaths
+
 class PySimpactCyan(object):
     """ This class is used to run SimpactCyan based simulations."""
 
@@ -348,6 +373,14 @@ class PySimpactCyan(object):
             paths += [ "/usr/share/simpact-cyan/", "/usr/local/share/simpact-cyan/" ]
             paths += [ "/Applications/SimpactCyan.app/Contents/data/" ]
 
+        for p in _getSimpactPathBasedOnModule():
+            paths.append(p)
+            p2 = os.path.join(p, "data")
+            if not p2.endswith(os.sep):
+                p2 += os.sep
+
+            paths.append(p2)
+
         for p in paths:
             f = os.path.join(p, "sa_2003.csv")
             if os.path.exists(f):
@@ -362,6 +395,8 @@ class PySimpactCyan(object):
             paths = [ ]
             if platform.system() == "Windows":
                 paths += [ "C:\\Program Files (x86)\\SimpactCyan", "C:\\Program Files\\SimpactCyan" ]
+
+            paths += _getSimpactPathBasedOnModule()
 
             exe = "simpact-cyan-release" # This should always exist
 
@@ -757,7 +792,10 @@ class PySimpactCyan(object):
                 if value:
                     pos = n.find(outFileSpec) + len(outFileSpec)
                     logName = n[pos:]
-                    results[logName] = os.path.join(destDir, value)
+
+                    fileName = os.path.join(destDir, value)
+                    if os.path.exists(fileName):
+                        results[logName] = fileName
 
         results["configfile"] = os.path.join(destDir, configFile)
         results["outputfile"] = os.path.join(destDir, outputFile)

@@ -172,7 +172,9 @@ bool_t SimpactPopulation::scheduleInitialEvents()
 
 	if (EventPeriodicLogging::isEnabled())
 	{
-		EventPeriodicLogging *pEvt = new EventPeriodicLogging(); // gloval event
+		double firstEventTime = EventPeriodicLogging::getFirstEventTime();
+
+		EventPeriodicLogging *pEvt = new EventPeriodicLogging(firstEventTime); // global event
 		onNewEvent(pEvt);
 	}
 

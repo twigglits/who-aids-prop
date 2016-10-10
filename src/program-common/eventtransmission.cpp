@@ -3,6 +3,7 @@
 #include "eventaidsmortality.h"
 #include "eventchronicstage.h"
 #include "eventdiagnosis.h"
+#include "eventdebut.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
 #include "util.h"
@@ -140,26 +141,31 @@ void EventTransmission::fire(Algorithm *pAlgorithm, State *pState, double t)
 	infectPerson(population, pPerson1, pPerson2, t);
 }
 
-double EventTransmission::m_a = 0;
-double EventTransmission::m_b = 0;
-double EventTransmission::m_c = 0;
-double EventTransmission::m_d1 = 0;
-double EventTransmission::m_d2 = 0;
+double EventTransmission::s_a = 0;
+double EventTransmission::s_b = 0;
+double EventTransmission::s_c = 0;
+double EventTransmission::s_d1 = 0;
+double EventTransmission::s_d2 = 0;
+double EventTransmission::s_f1 = 0;
+double EventTransmission::s_f2 = 0;
+double EventTransmission::s_tMaxAgeRefDiff = -1;
 
 double EventTransmission::calculateInternalTimeInterval(const State *pState, double t0, double dt)
 {
-	double h = calculateHazardFactor();
+	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
+	double h = calculateHazardFactor(population, t0);
 	return dt*h;
 }
 
 double EventTransmission::solveForRealTimeInterval(const State *pState, double Tdiff, double t0)
 {
-	double h = calculateHazardFactor();
+	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
+	double h = calculateHazardFactor(population, t0);
 
 	return Tdiff/h;
 }
 
-double EventTransmission::calculateHazardFactor()
+double EventTransmission::calculateHazardFactor(const SimpactPopulation &population, double t0)
 {
 	// Person1 is the infected person and his/her viral load (set-point or acute) determines
 	// the hazard
@@ -172,24 +178,43 @@ double EventTransmission::calculateHazardFactor()
 	double V = pPerson1->getViralLoad();
 	assert(V > 0);
 	
-	assert(m_a != 0);
-	assert(m_b != 0);
-	assert(m_c != 0);
+	assert(s_a != 0);
+	assert(s_b != 0);
+	assert(s_c != 0);
 
-	double h = std::exp(m_a + m_b * std::pow(V,-m_c) + m_d1*Pi + m_d2*Pj);
+	double logh = s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj;
 
-	return h;
+	if (s_f1 != 0 && pPerson2->isWoman())
+	{
+		double ageRefYear = population.getReferenceYear();
+
+		// Make sure we're up-to-date to use our approximation
+		if (t0 - ageRefYear < -1e-8)
+			abortWithMessage("EventTransmission: t0 is smaller than ageRefYear");
+		if (t0 - ageRefYear > s_tMaxAgeRefDiff+1e-8)
+			abortWithMessage("EventTransmission: t0 - ageRefYear exceeds maximum specified difference");
+
+		// Here we use the reference year as an approximation
+		double ageDiff = pPerson2->getAgeAt(ageRefYear) - EventDebut::getDebutAge();
+		
+		logh += s_f1*std::exp(s_f2*ageDiff);
+	}
+
+	return std::exp(logh);
 }
 
 void EventTransmission::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	bool_t r;
 
-	if (!(r = config.getKeyValue("transmission.param.a", m_a)) ||
-	    !(r = config.getKeyValue("transmission.param.b", m_b)) ||
-	    !(r = config.getKeyValue("transmission.param.c", m_c)) ||
-	    !(r = config.getKeyValue("transmission.param.d1", m_d1)) ||
-	    !(r = config.getKeyValue("transmission.param.d2", m_d2)))
+	if (!(r = config.getKeyValue("transmission.param.a", s_a)) ||
+	    !(r = config.getKeyValue("transmission.param.b", s_b)) ||
+	    !(r = config.getKeyValue("transmission.param.c", s_c)) ||
+	    !(r = config.getKeyValue("transmission.param.d1", s_d1)) ||
+	    !(r = config.getKeyValue("transmission.param.d2", s_d2)) ||
+	    !(r = config.getKeyValue("transmission.param.f1", s_f1)) ||
+	    !(r = config.getKeyValue("transmission.param.f2", s_f2)) ||
+		!(r = config.getKeyValue("transmission.maxageref.diff", s_tMaxAgeRefDiff)) )
 		
 		abortWithMessage(r.getErrorString());
 }
@@ -198,11 +223,15 @@ void EventTransmission::obtainConfig(ConfigWriter &config)
 {
 	bool_t r;
 
-	if (!(r = config.addKey("transmission.param.a", m_a)) ||
-	    !(r = config.addKey("transmission.param.b", m_b)) ||
-	    !(r = config.addKey("transmission.param.c", m_c)) ||
-	    !(r = config.addKey("transmission.param.d1", m_d1)) ||
-	    !(r = config.addKey("transmission.param.d2", m_d2)))
+	if (!(r = config.addKey("transmission.param.a", s_a)) ||
+	    !(r = config.addKey("transmission.param.b", s_b)) ||
+	    !(r = config.addKey("transmission.param.c", s_c)) ||
+	    !(r = config.addKey("transmission.param.d1", s_d1)) ||
+	    !(r = config.addKey("transmission.param.d2", s_d2)) ||
+		!(r = config.addKey("transmission.param.f1", s_f1)) ||
+		!(r = config.addKey("transmission.param.f2", s_f2)) ||
+		!(r = config.addKey("transmission.maxageref.diff", s_tMaxAgeRefDiff))
+		)
 		
 		abortWithMessage(r.getErrorString());
 }
@@ -218,13 +247,17 @@ JSONConfig transmissionJSONConfig(R"JSON(
                 ["transmission.param.b", -12.0220],
                 ["transmission.param.c", 0.1649],
                 ["transmission.param.d1", 0],
-                ["transmission.param.d2", 0] ],
+                ["transmission.param.d2", 0], 
+                ["transmission.param.f1", 0], 
+                ["transmission.param.f2", 0],
+                ["transmission.maxageref.diff", 1] ],
             "info": [ 
                 "The hazard of transmission is h = exp(a + b * V^(-c) + d1*Pi + d2*Pj), ",
-                "where V can be either the set-point viral load or the acute stage ",
-                "viral load. ",
-                "",
-                "Default parameters originate from a fit to the Lingappa et al. data."
+                "in case the uninfected partner is a man, or",
+                "h = exp(a + b * V^(-c) + d1*Pi + d2*Pj + f1*exp(f2(A(try)-Ad)))",
+                "in case the uninfected partner is a woman. The value of V is the viral",
+                "load, which is not necessarily the set-point viral load but will differ",
+                "depending on the AIDS stage."
             ]
         })JSON");
 

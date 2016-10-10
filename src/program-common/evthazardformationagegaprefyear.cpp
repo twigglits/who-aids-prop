@@ -16,6 +16,7 @@ EvtHazardFormationAgeGapRefYear::EvtHazardFormationAgeGapRefYear(double a0, doub
 			       double a7, double a8, double a10, 
 				   double agfmConst, double agfmExp, double agfmAge,
 				   double agfwConst, double agfwExp, double agfwAge,
+				   double numRelScaleMan, double numRelScaleWoman,
 				   double b, double tMax,
 				   double maxAgeRefDiff)
 {
@@ -35,6 +36,9 @@ EvtHazardFormationAgeGapRefYear::EvtHazardFormationAgeGapRefYear(double a0, doub
 	m_agfwConst = agfwConst;
 	m_agfwExp = agfwExp;
 	m_agfwAge = agfwAge;
+
+	m_numRelScaleMan = numRelScaleMan;
+	m_numRelScaleWoman = numRelScaleWoman;
 
 	m_b = b;
 	m_tMax = tMax;
@@ -86,6 +90,7 @@ double EvtHazardFormationAgeGapRefYear::calculateInternalTimeInterval(const Simp
 	// Note: we need to use a0 here, not m_a0
 	HazardFunctionFormationAgeGapRefYear h0(pPerson1, pPerson2, tr, a0, m_a1, m_a2, m_a3, m_a4, m_a8, m_a10, 
 			                                m_agfmConst, m_agfmExp, m_agfmAge, m_agfwConst, m_agfwExp, m_agfwAge,
+											m_numRelScaleMan, m_numRelScaleWoman,
 											m_b, ageRefYear);
 	TimeLimitedHazardFunction h(h0, tMax);
 
@@ -115,6 +120,7 @@ double EvtHazardFormationAgeGapRefYear::solveForRealTimeInterval(const SimpactPo
 	// Note: we need to use a0 here, not m_a0
 	HazardFunctionFormationAgeGapRefYear h0(pPerson1, pPerson2, tr, a0, m_a1, m_a2, m_a3, m_a4, m_a8, m_a10, 
 			                                m_agfmConst, m_agfmExp, m_agfmAge, m_agfwConst, m_agfwExp, m_agfwAge,
+											m_numRelScaleMan, m_numRelScaleWoman,
 											m_b, ageRefYear);
 	TimeLimitedHazardFunction h(h0, tMax);
 
@@ -160,11 +166,14 @@ EvtHazard *EvtHazardFormationAgeGapRefYear::processConfig(ConfigSettings &config
 {
 	double a0, a1, a2, a3, a4, a6, a7, a8, a10, b, tMax, tMaxAgeRefDiff;
 	double agfmConst, agfmExp, agfmAge, agfwConst, agfwExp, agfwAge;
+	double numRelScaleMan, numRelScaleWoman;
 	bool_t r;
 
 	if (!(r = config.getKeyValue("formation.hazard.agegapry.baseline", a0)) ||
 	    !(r = config.getKeyValue("formation.hazard.agegapry.numrel_man", a1)) ||
+		!(r = config.getKeyValue("formation.hazard.agegapry.numrel_scale_man", numRelScaleMan)) ||
 	    !(r = config.getKeyValue("formation.hazard.agegapry.numrel_woman", a2)) ||
+		!(r = config.getKeyValue("formation.hazard.agegapry.numrel_scale_woman", numRelScaleWoman)) ||
 	    !(r = config.getKeyValue("formation.hazard.agegapry.numrel_diff", a3)) ||
 	    !(r = config.getKeyValue("formation.hazard.agegapry.meanage", a4)) ||
 	    !(r = config.getKeyValue("formation.hazard.agegapry.eagerness_sum", a6)) ||
@@ -185,6 +194,7 @@ EvtHazard *EvtHazardFormationAgeGapRefYear::processConfig(ConfigSettings &config
 	
 	return new EvtHazardFormationAgeGapRefYear(a0,a1,a2,a3,a4,a6,a7,a8,a10,
 	                                           agfmConst, agfmExp, agfmAge, agfwConst, agfwExp, agfwAge,
+											   numRelScaleMan, numRelScaleWoman,
 			                                   b,tMax,tMaxAgeRefDiff);
 }
 
@@ -195,7 +205,9 @@ void EvtHazardFormationAgeGapRefYear::obtainConfig(ConfigWriter &config)
 	if (!(r = config.addKey("formation.hazard.type", "agegapry")) ||
 	    !(r = config.addKey("formation.hazard.agegapry.baseline", m_a0)) ||
 	    !(r = config.addKey("formation.hazard.agegapry.numrel_man", m_a1)) ||
+		!(r = config.addKey("formation.hazard.agegapry.numrel_scale_man", m_numRelScaleMan)) ||
 	    !(r = config.addKey("formation.hazard.agegapry.numrel_woman", m_a2)) ||
+		!(r = config.addKey("formation.hazard.agegapry.numrel_scale_woman", m_numRelScaleWoman)) ||
 	    !(r = config.addKey("formation.hazard.agegapry.numrel_diff", m_a3)) ||
 	    !(r = config.addKey("formation.hazard.agegapry.meanage", m_a4)) ||
 	    !(r = config.addKey("formation.hazard.agegapry.eagerness_sum", m_a6)) ||
@@ -221,7 +233,9 @@ JSONConfig agegapRefYearFormationJSONConfig(R"JSON(
             "params": [ 
                 ["formation.hazard.agegapry.baseline", 0.1],
                 ["formation.hazard.agegapry.numrel_man", 0],
+				["formation.hazard.agegapry.numrel_scale_man", 0],
                 ["formation.hazard.agegapry.numrel_woman", 0],
+				["formation.hazard.agegapry.numrel_scale_woman", 0],
                 ["formation.hazard.agegapry.numrel_diff", 0],
                 ["formation.hazard.agegapry.meanage", 0],
                 ["formation.hazard.agegapry.eagerness_sum", 0],

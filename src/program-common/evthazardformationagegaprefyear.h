@@ -16,6 +16,7 @@ public:
 			       double a7, double a8, double a10, 
 				   double agfmConst, double agfmExp, double agfmAge,
 				   double agfwConst, double agfwExp, double agfwAge,
+				   double numRelScaleMan, double numRelScaleWoman,
 				   double b, double tMax,
 				   double maxRefYearDiff);
 	~EvtHazardFormationAgeGapRefYear();
@@ -48,6 +49,9 @@ private:
 	double m_agfwConst;
 	double m_agfwExp;
 	double m_agfwAge;
+
+	double m_numRelScaleMan;
+	double m_numRelScaleWoman;
 
 	double m_b;		// last_change_factor
 	double m_tMax;		

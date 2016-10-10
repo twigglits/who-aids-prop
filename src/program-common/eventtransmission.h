@@ -20,20 +20,24 @@ public:
 
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
-
-	// TODO: access functions
-	static double m_a;
-	static double m_b;
-	static double m_c;
-	static double m_d1;
-	static double m_d2;
+	static double getParamB()																		{ return s_b; }
+	static double getParamC()																		{ return s_c; }
 
 	static void infectPerson(SimpactPopulation &population, Person *pOrigin, Person *pTarget, double t);
 protected:
 	double calculateInternalTimeInterval(const State *pState, double t0, double dt);
 	double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);
 	bool isUseless();
-	double calculateHazardFactor();
+	double calculateHazardFactor(const SimpactPopulation &population, double t0);
+
+	static double s_a;
+	static double s_b;
+	static double s_c;
+	static double s_d1;
+	static double s_d2;
+	static double s_f1;
+	static double s_f2;
+	static double s_tMaxAgeRefDiff;
 };
 
 #endif // EVENTTRANSMISSION_H

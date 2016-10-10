@@ -72,6 +72,11 @@ JSONConfig eventSyncRefYearJSONConfig(R"JSON(
                 [ "syncrefyear.interval", "-1" ]
             ],
             "info": [
-                "TODO"
+                "In the hazards of some events, instead of using the actual simulation time",
+                "a reference time is used. This typically makes the integrals involved much",
+                "easier to calculate. This interval specifies how often this reference time",
+                "is saved for use in these hazards. Note that all other event times are",
+                "recalculated after firing this event, so very frequent updates of this",
+                "reference time can slow down the simulation considerably."
             ]
         })JSON");

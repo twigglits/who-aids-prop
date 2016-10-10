@@ -5,8 +5,10 @@
 
 using namespace std;
 
-EventPeriodicLogging::EventPeriodicLogging() // global event
+EventPeriodicLogging::EventPeriodicLogging(double eventTime) // global event
 {
+	assert(eventTime >= 0);
+	m_eventTime = eventTime;
 }
 
 EventPeriodicLogging::~EventPeriodicLogging()
@@ -15,9 +17,13 @@ EventPeriodicLogging::~EventPeriodicLogging()
 
 double EventPeriodicLogging::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-	assert(s_loggingInterval > 0);
+	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
 
-	return s_loggingInterval;
+	double dt = m_eventTime - population.getTime();
+	assert(m_eventTime >= 0);
+	assert(dt >= 0);
+
+	return dt;
 }
 
 string EventPeriodicLogging::getDescription(double tNow) const
@@ -55,12 +61,13 @@ void EventPeriodicLogging::fire(Algorithm *pAlgorithm, State *pState, double t)
 	if (s_loggingInterval > 0) // make sure it hasn't been disabled (by an intervention event for example)
 	{
 		// We need to schedule the next one
-		EventPeriodicLogging *pEvt = new EventPeriodicLogging();
+		EventPeriodicLogging *pEvt = new EventPeriodicLogging(t + s_loggingInterval);
 		population.onNewEvent(pEvt);
 	}
 }
 
 double EventPeriodicLogging::s_loggingInterval = -1;
+double EventPeriodicLogging::s_firstEventTime = -1;
 string EventPeriodicLogging::s_logFileName;
 LogFile EventPeriodicLogging::s_logFile;
 
@@ -70,6 +77,7 @@ void EventPeriodicLogging::processConfig(ConfigSettings &config, GslRandomNumber
 	bool_t r;
 
 	if (!(r = config.getKeyValue("periodiclogging.interval", s_loggingInterval)) ||
+		!(r = config.getKeyValue("periodiclogging.starttime", s_firstEventTime)) ||
 	    !(r = config.getKeyValue("periodiclogging.outfile.logperiodic", s_logFileName)) )
 		abortWithMessage(r.getErrorString());
 
@@ -94,6 +102,7 @@ void EventPeriodicLogging::obtainConfig(ConfigWriter &config)
 	bool_t r;
 
 	if (!(r = config.addKey("periodiclogging.interval", s_loggingInterval)) ||
+		!(r = config.addKey("periodiclogging.starttime", s_firstEventTime)) ||
 	    !(r = config.addKey("periodiclogging.outfile.logperiodic", s_logFileName)) )
 	    	abortWithMessage(r.getErrorString());
 }
@@ -106,12 +115,14 @@ JSONConfig periodicLoggingJSONConfig(R"JSON(
             "depends": null,
             "params": [
                 [ "periodiclogging.interval", -1 ],
+				[ "periodiclogging.starttime", -1 ],
                 [ "periodiclogging.outfile.logperiodic", "${SIMPACT_OUTPUT_PREFIX}periodiclog.csv" ]
             ],
             "info": [
                 "During the simulation, at regular time intervals certain extra information",
                 "can be logged with this event. Set the interval value to positive to enable,",
-                "otherwise it will be disabled."
+                "otherwise it will be disabled. If the starttime is negative, the first event,",
+				"will take place after the first interval, otherwise at the specified time."
             ]
         })JSON");
 

@@ -1,6 +1,6 @@
 <img src="SimpactCyan_cropped.png" style="float:right;width:10%;">
 
-Simpact Cyan - 0.19.0
+Simpact Cyan - 0.19.1
 =====================
 
 This document is the reference documentation for the Simpact Cyan
@@ -25,7 +25,7 @@ The Simpact Cyan installers, as well as the source code for the
 program, can be found in the ['programs'](http://research.edm.uhasselt.be/jori/simpact/programs/).
 directory. If you're using MS-Windows, you'll need to install the 
 [Visual Studio 2013 redistributable package](https://www.microsoft.com/en-us/download/details.aspx?id=40784)
-as well to be able to use the installed version. 
+as well (use the **x86** version) to be able to use the installed version. 
 
 In case you're interested in [running simulations from R](#startingfromR),
 you'll need to have a working
@@ -370,7 +370,8 @@ The R interface to Simpact Cyan will underneath still execute one of the
 Simpact Cyan programs, e.g. `simpact-cyan-release`, so the [program](#programs)
 relevant to your operating system must be installed first. Note that if
 you're using MS-Windows, you'll also need to install the 
-[Visual Studio 2013 redistributable package](https://www.microsoft.com/en-us/download/details.aspx?id=40784).
+[Visual Studio 2013 redistributable package](https://www.microsoft.com/en-us/download/details.aspx?id=40784)
+(use the **x86** version).
 
 The R module actually contains Python code so to be able to use this, you'll
 need to have a working Python installation. On Linux or OS X, this is usually
@@ -579,7 +580,8 @@ Apart from `simpact.showconfig` and `simpact.run`, some other functions exist in
 The `pysimpactcyan` module to control Simpact Cyan from within Python, is 
 automatically available once you've installed the [program](#programs). Note that if
 you're using MS-Windows, you'll also need to install the 
-[Visual Studio 2013 redistributable package](https://www.microsoft.com/en-us/download/details.aspx?id=40784).
+[Visual Studio 2013 redistributable package](https://www.microsoft.com/en-us/download/details.aspx?id=40784)
+(use the **x86** version).
 To load the Simpact Cyan module in a Python script or interactive session, just execute
 
     import pysimpactcyan
@@ -2472,7 +2474,9 @@ but this does allow the importance of the age gap to change over time:
 
 $$
 	\begin{array}{lll}
-		{\rm hazard} & = & F \times \exp\left( \alpha_{\rm baseline} + \alpha_{\rm numrel,man} P_{\rm man} + \alpha_{\rm numrel,woman} P_{\rm woman} \right. \\
+		{\rm hazard} & = & F \times \exp\left( \alpha_{\rm baseline} \right. \\
+          & + & \alpha_{\rm numrel,man} P_{\rm man} ( 1 + \alpha_{\rm numrel,scale,man} g_{\rm man}(t_{\rm ry}) ) \\
+          & + & \alpha_{\rm numrel,woman} P_{\rm woman} ( 1 + \alpha_{\rm numrel,scale,woman} g_{\rm woman}(t_{\rm ry}) )\\
           & + & \alpha_{\rm numrel,diff}|P_{\rm man} - P_{\rm woman}| \\
 	      & + & \alpha_{\rm meanage} \left(\frac{A_{\rm man}(t)+A_{\rm woman}(t)}{2}\right)  \\
           & + & \alpha_{\rm eagerness,sum}(E_{\rm man} + E_{\rm woman}) +
@@ -2490,8 +2494,7 @@ $$
         G_{\rm man}(t_{\rm ry}) & = & \left[\alpha_{\rm gap,factor,man,const} + 
                                       \alpha_{\rm gap,factor,man,exp} 
                                        \exp\left( \alpha_{\rm gap,factor,man,age} \left( A_{\rm man}(t_{\rm ry}) - A_{\rm debut} \right) \right) \right]\\ 
-                                & & \times 
-          |A_{\rm man}(t_{\rm ry})-A_{\rm woman}(t_{\rm ry})-D_{p,{\rm man}}-\alpha_{\rm gap,agescale,man} A_{\rm man}(t_{\rm ry})|  \\
+                                & & \times |g_{\rm man}(t_{\rm ry})|
     \end{array}
 $$
 
@@ -2500,9 +2503,19 @@ $$
         G_{\rm woman}(t_{\rm ry}) & = & \left[\alpha_{\rm gap,factor,woman,const} + 
                                       \alpha_{\rm gap,factor,woman,exp} 
                                        \exp\left( \alpha_{\rm gap,factor,woman,age} \left( A_{\rm woman}(t_{\rm ry}) - A_{\rm debut} \right) \right) \right]\\ 
-                                & & \times 
-          |A_{\rm man}(t_{\rm ry})-A_{\rm woman}(t_{\rm ry})-D_{p,{\rm woman}}-\alpha_{\rm gap,agescale,woman} A_{\rm woman}(t_{\rm ry})|  \\
+                                & & \times |g_{\rm woman}(t_{\rm ry})|
     \end{array}
+$$
+
+where $g_{\rm man}(t_{\rm ry})$ and $g_{\rm woman}(t_{\rm ry})$ specify the
+preferred age gaps themselves, which can change over time:
+
+$$ g_{\rm man}(t_{\rm ry}) = 
+          A_{\rm man}(t_{\rm ry})-A_{\rm woman}(t_{\rm ry})-D_{p,{\rm man}}-\alpha_{\rm gap,agescale,man} A_{\rm man}(t_{\rm ry})
+$$
+
+$$ g_{\rm woman}(t_{\rm ry}) =
+          A_{\rm man}(t_{\rm ry})-A_{\rm woman}(t_{\rm ry})-D_{p,{\rm woman}}-\alpha_{\rm gap,agescale,woman} A_{\rm woman}(t_{\rm ry})
 $$
 
 In these equations again the following notation is used:
@@ -2511,7 +2524,8 @@ $$ A_{\rm man}(t) = t - t_{\rm birth,man} $$
 $$ A_{\rm woman}(t) = t - t_{\rm birth,woman} $$
 
 i.e., $A(t)$ represents the age of someone. 
-Looking at these age gap terms, you can see that they are similar to the ones from
+Looking at these full age gap terms $G_{\rm man}$ and $G_{\rm woman}$, you can see 
+that they are similar to the ones from
 the `agegap` hazard, but the prefactor is no longer a simple configurable constant.
 By tuning several parameters, the importance of these age gap terms can now be made
 age-dependent.
@@ -2526,8 +2540,13 @@ of the hazard becomes much more straightforward. Note that certain terms still
 have a dependency on the simulation time $t$, causing this hazard to be of the
 form $\exp(A + Bt)$.
 
-The meaning of the other quantities in the hazard is the same as in the [`agegap`](#agegaphazard)
-hazard. An IPython notebook that illustrates how a funnel-like distribution of the
+By setting $\alpha_{\rm numrel,scale,man}$ or $\alpha_{\rm numrel,scale,woman}$,
+using the same approximation the importance of the number of partners can be
+made dependent on the age gap. The meaning of the other quantities in the hazard 
+is the same as in the [`agegap`](#agegaphazard)
+hazard. 
+
+An IPython notebook that illustrates how a funnel-like distribution of the
 formed relationships can be generated using this `agegapry` hazard, can be found
 here: [agegapry_hazard_funnel.ipynb](agegapry_hazard_funnel.ipynb).
 
@@ -2540,9 +2559,13 @@ parentheses), and their meaning:
  - `formation.hazard.agegapry.numrel_man` (0):  
    The value of $\alpha_{\rm numrel,man}$ in the hazard formula, corresponding to a weight for the
    number of relationships the man in the relationship has.
+ - `formation.hazard.agegapry.numrel_scale_man` (0):  
+   The value of $\alpha_{\rm numrel,scale,man}$ in the formula for the hazard.
  - `formation.hazard.agegapry.numrel_woman` (0):  
    The value of $\alpha_{\rm numrel,woman}$ in the hazard formula, corresponding to a weight for the
    number of relationships the woman in the relationship has.
+ - `formation.hazard.agegapry.numrel_scale_woman` (0):  
+   The value of $\alpha_{\rm numrel,scale,woman}$ in the formula for the hazard.
  - `formation.hazard.agegapry.numrel_diff` (0):  
    The value of $\alpha_{\rm numrel,diff}$ in the hazard expression, by which the influence of the
    difference in number of partners can be specified.
@@ -2918,7 +2941,9 @@ or how many were being treated, you can enable this event. The file specified in
 `periodiclogging.outfile.logperiodic` will be used to write the following properties
 to: the time the event fired, the size of the population and the number of people
 receiving treatment at that time. The interval between such logging events is controlled
-using the `periodiclogging.interval` setting.
+using the `periodiclogging.interval` setting. If `periodiclogging.starttime` is negative
+(the default), the first event will take place after the first interval has passed.
+Otherwise, the first event is scheduled to take place at the specified time.
 
 Here is an overview of the relevant configuration options, their defaults (between
 parentheses), and their meaning:
@@ -2927,6 +2952,9 @@ parentheses), and their meaning:
    This setting specifies the interval that is used to schedule the periodic logging
    events. When one event fires, the next one is scheduled. If this is set to a negative
    value, no further events will be scheduled.
+ - `periodiclogging.starttime` (-1):  
+   If negative, the first event will take place after the first interval has passed.
+   If zero or positive, the first event will get executed at the corresponding time.
  - `periodiclogging.outfile.logperiodic` ('${SIMPACT_OUTPUT_PREFIX}periodiclog.csv'):  
    This specifies the file to which the logging occurs. By default, the value of
    the [config variable or environment variable](#configfile) `SIMPACT_OUTPUT_PREFIX`
@@ -2975,8 +3003,9 @@ parentheses), and their meaning:
 #### Synchronize reference year ####
 
 With this event, a reference time can be saved in the simulation. This is used by
-the [`agegapry`](#agegapryhazard) formation hazard, to simplify the complexity of the hazard. 
-Scheduling of the event can be disabled by setting it to a negative value.
+the [`agegapry`](#agegapryhazard) formation hazard and [HIV transmission hazard](#transmission), 
+to simplify the complexity of the hazards. 
+Scheduling of the event can be disabled by setting it to a negative value (the default).
 
 Here is an overview of the relevant configuration options, their defaults (between
 parentheses), and their meaning:
@@ -2999,15 +3028,22 @@ infected, or when a relationship between two uninfected people exists
 and one of them gets infected, an HIV transmission event is scheduled.
 The hazard for this event is the following:
 
-$$ {\rm hazard} = \exp\left(a + b V^{-c} + d_1 P_{\rm infected} + d_2 P_{\rm uninfected}\right) $$
+$$ {\rm hazard} = \exp\left(a + b V^{-c} + d_1 P_{\rm infected} + d_2 P_{\rm uninfected}
+                 + {\rm W} f_1 \exp( f_2 (A_{\rm woman}(t_{\rm ry}) - A_{\rm debut} ) ) \right) $$
 
-This is a simple time independent exponential hazard. The value of
+In this hazard, the value of
 $V$ is the [current viral load](#viralloadx) of the person, which can differ 
 from the set-point viral load. The number of partners of the person
 who is already infected is specified by $P_{\rm infected}$, while the
 number of partners of the person who will become infected when the event
-fires, is $P_{\rm uninfected}$. The values $a$, $b$, $c$, $d_1$ and $d_2$
-can be configured as specified below. 
+fires, is $P_{\rm uninfected}$. The value of ${\rm W}$ is $1$ if the uninfected
+person is a woman, and 0 otherwise. By configuring the weights $f_1$ and $f_2$,
+is becomes possible to change the susceptibility of a woman depending on her
+age. Note that this age is only specified approximately by using a reference
+time $t_{\rm ry}$ instead of the actual time $t$. This reference time can be
+updated using the [reference year synchronization event](#syncrefyear).
+The values $a$, $b$, $c$, $d_1$, $d_2$, $f_1$ and $f_2$ can be configured as specified below;
+the $A_{\rm debut}$ parameter is the [debut age](#debut).
 
 The form of this hazard was originally inspired by the article of [[Hargrove et al]](#ref_hargrove).
 The default parameters that are mentioned below are based on a fit to the
@@ -3035,6 +3071,16 @@ parentheses), and their meaning:
    This refers to the value of $d_2$ in the expression for the hazard,
    providing a weight based on the number of partners of the uninfected
    person.
+ - `transmission.param.f1` (0):  
+   This refers to the value of $f_1$ in the expression of the hazard.
+ - `transmission.param.f2` (0):  
+   This refers to the value of $f_2$ in the expression of the hazard.
+ - `transmission.maxageref.diff` (1):  
+   As explained above, the hazard does not use the real time dependency $t$, but
+   refers to a reference time $t_{\rm ry}$ that needs to be synchronized periodically
+   using the [synchronize reference year event](#syncrefyear). The program will abort
+   if it detects that the last reference time synchronization was more than this
+   amount of time ago, which by default is one year.
 
 <!--
 	eventtransmission.cpp
