@@ -12,7 +12,7 @@
 // WARNING: the same instance can be called from multiple threads
 
 EvtHazardFormationSimple::EvtHazardFormationSimple(double a0, double a1, double a2, double a3, double a4, double a5, double a6,
-			       double a7, double Dp, double b, double tMax)
+			       double a7, double aDist, double Dp, double b, double tMax)
 {
 	m_a0 = a0;
 	m_a1 = a1;
@@ -22,6 +22,7 @@ EvtHazardFormationSimple::EvtHazardFormationSimple(double a0, double a1, double 
 	m_a5 = a5;
 	m_a6 = a6;
 	m_a7 = a7;
+	m_aDist = aDist;
 	m_Dp = Dp;
 	m_b = b;
 	m_tMax = tMax;
@@ -102,6 +103,8 @@ double EvtHazardFormationSimple::getA0(const SimpactPopulation &population, Pers
 	double a0j = pPerson2->getFormationEagernessParameter();
 	double a0_base = m_a0 + (a0i + a0j)*m_a6 * std::abs(a0i-a0j)*m_a7;
 
+	a0_base += m_aDist * pPerson1->getDistanceTo(pPerson2);
+
 	double eyeCapsFraction = population.getEyeCapsFraction();
 	// reduces to old code if eyeCapsFraction == 1
 	double a0_total = a0_base - std::log((n/2.0)*eyeCapsFraction); // log(x/(n/2)) = log(x) - log(n/2) = a0_base - log(n/2)
@@ -131,7 +134,7 @@ double EvtHazardFormationSimple::getTr(const SimpactPopulation &population, Pers
 
 EvtHazard *EvtHazardFormationSimple::processConfig(ConfigSettings &config)
 {
-	double a0, a1, a2, a3, a4, a5, a6, a7, Dp, b, tMax;
+	double a0, a1, a2, a3, a4, a5, a6, a7, aDist, Dp, b, tMax;
 	bool_t r;
 
 	if (!(r = config.getKeyValue("formation.hazard.simple.alpha_0", a0)) ||
@@ -142,12 +145,13 @@ EvtHazard *EvtHazardFormationSimple::processConfig(ConfigSettings &config)
 	    !(r = config.getKeyValue("formation.hazard.simple.alpha_5", a5)) ||
 	    !(r = config.getKeyValue("formation.hazard.simple.alpha_6", a6)) ||
 	    !(r = config.getKeyValue("formation.hazard.simple.alpha_7", a7)) ||
+		!(r = config.getKeyValue("formation.hazard.simple.alpha_dist", aDist)) ||
 	    !(r = config.getKeyValue("formation.hazard.simple.Dp", Dp)) ||
 	    !(r = config.getKeyValue("formation.hazard.simple.beta", b)) ||
 	    !(r = config.getKeyValue("formation.hazard.simple.t_max", tMax, 0)) )
 		abortWithMessage(r.getErrorString());
 	
-	return new EvtHazardFormationSimple(a0,a1,a2,a3,a4,a5,a6,a7,Dp,b,tMax);
+	return new EvtHazardFormationSimple(a0,a1,a2,a3,a4,a5,a6,a7,aDist,Dp,b,tMax);
 }
 
 void EvtHazardFormationSimple::obtainConfig(ConfigWriter &config)
@@ -163,6 +167,7 @@ void EvtHazardFormationSimple::obtainConfig(ConfigWriter &config)
 	    !(r = config.addKey("formation.hazard.simple.alpha_5", m_a5)) ||
 	    !(r = config.addKey("formation.hazard.simple.alpha_6", m_a6)) ||
 	    !(r = config.addKey("formation.hazard.simple.alpha_7", m_a7)) ||
+		!(r = config.addKey("formation.hazard.simple.alpha_dist", m_aDist)) ||
 	    !(r = config.addKey("formation.hazard.simple.Dp", m_Dp)) ||
 	    !(r = config.addKey("formation.hazard.simple.beta", m_b)) ||
 	    !(r = config.addKey("formation.hazard.simple.t_max", m_tMax)) )
@@ -181,6 +186,7 @@ JSONConfig simpleFormationJSONConfig(R"JSON(
                 ["formation.hazard.simple.alpha_5", 0],
                 ["formation.hazard.simple.alpha_6", 0],
                 ["formation.hazard.simple.alpha_7", 0],
+				["formation.hazard.simple.alpha_dist", 0],
                 ["formation.hazard.simple.Dp", 0],
                 ["formation.hazard.simple.beta", 0],
                 ["formation.hazard.simple.t_max", 200] ],

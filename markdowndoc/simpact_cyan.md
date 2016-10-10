@@ -1,6 +1,6 @@
 <img src="SimpactCyan_cropped.png" style="float:right;width:10%;">
 
-Simpact Cyan - 0.19.5
+Simpact Cyan - 0.19.6
 =====================
 
 This document is the reference documentation for the Simpact Cyan
@@ -1276,7 +1276,7 @@ parentheses), and their meaning:
 Output
 ------
 
-By default, four log files are used, but they can be disabled by assigning an
+By default, several log files are used, but they can be disabled by assigning an
 empty string to the configuration property. If you're using the R or Python
 interface, the full paths of these log files will be stored in the object returned
 by `simpact.run` or the `PySimpactCyan` method `run`.
@@ -1301,7 +1301,14 @@ parentheses), and their meaning:
    This file records information regarding treatments. See the section about the
    [configuration file](#configfile) for additional information regarding
    the `SIMPACT_OUTPUT_PREFIX` variable.
-
+ - `logsystem.outfile.logsettings` ('${SIMPACT_OUTPUT_PREFIX}settingslog.csv'):  
+   This file records the settings that were used at the start of the program
+   and after each [simulation intervention](#simulationintervention).
+ - `logsystem.outfile.loglocation` ('${SIMPACT_OUTPUT_PREFIX}locationlog.csv'):  
+   This file records the geographical locations that were assigned to a person.
+   In case a non-trivial [geographical distribution](#geodist) is used and
+   [relocations](#relocation) are enabled, this allows persons to be tracked
+   throughout the simulation.
 
 ### Event log ###
 
@@ -1374,11 +1381,13 @@ finished. At the moment, the following columns are defined:
  13. `TreatTime`: The time at which this person last received treatment, or `inf` if
      no treatment was received.
  14. `XCoord`: Each person is assigned [a geographic location](#geodist), of which this
-     is the x-coordinate. Note that this is currently not used in the core Simpact Cyan
-     simulation.
+     is the x-coordinate. In case [relocations](#relocation) are possible, the value
+     in this log file will be the last one in the simulation. For more detailed information
+     the [location log file](#locationlog) can be used.
  15. `YCoord`: Each person is assigned [a geographic location](#geodist), of which this
-     is the y-coordinate. Note that this is currently not used in the core Simpact Cyan
-     simulation.
+     is the y-coordinate. In case [relocations](#relocation) are possible, the value
+     in this log file will be the last one in the simulation. For more detailed information
+     the [location log file](#locationlog) can be used.
  16. `AIDSDeath`: Indicates what the cause of death for this person was. Is -1 in case
      the person is still alive at the end of the simulation, 0 if the person died from
      non-AIDS related causes, and +1 in case the person's death was caused by AIDS.
@@ -1413,6 +1422,45 @@ or dying). The file currently has five columns:
   5. `DiedNow`: If the treatment got stopped because the person died, this flag will be 1.
      Otherwise it will be 0.
 
+### Settings log ###
+
+The settings log file contains the settings used throughout the simulation. The names of
+the columns describe the configuration options being logged, and there will be a row with
+values of these configuration options each time the settings got changed. The time at which
+they were applied is also recorded in the log file in the first column.
+The first row in the log file will describe the names of the columns and at least one
+other row will be present, describing the settings used when the simulation was initialized.
+In case [simulation intervention events](#simulationintervention) are used, additional rows
+will be present.
+
+This means that the structure of the settings log will look like the one below in case a
+simulation intervention event was used to change a parameter of the ['agegap' formation hazard](#agegaphazard)
+after ten years in the simulation:
+
+    "t","aidsstage.final", ..., "formation.hazard.agegap.baseline", ...
+     0 ,             0.5 , ...,                               0.1 , ...
+    10 ,             0.5 , ...,                               0.2 , ...
+
+
+<a name="locationlog"></a>
+
+### Location log ###
+
+The [person log file](#personlog) records the [geographical location](#geodist) of a
+person, but this is only the last known location. By default, the location of a
+person is set to (0, 0), but if a non-trivial geographical distribution is used instead,
+[relocation events](#relocation) may be of interest. In this case however, a person
+can have multiple locations throughout the simulation, and a single entry in the
+[person log file](#personlog) will no longer suffice.
+
+For this reason, each time a person is assigned a 2D location, an entry is written to
+a location log file. The columns in this file are:
+
+ 1. `Time`: the time at which the person was assigned the specified location.
+ 2. `ID`: the identifier of the person this location applies to.
+ 3. `XCoord`: the x-coordinate of the location of the person.
+ 3. `YCoord`: the y-coordinate of the location of the person.
+
 <!-- 
 	logsystem.cpp
 	logsystem.h
@@ -1422,6 +1470,8 @@ or dying). The file currently has five columns:
 
 Simulation details
 ------------------
+
+<a name="generalflow"></a>
 
 ### General flow of a simulation ###
 
@@ -1544,15 +1594,42 @@ parentheses), and their meaning:
    For larger population sizes this large amount of events will really slow things down,
    and because in that case it is not even realistic that everyone can form a relationship
    with everyone else, a lower number of this 'eyecap fraction' (for which ['blinders' or 'blinkers'](http://en.wikipedia.org/wiki/Blinkers_%28horse_tack%29)
-   is a better name) will cause a person to be interested in fewer people. Currently, the
-   people for such a limited set are simply chosen at random. 
+   is a better name) will cause a person to be interested in fewer people. 
+   
+    When each person is assigned the trivial location (0, 0), the people for such a 
+   limited set of interests are simply chosen at random. If a non-trivial 2D distribution is used
+   (see the section about [the geographical location](#geodist) of a person), the
+   set of these interests will preferably be chosen closer to the location of the
+   person in question. To do this, instead of a really accurate ordering of everyone
+   based on their distance (which would become very slow for large populations), an
+   approximate [coarse grid](#coarsegrid) is used instead (see below).
    
     In case you want to disable relationship formation altogether, you can set this value to zero.
+ 
+ - `population.coarsemap.subdivx`<a name="coarsegrid"></a>(20):  
+   As described above, in case the ['eyecap'](#eyecap) setting is used, each person
+   will have a set of interests assigned to them. For issues of speed, a coarse grid
+   is used to get an approximation of the ordering by distance.
+
+    To do so, a 2D grid is made that covers the region of the persons' locations,
+   and each person is assigned to a corresponding grid cell. To get an approximate
+   ordering of other people with respect to a certain location, the grid cells themselves
+   are ordered and people are selected based on this ordering to create the set of 
+   'interests'.
+
+    The value of this parameter describes the number of grid cells in the x-direction.
+
+ - `population.coarsemap.subdivy` (20):  
+   Similar to the previous setting, the value of this parameter describes the number of 
+  grid cells in the y-direction.
+
 
 <!--
 	simpactpopulation.cpp
 	simpactpopulation.h
 -->
+
+<a name="person"></a>
 
 ### Per person options ###
 
@@ -1814,6 +1891,8 @@ parentheses), and their meaning:
 	vspmodellogweibullwithnoise.cpp
 	vspmodellogweibullwithnoise.h
 -->
+
+<a name="events"></a>
 
 ### Events ###
 
@@ -2298,9 +2377,10 @@ $$
             & &     + \alpha_4 \left(\frac{(t-t_{\rm birth,man}) + (t-t_{\rm birth,woman})}{2}\right) \\
             & &     + \alpha_5 | (t-t_{\rm birth,man}) - (t-t_{\rm birth,woman}) - D_{\rm pref} | \\
             & &     + \alpha_6 (E_{\rm man} + E_{\rm woman}) + \alpha_7 |E_{\rm man} - E_{\rm woman}| \\
-            & &     \left. 
+	    & &     + \alpha_{\rm dist} |\vec{R}_{\rm man} - \vec{R}_{\rm woman}| \\
+            & &     
                     + \beta (t - t_{\rm ref})  
-               \right) 
+	       \left. \right) 
     \end{eqnarray}
 $$
 Note that this is again a time dependent exponential hazard of the form
@@ -2312,7 +2392,10 @@ In this expression, $P_{\rm man}$ and $P_{\rm woman}$ are the number of partners
 the man and woman in the relationship have. The value $D_{\rm pref}$ represents
 the preferred age difference between a man and a woman, and $E_{\rm man}$ and
 $E_{\rm woman}$ are parameters that can be different for each person describing
-their [eagerness](#eagerness) of forming a relationship.
+their [eagerness](#eagerness) of forming a relationship. 
+The distance between
+the [locations](#geodist) $\vec{R}_{\rm man}$ and $\vec{R}_{\rm woman}$ of the partners 
+involved can be taken into account as well.
 
 The value of $t_{\rm ref}$ is the time
 at which the relationship between the two persons became possible. If no relationship
@@ -2346,6 +2429,9 @@ parentheses), and their meaning:
    Weight for the sum of the [eagerness](#eagerness) parameters of both partners.
  - `formation.hazard.simple.alpha_7` (0):  
    Weight for the difference of the [eagerness](#eagerness) parameters of both partners.
+ - `formation.hazard.simple.alpha_dist` (0):  
+   This configures the weight $\alpha_{\rm dist}$ of the geographical distance
+   between the partners.
  - `formation.hazard.simple.Dp` (0):  
    This configures the preferred age difference $D_{\rm pref}$ in the hazard
    expression. Note that to take this into account, $\alpha_5$ should also be
@@ -2375,6 +2461,7 @@ $$
 	      & + & \alpha_{\rm meanage} \left(\frac{A_{\rm man}(t)+A_{\rm woman}(t)}{2}\right)  \\
           & + & \alpha_{\rm eagerness,sum}(E_{\rm man} + E_{\rm woman}) +
                 \alpha_{\rm eagerness,diff}|E_{\rm man} - E_{\rm woman}| \\
+	  & + & \alpha_{\rm dist} |\vec{R}_{\rm man} - \vec{R}_{\rm woman}| \\
 		  &	+ & \alpha_{\rm gap,factor,man} |A_{\rm man}(t)-A_{\rm woman}(t)-D_{p,{\rm man}}-\alpha_{\rm gap,agescale,man} A_{\rm man}(t)| \\
 		  & + & \alpha_{\rm gap,factor,woman} |A_{\rm man}(t)-A_{\rm woman}(t)-D_{p,{\rm woman}}-\alpha_{\rm gap,agescale,woman} A_{\rm woman}(t)| \\
 		  & + & \left. \beta (t-t_{\rm ref}) \right) 
@@ -2403,6 +2490,9 @@ The values $P_{\rm man}$ and $P_{\rm woman}$ are the number of partners
 the man and woman in the relationship have, and $E_{\rm man}$ and
 $E_{\rm woman}$ are parameters that can be different for each person describing
 their [eagerness](#eagerness) of forming a relationship.
+The distance between
+the [locations](#geodist) $\vec{R}_{\rm man}$ and $\vec{R}_{\rm woman}$ of the partners 
+involved can be taken into account as well.
 
 As with the `simple` hazard, the value of $t_{\rm ref}$ is the time
 at which the relationship between the two persons became possible. If no relationship
@@ -2454,6 +2544,9 @@ parentheses), and their meaning:
  - `formation.hazard.agegap.gap_agescale_woman` (0):  
    This controls $\alpha_{\rm gap,agescale,woman}$, which allows you to vary the preferred age
    gap with the age of the woman in the relationship.
+ - `formation.hazard.agegap.distance` (0):  
+   This configures the weight $\alpha_{\rm dist}$ of the geographical distance
+   between the partners.
  - `formation.hazard.agegap.beta` (0):  
    Corresponds to $\beta$ in the hazard expression and allows you to take the
    time since the relationship became possible into account.
@@ -2479,6 +2572,7 @@ $$
           & + & \alpha_{\rm numrel,woman} P_{\rm woman} ( 1 + \alpha_{\rm numrel,scale,woman} g_{\rm woman}(t_{\rm ry}) )\\
           & + & \alpha_{\rm numrel,diff}|P_{\rm man} - P_{\rm woman}| \\
 	      & + & \alpha_{\rm meanage} \left(\frac{A_{\rm man}(t)+A_{\rm woman}(t)}{2}\right)  \\
+	  & + & \alpha_{\rm dist} |\vec{R}_{\rm man} - \vec{R}_{\rm woman}| \\
           & + & \alpha_{\rm eagerness,sum}(E_{\rm man} + E_{\rm woman}) +
                 \alpha_{\rm eagerness,diff}|E_{\rm man} - E_{\rm woman}| \\
 		  &	+ & G_{\rm man}(t_{\rm ry}) + G_{\rm woman}(t_{\rm ry}) \\
@@ -2594,6 +2688,9 @@ parentheses), and their meaning:
  - `formation.hazard.agegapry.gap_agescale_woman` (0):  
    This controls $\alpha_{\rm gap,agescale,woman}$, which allows you to vary the preferred age
    gap with the age of the woman in the relationship.
+ - `formation.hazard.agegapry.distance` (0):  
+   This configures the weight $\alpha_{\rm dist}$ of the geographical distance
+   between the partners.
  - `formation.hazard.agegapry.beta` (0):  
    Corresponds to $\beta$ in the hazard expression and allows you to take the
    time since the relationship became possible into account.
@@ -2967,6 +3064,59 @@ parentheses), and their meaning:
 <!--
 	eventperiodiclogging.cpp
 	eventperiodiclogging.h
+-->
+
+<a name="relocation"></a>
+
+#### Relocation event #####
+
+In case a non-trivial [2D location](#geodist) is assigned to each person, and the
+[formation hazard](#formation) depends on the geographical distance between
+possible partners or if an ['eyecap'](#eyecap) setting is used, a relocation
+event may become interesting. Such an event changes the 2D location that's assigned
+to a person, and writes a [log entry](#locationlog) to be able to keep track of
+a person.
+
+If enabled (see `relocation.enabled`), the hazard used is a time-dependent exponential 
+hazard:
+$$
+	{\rm hazard} = \exp[a + b \times (t - t_{\rm birth}) ]
+$$
+Here, a baseline value $a$ can be configured using the `relocation.hazard.a`
+setting, and the age of the person can be taken into account using the value
+of $b$ (the `relocation.hazard.b` setting).
+
+The effect of a relocation is slightly different depending on the ['eyecap'](#eyecap)
+fraction used. In case this is one, and everyone can have a relationship with everyone
+else, this just changes the location of the person. By controlling the importance
+of the geographical distance between partners in the [formation event](#formation)
+hazards, this can still affect which precise relationships will be formed.
+When only a fraction of the population can be seen however, triggering of the
+relocation event will cause all existing scheduled formation events to get
+cancelled. After choosing a new location of the person, a new set of interests
+will be generated and formation events for these persons will get scheduled.
+
+Note that existing, formed relationships are currently not affected by this
+relocation event.
+
+Here is an overview of the relevant configuration options, their defaults (between
+parentheses), and their meaning:
+
+ - `relocation.enabled` ('no'):  
+   This controls if relocation events should be scheduled or not.
+ - `relocation.hazard.a` (no default):  
+   Sets the value of $a$ in the relocation hazard above.
+ - `relocation.hazard.b` (no default):  
+   Sets the value of $b$ in the relocation hazard above.
+ - `relocation.hazard.t_max` (200):  
+   As explained in the section about ['time limited' hazards](#timelimited), an
+   exponential function needs some kind of threshold value (after which it stays
+   constant) to be able to perform the necessary calculations. This configuration
+   value is a measure of this threshold.
+
+<!--
+	eventrelocation.cpp
+	eventrelocation.h
 -->
 
 <a name="syncpopstats"></a>

@@ -81,7 +81,7 @@ double EventConception::solveForRealTimeInterval(const State *pState, double Tdi
 	return h.solveForRealTimeInterval(t0, Tdiff);
 }
 
-bool EventConception::isUseless()
+bool EventConception::isUseless(const PopulationStateInterface &population)
 {
 	Man *pMan = MAN(getPerson(0));
 	Woman *pWoman = WOMAN(getPerson(1));

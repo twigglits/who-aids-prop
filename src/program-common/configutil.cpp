@@ -19,6 +19,7 @@
 #include "logsystem.h"
 #include "util.h"
 #include "populationdistributioncsv.h"
+#include "configsettingslog.h"
 #include "gslrandomnumbergenerator.h"
 #include "configfunctions.h"
 #include <vector>
@@ -75,6 +76,8 @@ bool_t configure(ConfigSettings &config, SimpactPopulationConfig &populationConf
 	// Sanity check on configuration parameters
 	cerr << "# Performing extra check on read configuration parameters" << endl;
 	checkConfiguration(config, populationConfig, tMax, maxEvents);
+
+	ConfigSettingsLog::addConfigSettings(0, config);
 
 	return true;
 }

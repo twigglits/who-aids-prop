@@ -9,6 +9,8 @@
 #include "signalhandlers.h"
 #include "jsonconfig.h"
 #include "populationutil.h"
+#include "logsystem.h"
+#include "configsettingslog.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -21,6 +23,7 @@ using namespace std;
 void runHazardTests(SimpactPopulation &pop);
 void logOnGoingRelationships(SimpactPopulation &pop);
 void logAllPersons(SimpactPopulation &pop);
+void logInitialLocations(SimpactPopulation &pop);
 
 SimpactPopulation *createSimpactPopulation(PopulationAlgorithmInterface &alg, PopulationStateInterface &state);
 
@@ -112,6 +115,8 @@ int real_main(int argc, char **argv)
 
 	cerr << "# Simpact version is: " << SIMPACT_CYAN_VERSION << endl;
 
+	logInitialLocations(*pPop);
+
 	if (!(r = pPop->run(tMax, maxEvents)))
 		cerr << "# Error running simulation: " << r.getErrorString() << endl;
 	
@@ -127,6 +132,9 @@ int real_main(int argc, char **argv)
 
 	// Log different persons, both alive and deceased
 	logAllPersons(*pPop);
+
+	// Log config file
+	ConfigSettingsLog::writeConfigSettings(LogSettings);	
 
 	delete pPop;
 	delete pAlgo;
@@ -186,6 +194,19 @@ void logAllPersons(SimpactPopulation &pop)
 	
 	for (int i = 0 ; i < numPeople ; i++)
 		ppPersons[i]->writeToPersonLog();
+}
+
+void logInitialLocations(SimpactPopulation &pop)
+{
+	int numPeople = pop.getNumberOfPeople();
+	Person **ppPersons = pop.getAllPeople();
+
+	for (int i = 0 ; i < numPeople ; i++)
+	{
+		Person *pPerson = ppPersons[i];
+
+		pPerson->writeToLocationLog(0); // 0 for the start time of the simulation
+	}
 }
 
 int main(int argc, char **argv)

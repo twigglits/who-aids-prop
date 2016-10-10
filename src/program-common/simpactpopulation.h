@@ -4,6 +4,7 @@
 
 #include "populationinterfaces.h"
 #include "person.h"
+#include "coarsemap.h"
 #include <assert.h>
 
 class PopulationDistribution;
@@ -49,8 +50,8 @@ public:
 	int getNumberOfWomen() const				{ return m_state.getNumberOfWomen(); }
 	int getNumberOfDeceasedPeople() const		{ return m_state.getNumberOfDeceasedPeople(); }
 
-	void addNewPerson(Person *pPerson)			{ m_state.addNewPerson(pPerson); }
-	void setPersonDied(Person *pPerson)			{ m_state.setPersonDied(pPerson); }
+	void addNewPerson(Person *pPerson);
+	void setPersonDied(Person *pPerson);
 	void markAffectedPerson(Person *pPerson) const	{ m_state.markAffectedPerson(pPerson); }
 
 	double getTime() const						{ return m_state.getTime(); }
@@ -66,7 +67,10 @@ public:
 	double getEyeCapsFraction() const								{ return m_eyeCapsFraction; }
 
 	// Is called by debut event
-	virtual void initializeFormationEvents(Person *pPerson);
+	virtual void initializeFormationEvents(Person *pPerson, bool relocation, double tNow);
+	// Needed by relocation event
+	void removePersonFromCoarseMap(Person *pPerson);
+	void addPersonToCoarseMap(Person *pPerson);
 protected:
 	virtual bool_t createInitialPopulation(const SimpactPopulationConfig &config, const PopulationDistribution &popDist);
 	virtual bool_t scheduleInitialEvents();
@@ -85,6 +89,8 @@ private:
 	
 	PopulationStateInterface &m_state;
 	PopulationAlgorithmInterface &m_alg;
+
+	CoarseMap *m_pCoarseMap;
 };
 
 inline SimpactPopulation &SIMPACTPOPULATION(State *pState)
@@ -101,6 +107,22 @@ inline const SimpactPopulation &SIMPACTPOPULATION(const State *pState)
 	const PopulationStateInterface &state = static_cast<const PopulationStateInterface &>(*pState);
 	assert(state.getExtraStateInfo() != 0);
 	return static_cast<const SimpactPopulation &>(*state.getExtraStateInfo());
+}
+
+inline void SimpactPopulation::addNewPerson(Person *pPerson)	
+{ 
+	m_state.addNewPerson(pPerson); 
+
+	if (m_pCoarseMap)
+		m_pCoarseMap->addPerson(pPerson);
+}
+
+inline void SimpactPopulation::setPersonDied(Person *pPerson)
+{
+	if (m_pCoarseMap)
+		m_pCoarseMap->removePerson(pPerson);
+
+	m_state.setPersonDied(pPerson); 
 }
 
 #endif // SIMPACTPOPULATION_H

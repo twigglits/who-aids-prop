@@ -13,7 +13,7 @@ class EvtHazardFormationSimple : public EvtHazard
 {
 public:
 	EvtHazardFormationSimple(double a0, double a1, double a2, double a3, double a4, double a5, double a6,
-			       double a7, double Dp, double b, double tMax);
+			       double a7, double aDist, double Dp, double b, double tMax);
 	~EvtHazardFormationSimple();
 
 	double calculateInternalTimeInterval(const SimpactPopulation &population, 
@@ -36,6 +36,7 @@ private:
 	double m_a5;		// age_difference_factor
 	double m_a6;		// eagerness_scale
 	double m_a7;		// eagerness_difference_scale
+	double m_aDist;		// distance penalty
 	double m_Dp;		// preferred_age_difference
 	double m_b;		// last_change_factor
 	double m_tMax;		

@@ -27,7 +27,7 @@ public:
 protected:
 	double calculateInternalTimeInterval(const State *pState, double t0, double dt);
 	double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);
-	bool isUseless();
+	bool isUseless(const PopulationStateInterface &population) override;
 	double calculateHazardFactor(const SimpactPopulation &population, double t0);
 
 	static double s_a;

@@ -13,7 +13,7 @@
 
 EvtHazardFormationAgeGapRefYear::EvtHazardFormationAgeGapRefYear(double a0, double a1, double a2, double a3, 
 		           double a4, double a6,
-			       double a7, double a8, double a10, 
+			       double a7, double a8, double a10, double aDist,
 				   double agfmConst, double agfmExp, double agfmAge,
 				   double agfwConst, double agfwExp, double agfwAge,
 				   double numRelScaleMan, double numRelScaleWoman,
@@ -29,6 +29,7 @@ EvtHazardFormationAgeGapRefYear::EvtHazardFormationAgeGapRefYear(double a0, doub
 	m_a7 = a7;
 	m_a8 = a8;
 	m_a10 = a10;
+	m_aDist = aDist;
 
 	m_agfmConst = agfmConst;
 	m_agfmExp = agfmExp;
@@ -135,6 +136,8 @@ double EvtHazardFormationAgeGapRefYear::getA0(const SimpactPopulation &populatio
 	double a0j = pPerson2->getFormationEagernessParameter();
 	double a0_base = m_a0 + (a0i + a0j)*m_a6 + std::abs(a0i-a0j)*m_a7;
 
+	a0_base += m_aDist * pPerson1->getDistanceTo(pPerson2);
+
 	double eyeCapsFraction = population.getEyeCapsFraction();
 	// reduces to old code if eyeCapsFraction == 1
 	double a0_total = a0_base - std::log((n/2.0)*eyeCapsFraction); // log(x/(n/2)) = log(x) - log(n/2) = a0_base - log(n/2)
@@ -164,7 +167,7 @@ double EvtHazardFormationAgeGapRefYear::getTr(const SimpactPopulation &populatio
 
 EvtHazard *EvtHazardFormationAgeGapRefYear::processConfig(ConfigSettings &config)
 {
-	double a0, a1, a2, a3, a4, a6, a7, a8, a10, b, tMax, tMaxAgeRefDiff;
+	double a0, a1, a2, a3, a4, a6, a7, a8, a10, aDist, b, tMax, tMaxAgeRefDiff;
 	double agfmConst, agfmExp, agfmAge, agfwConst, agfwExp, agfwAge;
 	double numRelScaleMan, numRelScaleWoman;
 	bool_t r;
@@ -186,13 +189,14 @@ EvtHazard *EvtHazardFormationAgeGapRefYear::processConfig(ConfigSettings &config
 	    !(r = config.getKeyValue("formation.hazard.agegapry.gap_factor_woman_const", agfwConst)) ||
 	    !(r = config.getKeyValue("formation.hazard.agegapry.gap_factor_woman_exp", agfwExp)) ||
 	    !(r = config.getKeyValue("formation.hazard.agegapry.gap_factor_woman_age", agfwAge)) ||
+		!(r = config.getKeyValue("formation.hazard.agegapry.distance", aDist)) ||
 	    !(r = config.getKeyValue("formation.hazard.agegapry.beta", b)) ||
 	    !(r = config.getKeyValue("formation.hazard.agegapry.t_max", tMax, 0)) ||
 		!(r = config.getKeyValue("formation.hazard.agegapry.maxageref.diff", tMaxAgeRefDiff, 0))
 		)
 		abortWithMessage(r.getErrorString());
 	
-	return new EvtHazardFormationAgeGapRefYear(a0,a1,a2,a3,a4,a6,a7,a8,a10,
+	return new EvtHazardFormationAgeGapRefYear(a0,a1,a2,a3,a4,a6,a7,a8,a10,aDist,
 	                                           agfmConst, agfmExp, agfmAge, agfwConst, agfwExp, agfwAge,
 											   numRelScaleMan, numRelScaleWoman,
 			                                   b,tMax,tMaxAgeRefDiff);
@@ -220,6 +224,7 @@ void EvtHazardFormationAgeGapRefYear::obtainConfig(ConfigWriter &config)
 	    !(r = config.addKey("formation.hazard.agegapry.gap_factor_woman_const", m_agfwConst)) ||
 		!(r = config.addKey("formation.hazard.agegapry.gap_factor_woman_exp", m_agfwExp)) ||
 		!(r = config.addKey("formation.hazard.agegapry.gap_factor_woman_age", m_agfwAge)) ||
+		!(r = config.addKey("formation.hazard.agegapry.distance", m_aDist)) ||
 	    !(r = config.addKey("formation.hazard.agegapry.beta", m_b)) ||
 	    !(r = config.addKey("formation.hazard.agegapry.t_max", m_tMax)) ||
 		!(r = config.addKey("formation.hazard.agegapry.maxageref.diff", m_tMaxAgeRefDiff))
@@ -248,6 +253,7 @@ JSONConfig agegapRefYearFormationJSONConfig(R"JSON(
 				["formation.hazard.agegapry.gap_factor_woman_exp", 0],
 				["formation.hazard.agegapry.gap_factor_woman_age", 0],
                 ["formation.hazard.agegapry.gap_agescale_woman", 0],
+				["formation.hazard.agegapry.distance", 0],
                 ["formation.hazard.agegapry.beta", 0],
                 ["formation.hazard.agegapry.t_max", 200],
 				["formation.hazard.agegapry.maxageref.diff", 1]

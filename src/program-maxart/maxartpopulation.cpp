@@ -1,6 +1,10 @@
 #include "maxartpopulation.h"
 #include "eventstudystart.h"
 
+#include <iostream>
+
+using namespace std;
+
 MaxARTPopulation::MaxARTPopulation(PopulationAlgorithmInterface &alg, PopulationStateInterface &state)
 	: SimpactPopulation(alg, state)
 {
@@ -25,3 +29,4 @@ bool_t MaxARTPopulation::scheduleInitialEvents()
 
 	return true;
 }
+

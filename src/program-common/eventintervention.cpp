@@ -4,6 +4,7 @@
 #include "configsettings.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
+#include "configsettingslog.h"
 #include <iostream>
 
 using namespace std;
@@ -55,6 +56,8 @@ void EventIntervention::fire(Algorithm *pAlgorithm, State *pState, double t)
 	// Re-read the configurations, excluding the ones in the "initonce" category
 	vector<string> excludes { "initonce", "__first__" };
 	ConfigFunctions::processConfigurations(interventionConfig, pRndGen, excludes);
+
+	ConfigSettingsLog::addConfigSettings(t, interventionConfig);
 
 	if (EventIntervention::hasNextIntervention()) // check if we need to schedule a next intervention
 	{

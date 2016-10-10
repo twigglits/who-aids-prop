@@ -11,7 +11,9 @@ class EventFormation : public SimpactEvent
 {
 public:
 	// set last dissolution time to -1 if irrelevant
-	EventFormation(Person *pPerson1, Person *pPerson2, double lastDissTime);
+	// formationScheduleTime will be used to check if the event is still relevant
+	// (may become irrelevant because someone moved)
+	EventFormation(Person *pPerson1, Person *pPerson2, double lastDissTime, double formationScheduleTime);
 	~EventFormation();
 
 	std::string getDescription(double tNow) const;
@@ -25,9 +27,10 @@ public:
 protected:
 	double calculateInternalTimeInterval(const State *pState, double t0, double dt);
 	double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);
-	bool isUseless();
+	bool isUseless(const PopulationStateInterface &population) override;
 
-	double m_lastDissolutionTime;
+	const double m_lastDissolutionTime;
+	const double m_formationScheduleTime;
 
 	static EvtHazard *m_pHazard;
 };

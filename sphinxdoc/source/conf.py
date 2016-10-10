@@ -331,7 +331,7 @@ try:
         subprocess.call([ "pdflatex", i ])
 
     subprocess.call("./markdown2.py simpact_cyan.md > index.html", shell=True)
-    #subprocess.call("./markdown2.py maxart.md > maxart.html", shell=True)
+    subprocess.call("./markdown2.py maxart.md > maxart.html", shell=True)
 
     subprocess.call("cp * {}".format(dstdir), shell=True)
 

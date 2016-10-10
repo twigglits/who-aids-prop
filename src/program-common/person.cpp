@@ -71,8 +71,9 @@ Person::Person(double dateOfBirth, Gender g) : PersonBase(g, dateOfBirth)
 
 	assert(m_pPopDist);
 
-	m_location = m_pPopDist->pickPoint();
-	assert(m_location.x == m_location.x && m_location.y == m_location.y);
+	Point2D loc = m_pPopDist->pickPoint();
+	assert(loc.x == loc.x && loc.y == loc.y); // check for NaN
+	setLocation(loc, 0);
 
 	m_aidsDeath = false;
 
@@ -380,7 +381,7 @@ void Person::removeRelationship(Person *pPerson, double t, bool deathBased)
 	set<Relationship>::iterator it = m_relationshipsSet.find(pPerson);
 
 	if (it == m_relationshipsSet.end())
-		abortWithMessage("Consistency error: a person was not found exactly once in the relationship list");
+		abortWithMessage(strprintf("Consistency error: a person was not found exactly once in the relationship list (this = %s, person = %s)", getName().c_str(), pPerson->getName().c_str()));
 
 	Relationship relation = *it; // save the info for logging at the end of the function
 
@@ -514,6 +515,11 @@ void Person::writeToPersonLog()
 			m_location.x, m_location.y, aidsDeath);
 }
 
+void Person::writeToLocationLog(double tNow)
+{
+	LogLocation.print("%10.10f,%d,%10.10f,%10.10f", tNow, (int)getPersonID(), m_location.x, m_location.y);
+}
+
 void Person::writeToTreatmentLog(double dropoutTime, bool justDied)
 {
 	int id = (int)getPersonID(); // TODO: should fit in an 'int' (easier for output)
@@ -604,6 +610,11 @@ void Person::addPersonOfInterest(Person *pPerson)
 		if (m_personsOfInterest[i] == pPerson) // Already in the list
 			return;
 	}
+
+	// Because of the relocation, we also need to check that a relationship
+	// does not already exist with a new person of interest
+	if (m_relationshipsSet.find(Person::Relationship(pPerson)) != m_relationshipsSet.end())
+		return;
 
 	m_personsOfInterest.push_back(pPerson);
 }

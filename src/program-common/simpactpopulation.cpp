@@ -10,6 +10,7 @@
 #include "eventperiodiclogging.h"
 #include "eventsyncpopstats.h"
 #include "eventsyncrefyear.h"
+#include "eventrelocation.h"
 #include "populationdistribution.h"
 #include "populationalgorithmadvanced.h"
 #include "populationalgorithmsimple.h"
@@ -19,6 +20,7 @@
 #include "populationstatesimple.h"
 #include "person.h"
 #include "gslrandomnumbergenerator.h"
+#include "fixedvaluedistribution2d.h"
 #include "util.h"
 #include "jsonconfig.h"
 
@@ -46,11 +48,14 @@ SimpactPopulation::SimpactPopulation(PopulationAlgorithmInterface &alg, Populati
 	m_lastKnownPopulationSizeTime = -1;
 	m_referenceYear = 0;
 	m_eyeCapsFraction = 1;
+	m_pCoarseMap = 0;
+
 	m_init = false;
 }
 
 SimpactPopulation::~SimpactPopulation()
 {
+	delete m_pCoarseMap;
 }
 
 bool_t SimpactPopulation::init(const SimpactPopulationConfig &config, const PopulationDistribution &popDist)
@@ -76,6 +81,18 @@ bool_t SimpactPopulation::init(const SimpactPopulationConfig &config, const Popu
 
 bool_t SimpactPopulation::createInitialPopulation(const SimpactPopulationConfig &config, const PopulationDistribution &popDist)
 {
+	assert(m_pCoarseMap == 0);
+
+	FixedValueDistribution2D *pDist2D = dynamic_cast<FixedValueDistribution2D *>(Person::getPopulationDistribution());
+	if (pDist2D == 0) // For the fixed value distribution, we'll use the old behaviour, but otherwise the course map is used
+	{
+		int subDivX = CoarseMap::getXSubdivision();
+		int subDivY = CoarseMap::getYSubdivision();
+		assert(subDivX > 1 && subDivY > 1);
+
+		m_pCoarseMap = new CoarseMap(subDivX, subDivY);
+	}
+
 	int numMen = config.getInitialMen();
 	int numWomen = config.getInitialWomen();
 
@@ -133,7 +150,6 @@ bool_t SimpactPopulation::scheduleInitialEvents()
 		onNewEvent(pEvt);
 	}
 
-	
 	// Relationship formation. We'll only process the women, the
 	// events for the men are scheduled automatically
 	for (int i = 0 ; i < numWomen ; i++)
@@ -142,7 +158,7 @@ bool_t SimpactPopulation::scheduleInitialEvents()
 		assert(pWoman->getGender() == Person::Female);
 
 		if (pWoman->isSexuallyActive())
-			initializeFormationEvents(pWoman);
+			initializeFormationEvents(pWoman, false, 0);
 	}
 
 	// For the people who are not sexually active, set a debut event
@@ -192,6 +208,17 @@ bool_t SimpactPopulation::scheduleInitialEvents()
 		onNewEvent(pEvt);
 	}
 
+	if (EventRelocation::isEnabled())
+	{
+		for (int i = 0 ; i < numPeople ; i++)
+		{
+			Person *pPerson = ppPeople[i];
+
+			EventRelocation *pEvt = new EventRelocation(pPerson);
+			onNewEvent(pEvt);
+		}
+	}
+
 	return true;
 }
 
@@ -208,7 +235,7 @@ void SimpactPopulation::onAboutToFire(PopulationEvent *pEvt)
 	pEvent->writeLogs(*this, t);
 }
 
-void SimpactPopulation::initializeFormationEvents(Person *pPerson)
+void SimpactPopulation::initializeFormationEvents(Person *pPerson, bool relocation, double tNow)
 {
 	assert(pPerson->isSexuallyActive());
 	assert(pPerson->getInfectionStage() != Person::AIDSFinal);
@@ -217,38 +244,44 @@ void SimpactPopulation::initializeFormationEvents(Person *pPerson)
 
 	if (m_eyeCapsFraction >= 1.0)
 	{
-		if (pPerson->getGender() == Person::Male)
+		// If a relocation event caused this function to be called, we don't need
+		// to do anything in this case: the existing formation events will not
+		// have been cancelled, and everyone is a person of interest anyway
+		if (!relocation)
 		{
-			Man *pMan = MAN(pPerson);
-			Woman **ppWomen = getWomen();
-			int numWomen = getNumberOfWomen();
-
-			for (int i = 0 ; i < numWomen ; i++)
+			if (pPerson->getGender() == Person::Male)
 			{
-				Woman *pWoman = ppWomen[i];
-				
-				// No events will be scheduled of the person
-				if (pWoman->isSexuallyActive() && pWoman->getInfectionStage() != Person::AIDSFinal)
+				Man *pMan = MAN(pPerson);
+				Woman **ppWomen = getWomen();
+				int numWomen = getNumberOfWomen();
+
+				for (int i = 0 ; i < numWomen ; i++)
 				{
-					EventFormation *pEvt = new EventFormation(pMan, pWoman, -1);
-					onNewEvent(pEvt);
+					Woman *pWoman = ppWomen[i];
+					
+					// No events will be scheduled of the person
+					if (pWoman->isSexuallyActive() && pWoman->getInfectionStage() != Person::AIDSFinal)
+					{
+						EventFormation *pEvt = new EventFormation(pMan, pWoman, -1, tNow);
+						onNewEvent(pEvt);
+					}
 				}
 			}
-		}
-		else // Female
-		{
-			Woman *pWoman = WOMAN(pPerson);
-			Man **ppMen = getMen();
-			int numMen = getNumberOfMen();
-
-			for (int i = 0 ; i < numMen ; i++)
+			else // Female
 			{
-				Man *pMan = ppMen[i];
+				Woman *pWoman = WOMAN(pPerson);
+				Man **ppMen = getMen();
+				int numMen = getNumberOfMen();
 
-				if (pMan->isSexuallyActive() && pMan->getInfectionStage() != Person::AIDSFinal)
+				for (int i = 0 ; i < numMen ; i++)
 				{
-					EventFormation *pEvt = new EventFormation(pMan, pWoman, -1);
-					onNewEvent(pEvt);
+					Man *pMan = ppMen[i];
+
+					if (pMan->isSexuallyActive() && pMan->getInfectionStage() != Person::AIDSFinal)
+					{
+						EventFormation *pEvt = new EventFormation(pMan, pWoman, -1, tNow);
+						onNewEvent(pEvt);
+					}
 				}
 			}
 		}
@@ -256,6 +289,10 @@ void SimpactPopulation::initializeFormationEvents(Person *pPerson)
 	else // Use eyecaps
 	{
 		vector<Person *> interests;
+
+		// The person of interest list is only used here, and is mainly intended to remove
+		// doubles, we'll clear it at the start.
+		pPerson->clearPersonsOfInterest();
 
 		if (pPerson->getGender() == Person::Male)
 		{
@@ -273,10 +310,7 @@ void SimpactPopulation::initializeFormationEvents(Person *pPerson)
 				assert(pWoman->isWoman());
 
 				if (pWoman->isSexuallyActive() && pWoman->getInfectionStage() != Person::AIDSFinal)
-				{
 					pMan->addPersonOfInterest(pWoman);
-					pWoman->addPersonOfInterest(pMan);
-				}
 			}
 
 			numInterests = pMan->getNumberOfPersonsOfInterest();
@@ -285,7 +319,9 @@ void SimpactPopulation::initializeFormationEvents(Person *pPerson)
 			{
 				Person *pPoi = pMan->getPersonOfInterest(i);
 
-				EventFormation *pEvt = new EventFormation(pMan, pPoi, -1);
+				// TODO: it's possible that even after a relocation the same partner will still
+				//       be chosen. At the moment this is ignored by using the parameter -1 here
+				EventFormation *pEvt = new EventFormation(pMan, pPoi, -1, tNow);
 				onNewEvent(pEvt);
 			}
 		}
@@ -305,10 +341,7 @@ void SimpactPopulation::initializeFormationEvents(Person *pPerson)
 				assert(pMan->isMan());
 
 				if (pMan->isSexuallyActive() && pMan->getInfectionStage() != Person::AIDSFinal)
-				{
-					pMan->addPersonOfInterest(pWoman);
 					pWoman->addPersonOfInterest(pMan);
-				}
 			}
 
 			numInterests = pWoman->getNumberOfPersonsOfInterest();
@@ -317,7 +350,9 @@ void SimpactPopulation::initializeFormationEvents(Person *pPerson)
 			{
 				Person *pPoi = pWoman->getPersonOfInterest(i);
 
-				EventFormation *pEvt = new EventFormation(pPoi, pWoman, -1);
+				// TODO: it's possible that even after a relocation the same partner will still
+				//       be chosen. At the moment this is ignored by using the parameter -1 here
+				EventFormation *pEvt = new EventFormation(pPoi, pWoman, -1, tNow);
 				onNewEvent(pEvt);
 			}
 		}
@@ -327,33 +362,89 @@ void SimpactPopulation::initializeFormationEvents(Person *pPerson)
 // Doubles and persons who are not sexually active will be removed from the list in another stage
 void SimpactPopulation::getInterestsForPerson(const Person *pPerson, vector<Person *> &interests)
 {
-	GslRandomNumberGenerator *pRngGen = getRandomNumberGenerator();
-	Woman **ppWomen = getWomen();
-	Man **ppMen = getMen();
-	int numWomen = getNumberOfWomen();
-	int numMen = getNumberOfMen();
-	int numInterests = interests.size();
+	assert(pPerson);
 
-	if (pPerson->isMan())
+	if (m_pCoarseMap == 0) // old behaviour, just random
 	{
-		for (int i = 0 ; i < numInterests ; i++)
-		{
-			int idx = (int)(pRngGen->pickRandomDouble() * (double)numWomen);
-			assert(idx >= 0 && idx < numWomen);
+		GslRandomNumberGenerator *pRngGen = getRandomNumberGenerator();
+		Woman **ppWomen = getWomen();
+		Man **ppMen = getMen();
+		int numWomen = getNumberOfWomen();
+		int numMen = getNumberOfMen();
+		int numInterests = interests.size();
 
-			Woman *pWoman = ppWomen[idx];
-			interests[i] = pWoman;
+		if (pPerson->isMan())
+		{
+			for (int i = 0 ; i < numInterests ; i++)
+			{
+				int idx = (int)(pRngGen->pickRandomDouble() * (double)numWomen);
+				assert(idx >= 0 && idx < numWomen);
+
+				Woman *pWoman = ppWomen[idx];
+				interests[i] = pWoman;
+			}
+		}
+		else // Woman
+		{
+			for (int i = 0 ; i < numInterests ; i++)
+			{
+				int idx = (int)(pRngGen->pickRandomDouble() * (double)numMen);
+				assert(idx >= 0 && idx < numMen);
+
+				Man *pMan = ppMen[idx];
+				interests[i] = pMan;
+			}
 		}
 	}
-	else // Woman
+	else // new behavour, use the coarse map to roughly sort people on distance
 	{
-		for (int i = 0 ; i < numInterests ; i++)
-		{
-			int idx = (int)(pRngGen->pickRandomDouble() * (double)numMen);
-			assert(idx >= 0 && idx < numMen);
+		assert(m_pCoarseMap);
 
-			Man *pMan = ppMen[idx];
-			interests[i] = pMan;
+		vector<CoarseMapCell *> cells;
+
+		m_pCoarseMap->getDistanceOrderedCells(cells, pPerson->getLocation());
+		
+#if 0
+		cout << "Location: " << pPerson->getLocation().x << " " << pPerson->getLocation().y << endl;
+		int totalPop = 0;
+		for (size_t i = 0 ; i < cells.size() ; i++)
+		{
+			cout << "  " << cells[i]->m_center.x << " " << cells[i]->m_center.y << " " << cells[i]->m_personsInCell.size() << endl;
+			totalPop += cells[i]->m_personsInCell.size();
+		}
+		cout << "Total pop: " << totalPop << endl;
+
+		// Use the coarse map to get roughly the closest persons
+		abortWithMessage("TODO");
+#endif
+
+		// For now, only heterosexual relationships are considered	
+
+		Person::Gender personGender = pPerson->getGender();
+
+		int intPos = 0;
+		int cellPos = 0;
+		while (intPos < interests.size() && cellPos < cells.size())
+		{
+			CoarseMapCell *pCell = cells[cellPos];
+			cellPos++;
+
+			vector<Person *> &people = pCell->m_personsInCell;
+			int interestsLeft = interests.size() - intPos;
+
+			// For now we'll either add the entire cell or as many people as are still needed
+			// I don't think adding just the first N people will matter (as opposed to choosing
+			// people at random) 
+			for (int i = 0 ; i < people.size() && intPos < interests.size() ; i++)
+			{
+				Person *pPartner = people[i];
+
+				if (pPartner->getGender() != personGender)
+				{
+					interests[intPos] = pPartner;
+					intPos++;
+				}
+			}
 		}
 	}
 }
@@ -365,6 +456,18 @@ void SimpactPopulation::setLastKnownPopulationSize()
 
 	m_lastKnownPopulationSizeTime = t;
 	m_lastKnownPopulationSize = getNumberOfPeople();
+}
+
+void SimpactPopulation::removePersonFromCoarseMap(Person *pPerson)
+{
+	if (m_pCoarseMap)
+		m_pCoarseMap->removePerson(pPerson);
+}
+
+void SimpactPopulation::addPersonToCoarseMap(Person *pPerson)
+{
+	if (m_pCoarseMap)
+		m_pCoarseMap->addPerson(pPerson);
 }
 
 JSONConfig populationJSONConfig(R"JSON(

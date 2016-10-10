@@ -17,10 +17,11 @@
 
 using namespace std;
 
-EventFormation::EventFormation(Person *pPerson1, Person *pPerson2, double lastDissTime) : SimpactEvent(pPerson1, pPerson2)
+EventFormation::EventFormation(Person *pPerson1, Person *pPerson2, double lastDissTime, double formationScheduleTime) 
+	: SimpactEvent(pPerson1, pPerson2),
+	  m_lastDissolutionTime(lastDissTime),
+	  m_formationScheduleTime(formationScheduleTime)
 {
-	m_lastDissolutionTime = lastDissTime;
-
 	// Just a check because in the hazard we'll be interpreting a1 as a factor for the
 	// men and a2 as a factor for the women
 	assert(pPerson1->isMan());
@@ -51,7 +52,7 @@ void EventFormation::writeLogs(const SimpactPopulation &pop, double tNow) const
 	writeEventLogStart(true, "formation", tNow, pPerson1, pPerson2);
 }
 
-bool EventFormation::isUseless()
+bool EventFormation::isUseless(const PopulationStateInterface &pop)
 {
 	// Formation event becomes useless if one of the people is in the final AIDS
 	// stage
@@ -60,6 +61,31 @@ bool EventFormation::isUseless()
 	
 	if (pPerson1->getInfectionStage() == Person::AIDSFinal || pPerson2->getInfectionStage() == Person::AIDSFinal)
 		return true;
+
+	// Check if old formation events need to be dropped because a person moved
+
+	const SimpactPopulation &population = SIMPACTPOPULATION(&pop);
+	const double eyeCapFrac = population.getEyeCapsFraction();
+
+	if (eyeCapFrac >= 1.0)
+	{
+		// Nothing to do, no relationships will be changed because everone
+		// will have everyone else as a potential partner
+	}
+	else
+	{
+		const double locTime1 = pPerson1->getLocationTime();
+		const double locTime2 = pPerson2->getLocationTime();
+
+		if (locTime1 > m_formationScheduleTime || locTime2 > m_formationScheduleTime)
+		{
+			// TODO: remove this
+			//cerr << "Formation event between " << pPerson1->getName() << " and " << pPerson2->getName() << 
+			//	    " became irrelevant because of a move" << endl;
+
+			return true;
+		}
+	}
 
 	return false;
 }

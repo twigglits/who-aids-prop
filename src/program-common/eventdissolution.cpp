@@ -48,7 +48,7 @@ void EventDissolution::fire(Algorithm *pAlgorithm, State *pState, double t)
 	if (pPerson1->getInfectionStage() != Person::AIDSFinal && pPerson2->getInfectionStage() != Person::AIDSFinal)
 	{
 		// Need to add a new formation event for these two
-		EventFormation *pFormationEvent = new EventFormation(pPerson1, pPerson2, t);
+		EventFormation *pFormationEvent = new EventFormation(pPerson1, pPerson2, t, t);
 		population.onNewEvent(pFormationEvent);
 	}
 }

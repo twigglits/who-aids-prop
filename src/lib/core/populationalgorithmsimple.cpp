@@ -117,7 +117,7 @@ void PopulationAlgorithmSimple::onFiredEvent(EventBase *pEvt, int position)
 	{
 		PopulationEvent *pEvt = static_cast<PopulationEvent *>(m_allEvents[idx]);
 
-		if (pEvt->isNoLongerUseful())
+		if (pEvt->isNoLongerUseful(m_popState))
 		{
 			scheduleForRemoval(pEvt);
 			

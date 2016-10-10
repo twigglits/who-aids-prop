@@ -3,8 +3,10 @@
 #define EVENTSTUDYSTEP_H
 
 #include "simpactevent.h"
+#include "logfile.h"
 
 class ConfigSettings;
+class MaxARTPopulation;
 
 class EventStudyStep : public SimpactEvent
 {
@@ -19,14 +21,19 @@ public:
 
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
+	static void processLogConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
+	static void obtainLogConfig(ConfigWriter &config);
 
 	static double getStepInterval()															{ return s_stepInterval; }
+	static void writeToLog(double t, const MaxARTPopulation & population, bool start = false);
 private:
 	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
 
 	int m_stepIndex;
 
 	static double s_stepInterval;
+	static LogFile s_stepLog;
+	static std::vector<std::string> s_facilityLogNames; // For checking
 };
 
 #endif // EVENTSTUDYSTEP_H

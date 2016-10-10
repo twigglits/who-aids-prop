@@ -8,6 +8,7 @@
 #include "aidstodutil.h"
 #include <stdlib.h>
 #include <iostream>
+#include <cmath>
 #include <vector>
 #include <set>
 
@@ -61,7 +62,7 @@ public:
 	double getLastRelationshipChangeTime() const					{ return m_lastRelationChangeTime; }
 
 	void setSexuallyActive(double t)						{ m_sexuallyActive = true; assert(t >= 0); m_debutTime = t; }
-	bool isSexuallyActive()								{ return m_sexuallyActive;}
+	bool isSexuallyActive() const							{ return m_sexuallyActive;}
 	double getDebutTime() const							{ return m_debutTime; }
 
 	void setInfected(double t, Person *pOrigin, InfectionType iType);
@@ -114,13 +115,24 @@ public:
 	static void writeToRelationLog(const Person *pMan, const Person *pWoman, double formationTime, double dissolutionTime);
 	void writeToPersonLog();
 	void writeToTreatmentLog(double dropoutTime, bool justDied);
+	void writeToLocationLog(double tNow);
 
 	Point2D getLocation() const															{ return m_location; }
+	void setLocation(Point2D loc, double tNow)						{ m_location = loc; m_locationTime = tNow; }
+	double getLocationTime() const									{ return m_locationTime; }
+
 	void markAIDSDeath()									{ assert(hasDied()); m_aidsDeath = true; }
 	bool wasAIDSDeath() const								{ assert(hasDied()); return m_aidsDeath; }
 
 	// This is a per person value
 	double getSurvivalTimeLog10Offset() const						{ return m_log10SurvTimeOffset; }
+
+	double getDistanceTo(Person *pPerson);
+	
+	// TODO: needed in MaxART to get the dimensions of the map
+	//       perhaps this will no longer be necessary after making
+	//       the CoarseMap more dynamic
+	static ProbabilityDistribution2D *getPopulationDistribution()	{ return m_pPopDist; }
 private:
 	double initializeEagerness();
 	double getViralLoadFromSetPointViralLoad(double x) const;
@@ -183,6 +195,7 @@ private:
 	std::vector<Person *> m_personsOfInterest;
 
 	Point2D m_location;
+	double m_locationTime;
 
 	AIDSTimeOfDeathUtility m_aidsTodUtil;
 
@@ -310,6 +323,17 @@ inline Person* Person::getChild(int idx)
 	}
 #endif
 	return pChild; 
+}
+
+inline double Person::getDistanceTo(Person *pPerson)
+{
+	assert(this != pPerson);
+
+	Point2D p = pPerson->m_location;
+	double dx = p.x - m_location.x;
+	double dy = p.y - m_location.y;
+
+	return std::sqrt(dx*dx+dy*dy);
 }
 
 #endif // PERSON_H

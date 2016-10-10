@@ -20,6 +20,8 @@ public:
 	/** Opens the specified file for writing. */
 	bool_t open(const std::string &fileName);
 
+	bool isOpen() const											{ return m_pFile != 0; }
+
 	/** Returns the filename from the 'open' call. */
 	std::string getFileName() const								{ return m_fileName; }
 

@@ -12,7 +12,7 @@
 // WARNING: the same instance can be called from multiple threads
 
 EvtHazardFormationAgeGap::EvtHazardFormationAgeGap(double a0, double a1, double a2, double a3, double a4, double a5, double a6,
-			       double a7, double a8, double a9, double a10, double b, double tMax)
+			       double a7, double a8, double a9, double a10, double aDist, double b, double tMax)
 {
 	m_a0 = a0;
 	m_a1 = a1;
@@ -25,6 +25,7 @@ EvtHazardFormationAgeGap::EvtHazardFormationAgeGap(double a0, double a1, double 
 	m_a8 = a8;
 	m_a9 = a9;
 	m_a10 = a10;
+	m_aDist = aDist;
 	m_b = b;
 	m_tMax = tMax;
 }
@@ -101,6 +102,8 @@ double EvtHazardFormationAgeGap::getA0(const SimpactPopulation &population, Pers
 	double a0j = pPerson2->getFormationEagernessParameter();
 	double a0_base = m_a0 + (a0i + a0j)*m_a6 + std::abs(a0i-a0j)*m_a7;
 
+	a0_base += m_aDist * pPerson1->getDistanceTo(pPerson2);
+
 	double eyeCapsFraction = population.getEyeCapsFraction();
 	// reduces to old code if eyeCapsFraction == 1
 	double a0_total = a0_base - std::log((n/2.0)*eyeCapsFraction); // log(x/(n/2)) = log(x) - log(n/2) = a0_base - log(n/2)
@@ -130,7 +133,7 @@ double EvtHazardFormationAgeGap::getTr(const SimpactPopulation &population, Pers
 
 EvtHazard *EvtHazardFormationAgeGap::processConfig(ConfigSettings &config)
 {
-	double a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, b, tMax;
+	double a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, aDist, b, tMax;
 	bool_t r;
 
 	if (!(r = config.getKeyValue("formation.hazard.agegap.baseline", a0)) ||
@@ -144,11 +147,12 @@ EvtHazard *EvtHazardFormationAgeGap::processConfig(ConfigSettings &config)
 	    !(r = config.getKeyValue("formation.hazard.agegap.gap_agescale_man", a8)) ||
 	    !(r = config.getKeyValue("formation.hazard.agegap.gap_factor_woman", a9)) ||
 	    !(r = config.getKeyValue("formation.hazard.agegap.gap_agescale_woman", a10)) ||
+		!(r = config.getKeyValue("formation.hazard.agegap.distance", aDist)) ||
 	    !(r = config.getKeyValue("formation.hazard.agegap.beta", b)) ||
 	    !(r = config.getKeyValue("formation.hazard.agegap.t_max", tMax, 0)) )
 		abortWithMessage(r.getErrorString());
 	
-	return new EvtHazardFormationAgeGap(a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,b,tMax);
+	return new EvtHazardFormationAgeGap(a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,aDist,b,tMax);
 }
 
 void EvtHazardFormationAgeGap::obtainConfig(ConfigWriter &config)
@@ -167,6 +171,7 @@ void EvtHazardFormationAgeGap::obtainConfig(ConfigWriter &config)
 	    !(r = config.addKey("formation.hazard.agegap.gap_agescale_man", m_a8)) ||
 	    !(r = config.addKey("formation.hazard.agegap.gap_factor_woman", m_a9)) ||
 	    !(r = config.addKey("formation.hazard.agegap.gap_agescale_woman", m_a10)) ||
+		!(r = config.addKey("formation.hazard.agegap.distance", m_aDist)) ||
 	    !(r = config.addKey("formation.hazard.agegap.beta", m_b)) ||
 	    !(r = config.addKey("formation.hazard.agegap.t_max", m_tMax)) )
 		abortWithMessage(r.getErrorString());
@@ -187,6 +192,7 @@ JSONConfig agegapFormationJSONConfig(R"JSON(
                 ["formation.hazard.agegap.gap_agescale_man", 0],
                 ["formation.hazard.agegap.gap_factor_woman", 0],
                 ["formation.hazard.agegap.gap_agescale_woman", 0],
+				["formation.hazard.agegap.distance", 0],
                 ["formation.hazard.agegap.beta", 0],
                 ["formation.hazard.agegap.t_max", 200] ],
             "info": [ 

@@ -38,6 +38,7 @@ void EventStudyEnd::fire(Algorithm *pAlgorithm, State *pState, double t)
 	MaxARTPopulation &population = MAXARTPOPULATION(pState);
 
 	population.setStudyEnded(); 
+	EventStudyStep::writeToLog(t, population); // Write the log *after* the ended flag has been set
 }
 
 

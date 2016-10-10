@@ -8,13 +8,16 @@ using namespace std;
 
 void LogSystem::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
-	string eventLogFile, personLogFile, relationLogFile, treatmentLogFile;
+	string eventLogFile, personLogFile, relationLogFile, treatmentLogFile, settingsLogFile;
+	string locationLogFile;
 	bool_t r;
 
 	if (!(r = config.getKeyValue("logsystem.outfile.logevents", eventLogFile)) ||
 	    !(r = config.getKeyValue("logsystem.outfile.logrelations", relationLogFile)) ||
 	    !(r = config.getKeyValue("logsystem.outfile.logpersons", personLogFile)) ||
-	    !(r = config.getKeyValue("logsystem.outfile.logtreatments", treatmentLogFile))
+	    !(r = config.getKeyValue("logsystem.outfile.logtreatments", treatmentLogFile)) ||
+		!(r = config.getKeyValue("logsystem.outfile.logsettings", settingsLogFile)) ||
+		!(r = config.getKeyValue("logsystem.outfile.loglocation", locationLogFile)) 
 	    )
 		abortWithMessage(r.getErrorString());
 
@@ -42,9 +45,22 @@ void LogSystem::processConfig(ConfigSettings &config, GslRandomNumberGenerator *
 			abortWithMessage("Unable to open treatment log file: " + r.getErrorString());
 	}
 
+	if (settingsLogFile.length() > 0)
+	{
+		if (!(r = logSettings.open(settingsLogFile)))
+			abortWithMessage("Unable to open settings log file: " + r.getErrorString());
+	}
+
+	if (locationLogFile.length() > 0)
+	{
+		if (!(r = logLocation.open(locationLogFile)))
+			abortWithMessage("Unable to open location log file: " + r.getErrorString());
+	}
+
 	logPersons.print("\"ID\",\"Gender\",\"TOB\",\"TOD\",\"IDF\",\"IDM\",\"TODebut\",\"FormEag\",\"InfectTime\",\"InfectOrigID\",\"InfectType\",\"log10SPVL\",\"TreatTime\",\"XCoord\",\"YCoord\",\"AIDSDeath\"");
 	logRelations.print("\"IDm\",\"IDw\",\"FormTime\",\"DisTime\",\"AgeGap\"");
 	logTreatment.print("\"ID\",\"Gender\",\"TStart\",\"TEnd\",\"DiedNow\"");
+	logLocation.print("\"Time\",\"ID\",\"XCoord\",\"YCoord\"");
 }
 
 void LogSystem::obtainConfig(ConfigWriter &config)
@@ -54,7 +70,9 @@ void LogSystem::obtainConfig(ConfigWriter &config)
 	if (!(r = config.addKey("logsystem.outfile.logevents", logEvents.getFileName())) ||
 	    !(r = config.addKey("logsystem.outfile.logrelations", logRelations.getFileName())) ||
 	    !(r = config.addKey("logsystem.outfile.logpersons", logPersons.getFileName())) ||
-	    !(r = config.addKey("logsystem.outfile.logtreatments", logTreatment.getFileName()))
+	    !(r = config.addKey("logsystem.outfile.logtreatments", logTreatment.getFileName())) ||
+		!(r = config.addKey("logsystem.outfile.logsettings", logSettings.getFileName())) ||
+		!(r = config.addKey("logsystem.outfile.loglocation", logLocation.getFileName()))
 	    )
 		abortWithMessage(r.getErrorString());
 }
@@ -63,6 +81,8 @@ LogFile LogSystem::logEvents;
 LogFile LogSystem::logPersons;
 LogFile LogSystem::logRelations;
 LogFile LogSystem::logTreatment;
+LogFile LogSystem::logSettings;
+LogFile LogSystem::logLocation;
 
 ConfigFunctions logSystemConfigFunctions(LogSystem::processConfig, LogSystem::obtainConfig, "00_LogSystem", "__first__");
 
@@ -73,7 +93,9 @@ JSONConfig logSystemJSONConfig(R"JSON(
                 ["logsystem.outfile.logevents", "${SIMPACT_OUTPUT_PREFIX}eventlog.csv" ],
                 ["logsystem.outfile.logpersons", "${SIMPACT_OUTPUT_PREFIX}personlog.csv" ],
                 ["logsystem.outfile.logrelations", "${SIMPACT_OUTPUT_PREFIX}relationlog.csv" ], 
-                ["logsystem.outfile.logtreatments", "${SIMPACT_OUTPUT_PREFIX}treatmentlog.csv" ]
+                ["logsystem.outfile.logtreatments", "${SIMPACT_OUTPUT_PREFIX}treatmentlog.csv" ],
+				["logsystem.outfile.logsettings", "${SIMPACT_OUTPUT_PREFIX}settingslog.csv" ],
+				["logsystem.outfile.loglocation", "${SIMPACT_OUTPUT_PREFIX}locationlog.csv" ]
             ],
             "info": null                          
         })JSON");

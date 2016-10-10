@@ -13,7 +13,7 @@ class EvtHazardFormationAgeGap : public EvtHazard
 {
 public:
 	EvtHazardFormationAgeGap(double a0, double a1, double a2, double a3, double a4, double a5, double a6,
-			       double a7, double a8, double a9, double a10, double b, double tMax);
+			       double a7, double a8, double a9, double a10, double aDist, double b, double tMax);
 	~EvtHazardFormationAgeGap();
 
 	double calculateInternalTimeInterval(const SimpactPopulation &population, 
@@ -39,6 +39,7 @@ private:
 	double m_a8;		// male age scale
 	double m_a9;		// age_difference_factor for women
 	double m_a10;		// female age scale
+	double m_aDist;     // distance between partners
 	double m_b;		// last_change_factor
 	double m_tMax;		
 };

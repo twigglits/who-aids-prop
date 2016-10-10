@@ -13,7 +13,7 @@ class EvtHazardFormationAgeGapRefYear : public EvtHazard
 {
 public:
 	EvtHazardFormationAgeGapRefYear(double a0, double a1, double a2, double a3, double a4, double a6,
-			       double a7, double a8, double a10, 
+			       double a7, double a8, double a10, double aDist,
 				   double agfmConst, double agfmExp, double agfmAge,
 				   double agfwConst, double agfwExp, double agfwAge,
 				   double numRelScaleMan, double numRelScaleWoman,
@@ -42,6 +42,7 @@ private:
 	double m_a7;		// eagerness_difference_scale
 	double m_a8;		// male age scale
 	double m_a10;		// female age scale
+	double m_aDist;		// distance penalty
 
 	double m_agfmConst;
 	double m_agfmExp;

@@ -85,7 +85,7 @@ void PersonalEventListTesting::processUnsortedEvents(PopulationAlgorithmTesting 
 		else
 		{
 			// Note that in the parallel version this event itself is locked!
-			if (pEvt->isNoLongerUseful()) // for example if it refers to a dead person, of the maximum number of relationships has been reached
+			if (pEvt->isNoLongerUseful(pop)) // for example if it refers to a dead person, of the maximum number of relationships has been reached
 			{
 	//			std::cout << "Detected useless event: " << pEvt << std::endl;
 

@@ -48,7 +48,7 @@ void EventTransmission::writeLogs(const SimpactPopulation &pop, double tNow) con
 // so this function will automatically make sure that this conception event is discarded
 // (this function is definitely called for those people)
 
-bool EventTransmission::isUseless()
+bool EventTransmission::isUseless(const PopulationStateInterface &population) 
 {
 	// Transmission from pPerson1 to pPerson2
 	Person *pPerson1 = getPerson(0);

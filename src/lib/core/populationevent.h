@@ -119,7 +119,7 @@ public:
 	void setScheduledForRemoval()								{ m_scheduledForRemoval = true; }
 	bool isScheduledForRemoval() const							{ return m_scheduledForRemoval; }
 
-	bool isNoLongerUseful();
+	bool isNoLongerUseful(const PopulationStateInterface &population);
 
 	// For debugging
 #if !defined(NDEBUG) && defined(POPULATIONEVENT_FAKEDELETE)
@@ -135,7 +135,7 @@ protected:
 	 *  of any use and should be discarded. An event is automatically useless if one of the
 	 *  people specified at time of construction has died, so this function should not check
 	 *  for that again. */
-	virtual bool isUseless()								{ return false; } 
+	virtual bool isUseless(const PopulationStateInterface &population)		{ return false; } 
 private:
 	void commonConstructor();
 

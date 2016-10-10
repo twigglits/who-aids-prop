@@ -51,7 +51,7 @@ void EventStudyStart::fire(Algorithm *pAlgorithm, State *pState, double t)
 	EventStudyStep *pEvt = new EventStudyStep((int)0);
 	population.onNewEvent(pEvt);
 
-	//pFacilities->dump();
+	EventStudyStep::writeToLog(t, population, true);
 }
 
 double EventStudyStart::s_startTime = -1;

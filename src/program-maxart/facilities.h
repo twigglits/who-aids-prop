@@ -58,7 +58,7 @@ private:
 
 // Static variables
 	static double s_startLongitude, s_startLattitude;
-	static std::string s_corner;
+	static std::string s_corner, s_coordOutfile;
 
 	static Facilities *s_pInstance;
 };

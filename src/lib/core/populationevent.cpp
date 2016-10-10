@@ -69,7 +69,7 @@ PopulationEvent::~PopulationEvent()
 {
 }
 
-bool PopulationEvent::isNoLongerUseful()
+bool PopulationEvent::isNoLongerUseful(const PopulationStateInterface &population)
 {
 #ifdef POPULATIONEVENT_FAKEDELETE
 	assert(!m_deleted);
@@ -85,7 +85,7 @@ bool PopulationEvent::isNoLongerUseful()
 			return true;
 	}
 
-	return isUseless();
+	return isUseless(population);
 }
 
 

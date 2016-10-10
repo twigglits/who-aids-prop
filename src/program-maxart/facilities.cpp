@@ -7,6 +7,7 @@
 #include "configfunctions.h"
 #include "util.h"
 #include "point2d.h"
+#include "logfile.h"
 #include <cmath>
 #include <vector>
 #include <limits>
@@ -135,6 +136,7 @@ void Facilities::dump()
 double Facilities::s_startLongitude = numeric_limits<double>::quiet_NaN();
 double Facilities::s_startLattitude = numeric_limits<double>::quiet_NaN();
 string Facilities::s_corner;
+string Facilities::s_coordOutfile;
 Facilities *Facilities::s_pInstance = 0;
 
 void Facilities::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
@@ -144,10 +146,12 @@ void Facilities::processConfig(ConfigSettings &config, GslRandomNumberGenerator 
 	bool_t r;
 
 	if (!(r = config.getKeyValue("facilities.geo.start.longitude", s_startLongitude)) ||
-	    !(r = config.getKeyValue("facilities.geo.start.lattitude", s_startLattitude)) ||
+	    !(r = config.getKeyValue("facilities.geo.start.latitude", s_startLattitude)) ||
 		!(r = config.getKeyValue("facilities.geo.start.corner", s_corner, allowedValues)) ||
 		!(r = config.getKeyValue("facilities.geo.coords", coordsFile)) ||
-		!(r = config.getKeyValue("facilities.randomization", randFile)) )
+		!(r = config.getKeyValue("facilities.randomization", randFile)) ||
+		!(r = config.getKeyValue("facilities.outfile.facilityxypos", s_coordOutfile)) 
+		)
 		abortWithMessage(r.getErrorString());
 
 	//cout << "startLong: " << s_startLongitude << endl;
@@ -185,7 +189,7 @@ void Facilities::processConfig(ConfigSettings &config, GslRandomNumberGenerator 
 				abortWithMessage("Can't interpret '" + parts[1] + "' or '" + parts[2] + "' as a number in file " + coordsFile);
 
 			if (x < -180.0 || x > 180.0 || y < -90.0 || y > 90.0)
-				abortWithMessage("Can't interpret '" + parts[1] + "' or '" + parts[2] + "' as a valid longitude and lattitude in file " + coordsFile);
+				abortWithMessage("Can't interpret '" + parts[1] + "' or '" + parts[2] + "' as a valid longitude and latitude in file " + coordsFile);
 
 			// TODO: what are reasonable limits for the approximation to work?
 			if (std::abs(y - s_startLattitude) > 3.0 || std::abs(x - s_startLongitude) > 3.0 * std::cos(toRad(s_startLattitude)))
@@ -314,8 +318,27 @@ void Facilities::processConfig(ConfigSettings &config, GslRandomNumberGenerator 
 
 	delete s_pInstance;
 	s_pInstance = new Facilities(facilities);
+	
+	// If desired, write these coordinates to a log file
+	if (s_coordOutfile.length() > 0)
+	{
+		LogFile coordLog;
 
-	//s_pInstance->dump();
+		if (!(r = coordLog.open(s_coordOutfile)))
+			abortWithMessage("Can't write facility XY positions to '" + s_coordOutfile + "':" + r.getErrorString());
+
+		int numFac = s_pInstance->getNumberOfFacilities();
+		coordLog.print("\"Facility name\",\"XCoord\",\"YCoord\"");
+		for (int i = 0 ; i < numFac ; i++)
+		{
+			const Facility *pFac = s_pInstance->getFacility(i);
+			assert(pFac);
+
+			string facName = pFac->getName();
+			Point2D pos = pFac->getPosition();
+			coordLog.print("%s,%g,%g", facName.c_str(), pos.x, pos.y);
+		}
+	}
 }
 
 void Facilities::obtainConfig(ConfigWriter &config)
@@ -323,10 +346,12 @@ void Facilities::obtainConfig(ConfigWriter &config)
 	bool_t r;
 
 	if (!(r = config.addKey("facilities.geo.start.longitude", s_startLongitude)) ||
-	    !(r = config.addKey("facilities.geo.start.lattitude", s_startLattitude)) ||
+	    !(r = config.addKey("facilities.geo.start.latitude", s_startLattitude)) ||
 		!(r = config.addKey("facilities.geo.start.corner", s_corner)) ||
 		!(r = config.addKey("facilities.geo.coords", "IGNORE")) ||
-		!(r = config.addKey("facilities.randomization", "IGNORE")) )
+		!(r = config.addKey("facilities.randomization", "IGNORE")) ||
+		!(r = config.addKey("facilities.outfile.facilityxypos", s_coordOutfile))
+		)
 		abortWithMessage(r.getErrorString());
 }
 
@@ -337,10 +362,11 @@ JSONConfig facilitiesJSONConfig(R"JSON(
             "depends": null,
             "params": [
                 [ "facilities.geo.coords", "${SIMPACT_DATA_DIR}maxart-facilities.csv" ],
-                [ "facilities.geo.start.lattitude", -25.7172 ],
+                [ "facilities.geo.start.latitude", -25.7172 ],
                 [ "facilities.geo.start.longitude", 30.7901 ],
                 [ "facilities.geo.start.corner", "top", [ "top", "bottom" ] ],
-                [ "facilities.randomization", "${SIMPACT_DATA_DIR}maxart-randomization.csv" ]
+                [ "facilities.randomization", "${SIMPACT_DATA_DIR}maxart-randomization.csv" ],
+				[ "facilities.outfile.facilityxypos", "" ]
             ],
             "info": [
                 "The 'facilities.geo' configuration names specify the locations of the",

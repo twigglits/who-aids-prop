@@ -1,6 +1,7 @@
 set(SOURCES_SIMPACT
 	personimpl.cpp
 	start.cpp
+	../program-common/coarsemap.cpp
 	../program-common/person.cpp
 	../program-common/logsystem.cpp
 	../program-common/simpactpopulation.cpp
@@ -23,6 +24,7 @@ set(SOURCES_SIMPACT
 	../program-common/eventperiodiclogging.cpp
 	../program-common/eventsyncpopstats.cpp
 	../program-common/eventsyncrefyear.cpp
+	../program-common/eventrelocation.cpp
 	../program-common/vspmodellogweibullwithnoise.cpp
 	../program-common/vspmodellogdist.cpp
 	../program-common/simpactevent.cpp
@@ -37,6 +39,7 @@ set(SOURCES_SIMPACT
 	../program-common/signalhandlers.cpp
 	../program-common/configutil.cpp
 	../program-common/aidstodutil.cpp
+	../program-common/configsettingslog.cpp
 	)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/../program-common/")
