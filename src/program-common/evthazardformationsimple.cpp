@@ -6,14 +6,20 @@
 #include "jsonconfig.h"
 #include <algorithm>
 
+using namespace std;
+
 // WARNING: the same instance can be called from multiple threads
 // WARNING: the same instance can be called from multiple threads
 // WARNING: the same instance can be called from multiple threads
 // WARNING: the same instance can be called from multiple threads
 
-EvtHazardFormationSimple::EvtHazardFormationSimple(double a0, double a1, double a2, double a3, double a4, double a5, double a6,
-			       double a7, double aDist, double Dp, double b, double tMax)
+EvtHazardFormationSimple::EvtHazardFormationSimple(const string &hazName, bool msm,
+		           double a0, double a1, double a2, double a3, 
+				   double a4, double a5, double a6, double a7, double aDist,
+				   double Dp, double b, double tMax) : EvtHazard(hazName)
 {
+	m_msm = msm;
+
 	m_a0 = a0;
 	m_a1 = a1;
 	m_a2 = a2;
@@ -102,7 +108,6 @@ double EvtHazardFormationSimple::getA0(const SimpactPopulation &population, Pers
 	double a0i = pPerson1->getFormationEagernessParameter();
 	double a0j = pPerson2->getFormationEagernessParameter();
 	double a0_base = m_a0 + (a0i + a0j)*m_a6 * std::abs(a0i-a0j)*m_a7;
-
 	a0_base += m_aDist * pPerson1->getDistanceTo(pPerson2);
 
 	double eyeCapsFraction = population.getEyeCapsFraction();
@@ -132,46 +137,89 @@ double EvtHazardFormationSimple::getTr(const SimpactPopulation &population, Pers
 	return tr;
 }
 
-EvtHazard *EvtHazardFormationSimple::processConfig(ConfigSettings &config)
+EvtHazard *EvtHazardFormationSimple::processConfig(ConfigSettings &config, const string &prefix, const string &hazName, bool msm)
 {
-	double a0, a1, a2, a3, a4, a5, a6, a7, aDist, Dp, b, tMax;
+	double a0 = 0, a1 = 0, a2 = 0, a3 = 0, a4 = 0, a5 = 0, a6 = 0, a7 = 0, aDist = 0, Dp = 0, b = 0, tMax = 0;
 	bool_t r;
 
-	if (!(r = config.getKeyValue("formation.hazard.simple.alpha_0", a0)) ||
-	    !(r = config.getKeyValue("formation.hazard.simple.alpha_1", a1)) ||
-	    !(r = config.getKeyValue("formation.hazard.simple.alpha_2", a2)) ||
-	    !(r = config.getKeyValue("formation.hazard.simple.alpha_3", a3)) ||
-	    !(r = config.getKeyValue("formation.hazard.simple.alpha_4", a4)) ||
-	    !(r = config.getKeyValue("formation.hazard.simple.alpha_5", a5)) ||
-	    !(r = config.getKeyValue("formation.hazard.simple.alpha_6", a6)) ||
-	    !(r = config.getKeyValue("formation.hazard.simple.alpha_7", a7)) ||
-		!(r = config.getKeyValue("formation.hazard.simple.alpha_dist", aDist)) ||
-	    !(r = config.getKeyValue("formation.hazard.simple.Dp", Dp)) ||
-	    !(r = config.getKeyValue("formation.hazard.simple.beta", b)) ||
-	    !(r = config.getKeyValue("formation.hazard.simple.t_max", tMax, 0)) )
-		abortWithMessage(r.getErrorString());
-	
-	return new EvtHazardFormationSimple(a0,a1,a2,a3,a4,a5,a6,a7,aDist,Dp,b,tMax);
+	if (!msm)
+	{
+		if (!(r = config.getKeyValue(prefix + "." + hazName + ".alpha_0", a0)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".alpha_1", a1)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".alpha_2", a2)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".alpha_3", a3)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".alpha_4", a4)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".alpha_5", a5)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".alpha_6", a6)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".alpha_7", a7)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".alpha_dist", aDist)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".Dp", Dp)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".beta", b)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".t_max", tMax, 0)) )
+			abortWithMessage(r.getErrorString());
+	}
+	else
+	{
+		if (!(r = config.getKeyValue(prefix + "." + hazName + ".alpha_0", a0)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".alpha_12", a1)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".alpha_3", a3)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".alpha_4", a4)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".alpha_5", a5)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".alpha_6", a6)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".alpha_7", a7)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".alpha_dist", aDist)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".beta", b)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".t_max", tMax, 0)) )
+			abortWithMessage(r.getErrorString());
+
+		// For MSM, Dp must be zero and a1 must equal a2
+		Dp = 0;
+		a2 = a1;
+	}
+
+	return new EvtHazardFormationSimple(hazName, msm, a0,a1,a2,a3,a4,a5,a6,a7,aDist,Dp,b,tMax);
 }
 
-void EvtHazardFormationSimple::obtainConfig(ConfigWriter &config)
+void EvtHazardFormationSimple::obtainConfig(ConfigWriter &config, const string &prefix)
 {
+	string hazName = getHazardName();
 	bool_t r;
 
-	if (!(r = config.addKey("formation.hazard.type", "simple")) ||
-	    !(r = config.addKey("formation.hazard.simple.alpha_0", m_a0)) ||
-	    !(r = config.addKey("formation.hazard.simple.alpha_1", m_a1)) ||
-	    !(r = config.addKey("formation.hazard.simple.alpha_2", m_a2)) ||
-	    !(r = config.addKey("formation.hazard.simple.alpha_3", m_a3)) ||
-	    !(r = config.addKey("formation.hazard.simple.alpha_4", m_a4)) ||
-	    !(r = config.addKey("formation.hazard.simple.alpha_5", m_a5)) ||
-	    !(r = config.addKey("formation.hazard.simple.alpha_6", m_a6)) ||
-	    !(r = config.addKey("formation.hazard.simple.alpha_7", m_a7)) ||
-		!(r = config.addKey("formation.hazard.simple.alpha_dist", m_aDist)) ||
-	    !(r = config.addKey("formation.hazard.simple.Dp", m_Dp)) ||
-	    !(r = config.addKey("formation.hazard.simple.beta", m_b)) ||
-	    !(r = config.addKey("formation.hazard.simple.t_max", m_tMax)) )
-		abortWithMessage(r.getErrorString());
+	if (!m_msm)
+	{
+		if (!(r = config.addKey(prefix + ".type", hazName)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".alpha_0", m_a0)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".alpha_1", m_a1)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".alpha_2", m_a2)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".alpha_3", m_a3)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".alpha_4", m_a4)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".alpha_5", m_a5)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".alpha_6", m_a6)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".alpha_7", m_a7)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".alpha_dist", m_aDist)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".Dp", m_Dp)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".beta", m_b)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".t_max", m_tMax)) )
+			abortWithMessage(r.getErrorString());
+	}
+	else
+	{
+		if (!(r = config.addKey(prefix + ".type", hazName)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".alpha_0", m_a0)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".alpha_12", m_a1)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".alpha_3", m_a3)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".alpha_4", m_a4)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".alpha_5", m_a5)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".alpha_6", m_a6)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".alpha_7", m_a7)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".alpha_dist", m_aDist)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".beta", m_b)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".t_max", m_tMax)) )
+			abortWithMessage(r.getErrorString());
+
+		assert(m_Dp == 0);
+		assert(m_a1 == m_a2);
+	}
 }
 
 JSONConfig simpleFormationJSONConfig(R"JSON(
@@ -190,6 +238,27 @@ JSONConfig simpleFormationJSONConfig(R"JSON(
                 ["formation.hazard.simple.Dp", 0],
                 ["formation.hazard.simple.beta", 0],
                 ["formation.hazard.simple.t_max", 200] ],
+            "info": [
+                "These are the parameters for the hazard in the simple formation event.",
+                "see http://research.edm.uhasselt.be/jori/simpact/",
+                "for more information."
+            ]
+        })JSON");
+
+JSONConfig simpleFormationMSMJSONConfig(R"JSON(
+        "EventFormationMSM_simple": { 
+            "depends": ["EventFormationMSMTypes", "formationmsm.hazard.type", "simple"],
+            "params": [ 
+                ["formationmsm.hazard.simple.alpha_0", 0.1],
+                ["formationmsm.hazard.simple.alpha_12", 0],
+                ["formationmsm.hazard.simple.alpha_3", 0],
+                ["formationmsm.hazard.simple.alpha_4", 0],
+                ["formationmsm.hazard.simple.alpha_5", 0],
+                ["formationmsm.hazard.simple.alpha_6", 0],
+                ["formationmsm.hazard.simple.alpha_7", 0],
+				["formationmsm.hazard.simple.alpha_dist", 0],
+                ["formationmsm.hazard.simple.beta", 0],
+                ["formationmsm.hazard.simple.t_max", 200] ],
             "info": [
                 "These are the parameters for the hazard in the simple formation event.",
                 "see http://research.edm.uhasselt.be/jori/simpact/",

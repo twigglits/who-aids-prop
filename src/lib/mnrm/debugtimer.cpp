@@ -1,3 +1,5 @@
+#ifndef NODEBUGTIMER
+
 #include "debugtimer.h"
 #include <iostream>
 
@@ -26,4 +28,4 @@ DebugTimerMap::~DebugTimerMap()
 	}
 }
 
-  
+#endif // NODEBUGTIMER 

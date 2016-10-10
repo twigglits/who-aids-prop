@@ -4,30 +4,33 @@
 
 using namespace std;
 
-DiscreteDistributionFast::DiscreteDistributionFast(double xMin, double xMax, const vector<double> &probValues, GslRandomNumberGenerator *pRndGen) : ProbabilityDistribution(pRndGen)
+DiscreteDistributionFast::DiscreteDistributionFast(double xMin, double xMax, const vector<double> &probValues, 
+                                                   bool floor, GslRandomNumberGenerator *pRndGen) : ProbabilityDistribution(pRndGen)
 {
+	m_floor = floor;
+
 	assert(probValues.size() > 0);
 
 	int levels = 0;
 	const int largerSize = getLargerPowerOfTwo(probValues.size(), &levels);
-	assert(largerSize >= probValues.size());
+	assert(largerSize >= (int)probValues.size());
 
 	m_probLevels.resize(levels); // last level still should have two entries
-	for (int i = 0, s = 2 ; i < m_probLevels.size() ; i++, s *= 2)
+	for (size_t i = 0, s = 2 ; i < m_probLevels.size() ; i++, s *= 2)
 		m_probLevels[i].resize(s);
 
-	assert(m_probLevels[m_probLevels.size()-1].size() == largerSize);
+	assert((int)m_probLevels[m_probLevels.size()-1].size() == largerSize);
 
 	// Initialize the lowest level
 	m_totalSum = 0;
-	int levelIdx = m_probLevels.size()-1;
-	int levelSize = m_probLevels[levelIdx].size();
-	for (int i = 0 ; i < probValues.size() ; i++)
+	int levelIdx = (int)m_probLevels.size()-1;
+	int levelSize = (int)m_probLevels[levelIdx].size();
+	for (size_t i = 0 ; i < probValues.size() ; i++)
 	{
 		m_totalSum += probValues[i];
 		m_probLevels[levelIdx][i] = m_totalSum;
 	}
-	for (int i = probValues.size() ; i < m_probLevels[levelIdx].size() ; i++)
+	for (size_t i = probValues.size() ; i < m_probLevels[levelIdx].size() ; i++)
 		m_probLevels[levelIdx][i] = m_totalSum;
 	
 	// Initialize the other levels
@@ -86,7 +89,7 @@ double DiscreteDistributionFast::pickNumber() const
 	else
 		foundBin = levelPos;
 	
-	assert(foundBin >= 0 && foundBin < m_probLevels[lastLevel].size());
+	assert(foundBin >= 0 && foundBin < (int)m_probLevels[lastLevel].size());
 	assert(x < m_probLevels[lastLevel][foundBin] && (foundBin == 0 || x >= m_probLevels[lastLevel][foundBin-1]));
 
 	//cout << "x = " << x << " foundBin = " << foundBin << endl;
@@ -95,7 +98,10 @@ double DiscreteDistributionFast::pickNumber() const
 		d = m_probLevels[lastLevel][foundBin-1];
 	
 	double binFrac = (x-d)/(m_probLevels[lastLevel][foundBin]-d);
-	double binPos = (double)foundBin + binFrac;
+	double binPos = (double)foundBin;
+	
+	if (!m_floor)
+		binPos += binFrac;
 	
 	return binPos*m_binSize + m_xMin;
 }

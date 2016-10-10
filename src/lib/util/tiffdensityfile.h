@@ -2,11 +2,12 @@
 
 #define TIFFDENSITYFILE_H
 
+#include "gridvalues.h"
 #include "booltype.h"
 #include <assert.h>
 #include <vector>
 
-class TIFFDensityFile
+class TIFFDensityFile : public GridValues
 {
 public:
 	TIFFDensityFile();
@@ -48,7 +49,7 @@ inline double TIFFDensityFile::getValue(int x, int y) const
 	assert(y >= 0 && y < m_height);
 	
 	int idx = x + y*m_width;
-	assert(idx >= 0 && idx < m_values.size());
+	assert(idx >= 0 && idx < (int)m_values.size());
 	
 	return m_values[idx];
 }
@@ -59,7 +60,7 @@ inline void TIFFDensityFile::setValue(int x, int y, double v)
 	assert(y >= 0 && y < m_height);
 	
 	int idx = x + y*m_width;
-	assert(idx >= 0 && idx < m_values.size());
+	assert(idx >= 0 && idx < (int)m_values.size());
 
 	m_values[idx] = v;
 }

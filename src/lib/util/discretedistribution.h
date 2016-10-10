@@ -25,13 +25,17 @@ public:
 	 *                   must be in ascending order.
 	 *  \param histValues Measures of the integrated probability in
 	 *                    each bin
+	 *  \param floor If set to true, only the bin start values will be
+	 *               returned, otherwise a constant probability is assumed
+	 *               within a bin.
 	 *  \param pRndGen The random number generator to use for randomness when
 	 *                 picking numbers according to this distribution.
 	 *
 	 *  The value at the start of the last bin should be zero.
 	 */
-	DiscreteDistribution(std::vector<double> &binStarts,
-			     std::vector<double> &histValues, 
+	DiscreteDistribution(const std::vector<double> &binStarts,
+			     const std::vector<double> &histValues, 
+				 bool floor,
 			     GslRandomNumberGenerator *pRndGen);
 	~DiscreteDistribution();
 
@@ -40,6 +44,7 @@ private:
 	std::vector<double> m_histSums;
 	std::vector<double> m_binStarts;
 	double m_totalSum;
+	bool m_floor;
 };
 
 #endif // DISCRETEDISTRIBUTION_H

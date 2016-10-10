@@ -3,11 +3,46 @@
 #include "gslrandomnumbergenerator.h"
 #include "debugwarning.h"
 #include "debugtimer.h"
+#include "mutex.h"
 #include <assert.h>
 #include <iostream>
 #include <limits>
 
 using namespace std;
+
+State::State()
+{
+	m_time = 0; 
+	m_abort = false;
+	m_pAbortMutex = new Mutex();
+}
+
+State::~State()
+{
+	delete m_pAbortMutex;
+}
+
+void State::setAbortAlgorithm(const std::string &reason) const
+{
+	m_pAbortMutex->lock();
+	if (!m_abort) // Keep the first abort reason
+	{
+		m_abort = true;
+		m_abortReason = reason;
+	}
+	m_pAbortMutex->unlock();
+}
+
+void State::clearAbort()
+{
+	m_abort = false;
+	m_abortReason = "";
+}
+
+std::string State::getAbortReason() const
+{
+	return m_abortReason;
+}
 
 Algorithm::Algorithm(State &state, GslRandomNumberGenerator &rng)
 {
@@ -45,8 +80,18 @@ bool_t Algorithm::evolve(double &tMax, int64_t &maxEvents, double startTime, boo
 	DebugTimer *pAdvanceTimer = DebugTimer::getTimer("advanceEventTimes");
 #endif // ALGORITHM_DEBUG_TIMER
 
+	// Clear the abort flag
+	m_pState->clearAbort();
+
 	while (!done)
 	{
+		if (m_pState->shouldAbortAlgorithm())
+		{
+			tMax = m_time;
+			maxEvents = eventCount;
+			return "Abort algorithm requested: " + m_pState->getAbortReason();
+		}
+
 		// Ask for the next scheduled event and for the time until it takes place
 		double dtMin = -1;
 		EventBase *pNextScheduledEvent = 0;
@@ -85,6 +130,13 @@ bool_t Algorithm::evolve(double &tMax, int64_t &maxEvents, double startTime, boo
 	
 		// ok, advance time and fire the event, which may adjust the current state
 		// and generate a new internal time difference
+
+		if (dtMin != dtMin)
+		{
+			tMax = m_time;
+			maxEvents = eventCount;
+			return "Next event takes place after NaN time interval";
+		}
 
 		m_time += dtMin;
 		m_pState->setTime(m_time);

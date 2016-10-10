@@ -14,6 +14,10 @@
 #include "personaleventlist.h"
 #include <assert.h>
 
+#ifdef STATE_SHOW_EVENTS
+#include <iostream>
+#endif // STATE_SHOW_EVENTS
+
 class GslRandomNumberGenerator;
 class PersonBase;
 class PopulationEvent;
@@ -108,7 +112,7 @@ private:
 	bool_t initEventTimes() const;
 	bool_t getNextScheduledEvent(double &dt, EventBase **ppEvt);
 	void advanceEventTimes(EventBase *pScheduledEvent, double dt);
-	void onAboutToFire(EventBase *pEvt)												{ if (m_pOnAboutToFire) m_pOnAboutToFire->onAboutToFire(static_cast<PopulationEvent *>(pEvt)); }
+	void onAboutToFire(EventBase *pEvt);
 	PopulationEvent *getEarliestEvent(const std::vector<PersonBase *> &people);
 	PersonalEventList *personalEventList(PersonBase *pPerson);
 
@@ -168,6 +172,16 @@ inline PersonalEventList *PopulationAlgorithmAdvanced::personalEventList(PersonB
 	PersonalEventList *pEvtList = static_cast<PersonalEventList *>(pPerson->getAlgorithmInfo());
 	assert(pEvtList);
 	return pEvtList;
+}
+
+inline void PopulationAlgorithmAdvanced::onAboutToFire(EventBase *pEvt)												
+{ 
+#ifdef STATE_SHOW_EVENTS
+	std::cerr << getTime() << "\t" << static_cast<PopulationEvent *>(pEvt)->getDescription(getTime()) << std::endl;
+#endif // STATE_SHOW_EVENTS
+
+	if (m_pOnAboutToFire) 
+		m_pOnAboutToFire->onAboutToFire(static_cast<PopulationEvent *>(pEvt)); 
 }
 
 #endif // POPULATIONALGORITHMADVANCED_H

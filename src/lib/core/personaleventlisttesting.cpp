@@ -248,8 +248,10 @@ void PersonalEventListTesting::advanceEventTimes(PopulationAlgorithmTesting &alg
 		if (!pEvt->needsEventTimeCalculation())
 		{
 			// For events in this list, we're the one responsible for the calculations
+#ifndef NDEBUG
 			int selfIdx = getResponsiblePersonIndex(pEvt);
 			assert(pEvt->getPerson(selfIdx) == m_pPerson);
+#endif // NDEBUG
 
 			pEvt->subtractInternalTimeInterval(&pop, t1);
 		}
@@ -292,7 +294,7 @@ void PersonalEventListTesting::adjustingEvent(PopulationEvent *pEvt) // this sho
 
 	int idx = pEvt->getEventIndex(m_pPerson);
 
-	assert(idx >= 0 && idx < m_timedEventsPrimary.size());
+	assert(idx >= 0 && idx < (int)m_timedEventsPrimary.size());
 	assert(m_timedEventsPrimary[idx] == pEvt);
 
 	int lastIdx = m_timedEventsPrimary.size()-1;

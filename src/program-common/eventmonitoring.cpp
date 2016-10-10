@@ -32,7 +32,7 @@ void EventMonitoring::writeLogs(const SimpactPopulation &pop, double tNow) const
 	Person *pPerson = getPerson(0);
 	writeEventLogStart(false, "monitoring", tNow, pPerson, 0);
 
-	LogEvent.print(",CD4,%g", pPerson->getCD4Count(tNow));
+	LogEvent.print(",CD4,%g", pPerson->hiv().getCD4Count(tNow));
 }
 
 bool EventMonitoring::isEligibleForTreatment(double t)
@@ -40,11 +40,11 @@ bool EventMonitoring::isEligibleForTreatment(double t)
 	Person *pPerson = getPerson(0);
 	assert(s_cd4Threshold >= 0);
 
-	if (pPerson->getNumberTreatmentStarted() > 0) // if the person has already received treatment, (s)he's still eligible
+	if (pPerson->hiv().getNumberTreatmentStarted() > 0) // if the person has already received treatment, (s)he's still eligible
 		return true;
 
 	// Check the threshold
-	if (pPerson->getCD4Count(t) < s_cd4Threshold)
+	if (pPerson->hiv().getCD4Count(t) < s_cd4Threshold)
 		return true;
 
 	return false;
@@ -56,7 +56,7 @@ bool EventMonitoring::isWillingToStartTreatment(double t, GslRandomNumberGenerat
 
 	// Coin toss
 	double x = pRndGen->pickRandomDouble();
-	if (x < pPerson->getARTAcceptanceThreshold())
+	if (x < pPerson->hiv().getARTAcceptanceThreshold())
 		return true;
 
 	return false;
@@ -68,8 +68,8 @@ void EventMonitoring::fire(Algorithm *pAlgorithm, State *pState, double t)
 	GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
 	Person *pPerson = getPerson(0);
 
-	assert(pPerson->isInfected());
-	assert(!pPerson->hasLoweredViralLoad());
+	assert(pPerson->hiv().isInfected());
+	assert(!pPerson->hiv().hasLoweredViralLoad());
 	assert(s_treatmentVLLogFrac >= 0 && s_treatmentVLLogFrac <= 1.0);
 
 	if (isEligibleForTreatment(t) && isWillingToStartTreatment(t, pRndGen))
@@ -77,7 +77,7 @@ void EventMonitoring::fire(Algorithm *pAlgorithm, State *pState, double t)
 		SimpactEvent::writeEventLogStart(true, "(treatment)", t, pPerson, 0);
 
 		// Person is starting treatment, no further HIV test events will follow
-		pPerson->lowerViralLoad(s_treatmentVLLogFrac, t);
+		pPerson->hiv().lowerViralLoad(s_treatmentVLLogFrac, t);
 
 		// Dropout event becomes possible
 		EventDropout *pEvtDropout = new EventDropout(pPerson, t);
@@ -106,7 +106,7 @@ double EventMonitoring::getNewInternalTimeDifference(GslRandomNumberGenerator *p
 	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	Person *pPerson = getPerson(0);
 	double currentTime = population.getTime();
-	double cd4 = pPerson->getCD4Count(currentTime);
+	double cd4 = pPerson->hiv().getCD4Count(currentTime);
 	double dt = s_pRecheckInterval->evaluate(cd4);
 
 	assert(dt >= 0);

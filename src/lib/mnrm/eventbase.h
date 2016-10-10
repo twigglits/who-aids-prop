@@ -186,10 +186,7 @@ inline double EventBase::solveForRealTimeInterval(const State *pState, double t0
 
 #ifdef EVENTBASE_ALWAYS_CHECK_NANTIME
 	if (m_tEvent != m_tEvent)
-	{
-		std::cerr << "ERROR: NaN detected in real world event time calculation" << std::endl;
-		abort();
-	}
+		pState->setAbortAlgorithm("NaN detected in internal event time calculation");
 #endif // EVENTBASE_ALWAYS_CHECK_NANTIME
 
 	m_tLastCalc = t0;
@@ -226,10 +223,7 @@ inline void EventBase::subtractInternalTimeInterval(const State *pState, double 
 
 #ifdef EVENTBASE_ALWAYS_CHECK_NANTIME
 	if (m_Tdiff != m_Tdiff)
-	{
-		std::cerr << "ERROR: NaN detected in internal event time calculation" << std::endl;
-		abort();
-	}
+		pState->setAbortAlgorithm("NaN detected in internal event time calculation");
 #endif // EVENTBASE_ALWAYS_CHECK_NANTIME
 
 #ifndef NDEBUG

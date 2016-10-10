@@ -1,21 +1,7 @@
 #include "configutil.h"
-#include "eventaidsmortality.h"
-#include "eventchronicstage.h"
-#include "eventdebut.h"
-#include "eventdissolution.h"
-#include "eventformation.h"
-#include "eventmortality.h"
-#include "eventmortalitybase.h"
-#include "eventtransmission.h"
-#include "eventhivseed.h"
-#include "eventaidsstage.h"
-#include "eventintervention.h"
-#include "eventconception.h"
-#include "eventbirth.h"
-#include "eventdiagnosis.h"
-#include "eventmonitoring.h"
-#include "eventdropout.h"
-#include "eventperiodiclogging.h"
+#include "configsettings.h"
+#include "configwriter.h"
+#include "simpactpopulation.h"
 #include "logsystem.h"
 #include "util.h"
 #include "populationdistributioncsv.h"
@@ -23,6 +9,7 @@
 #include "gslrandomnumbergenerator.h"
 #include "configfunctions.h"
 #include <vector>
+#include <iostream>
 
 using namespace std;
 
@@ -36,9 +23,10 @@ bool_t configure(ConfigSettings &config, SimpactPopulationConfig &populationConf
 
 	// TODO: absorb these things into similar process/obtain functions?
 
-	int numMen, numWomen;
-	double eyecapFraction;
+	int numMen = 0, numWomen = 0;
+	double eyecapFraction = 1;
 	string ageDistFile;
+	bool msm = false;
 	bool_t r;
 
 	if (!(r = config.getKeyValue("population.nummen", numMen, 0)) ||
@@ -46,12 +34,15 @@ bool_t configure(ConfigSettings &config, SimpactPopulationConfig &populationConf
 	    !(r = config.getKeyValue("population.agedistfile", ageDistFile)) ||
 	    !(r = config.getKeyValue("population.simtime", tMax)) ||
 	    !(r = config.getKeyValue("population.maxevents", maxEvents)) ||
-	    !(r = config.getKeyValue("population.eyecap.fraction", eyecapFraction, 0, 1)) )
+	    !(r = config.getKeyValue("population.eyecap.fraction", eyecapFraction, 0, 1)) ||
+		!(r = config.getKeyValue("population.msm", msm)) 
+		)
 		abortWithMessage(r.getErrorString());
 
 	populationConfig.setInitialMen(numMen);
 	populationConfig.setInitialWomen(numWomen);
 	populationConfig.setEyeCapsFraction(eyecapFraction);
+	populationConfig.setMSM(msm);
 
 	if (!(r = ageDist.load(ageDistFile)))
 	{
@@ -66,7 +57,7 @@ bool_t configure(ConfigSettings &config, SimpactPopulationConfig &populationConf
 	if (keys.size() != 0)
 	{
 		cerr << "Error: the following entries from the configuration file were not used:" << endl;
-		for (int i = 0 ; i < keys.size() ; i++)
+		for (size_t i = 0 ; i < keys.size() ; i++)
 			cerr << "  " << keys[i] << endl;
 		
 		cerr << endl;
@@ -144,7 +135,7 @@ bool areValuesCompatible(const string &key, const std::string &A, const std::str
 		return false;
 
 	// More than one part, check every one of them
-	for (int i = 0 ; i < partsA.size() ; i++)
+	for (size_t i = 0 ; i < partsA.size() ; i++)
 	{
 		// Individual parts must be compatible
 
@@ -174,7 +165,9 @@ void checkConfiguration(const ConfigSettings &loadedConfig, const SimpactPopulat
 	    !(r = config.addKey("population.agedistfile", "IGNORE")) || // not going to check file contents
 	    !(r = config.addKey("population.simtime", tMax)) ||
 	    !(r = config.addKey("population.maxevents", maxEvents)) ||
-	    !(r = config.addKey("population.eyecap.fraction", populationConfig.getEyeCapsFraction())) )
+	    !(r = config.addKey("population.eyecap.fraction", populationConfig.getEyeCapsFraction())) ||
+		!(r = config.addKey("population.msm", populationConfig.getMSM()))
+		)
 		abortWithMessage(r.getErrorString());
 
 	// We've built up the config from the values stored in the simulation, compare
@@ -183,7 +176,7 @@ void checkConfiguration(const ConfigSettings &loadedConfig, const SimpactPopulat
 	vector<string> keys;
 
 	loadedConfig.getKeys(keys);
-	for (int i = 0 ; i < keys.size() ; i++)
+	for (size_t i = 0 ; i < keys.size() ; i++)
 	{
 		string val1, val2;
 		bool dummy;
@@ -200,7 +193,7 @@ void checkConfiguration(const ConfigSettings &loadedConfig, const SimpactPopulat
 	}
 
 	config.getKeys(keys);
-	for (int i = 0 ; i < keys.size() ; i++)
+	for (size_t i = 0 ; i < keys.size() ; i++)
 	{
 		string val1, val2;
 		bool dummy;

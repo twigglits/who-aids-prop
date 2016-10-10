@@ -14,7 +14,8 @@ HazardFunctionFormationAgeGapRefYear::HazardFunctionFormationAgeGapRefYear(const
 				   double agfwConst, double agfwExp, double agfwAge,
 				   double numRelScaleMan, double numRelScaleWoman,
 				   double b,
-				   double ageRefYear)
+				   double ageRefYear,
+				   bool msm)
 {
 	assert(pPerson1 != 0);
 	assert(pPerson2 != 0);
@@ -23,8 +24,27 @@ HazardFunctionFormationAgeGapRefYear::HazardFunctionFormationAgeGapRefYear(const
 	double Pj = pPerson2->getNumberOfRelationships();
 	double tBi = pPerson1->getDateOfBirth();
 	double tBj = pPerson2->getDateOfBirth();
-	double Dpi = pPerson1->getPreferredAgeDifference();
-	double Dpj = pPerson2->getPreferredAgeDifference();
+	double Dpi, Dpj;
+
+
+	// MSM relation, need to flip signs to be able to use the same formula
+	if (msm)
+	{
+		assert(pPerson1->isMan() && pPerson2->isMan());
+
+		Dpi = pPerson1->getPreferredAgeDifferenceMSM();
+		Dpj = - pPerson2->getPreferredAgeDifferenceMSM(); // sign change to be able to use the same code as before
+		a10 = -a10;
+		numRelScaleWoman = -numRelScaleWoman;
+	}
+	else
+	{
+		assert(pPerson1->isMan() && pPerson2->isWoman());
+
+		Dpi = pPerson1->getPreferredAgeDifference();
+		Dpj = pPerson2->getPreferredAgeDifference();
+	}
+
 	double Ai = pPerson1->getAgeAt(ageRefYear);
 	double Aj = pPerson2->getAgeAt(ageRefYear);
 

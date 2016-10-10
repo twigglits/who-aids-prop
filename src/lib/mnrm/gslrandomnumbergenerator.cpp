@@ -19,11 +19,7 @@
 
 GslRandomNumberGenerator::GslRandomNumberGenerator()
 {
-#ifndef WIN32
-	m_pRng = gsl_rng_alloc(gsl_rng_mt19937);
-#else
-	m_pRng = gsl_rng_alloc(gsl_rng_get_default());
-#endif // WIN32
+	m_pRng = gsl_rng_alloc(gsl_rng_env_setup());
 
 	uint32_t x;
 	FILE *pRndFile = fopen("/dev/urandom", "rb");
@@ -73,20 +69,23 @@ GslRandomNumberGenerator::GslRandomNumberGenerator()
 	if ((debugSeed = getenv("MNRM_DEBUG_SEED")) != 0)
 		x = (uint32_t)strtol(debugSeed, 0, 10);
 
+	std::cerr << "# Rng engine " << gsl_rng_name(m_pRng) << std::endl;
 	std::cerr << "# Using seed " << x << std::endl;
 	//std::cout << "# Using seed " << x << std::endl;
 
 	gsl_rng_set(m_pRng, x);
+	m_seed = x;
 }
 
 GslRandomNumberGenerator::GslRandomNumberGenerator(int seed)
 {
-#ifndef WIN32
-	m_pRng = gsl_rng_alloc(gsl_rng_mt19937);
-#else
-	m_pRng = gsl_rng_alloc(gsl_rng_get_default());
-#endif
+	m_pRng = gsl_rng_alloc(gsl_rng_env_setup());
+ 	gsl_rng_set(m_pRng, seed);
+
+	std::cerr << "# Rng engine " << gsl_rng_name(m_pRng) << std::endl;
+	std::cerr << "# Using seed " << seed << std::endl;
 	gsl_rng_set(m_pRng, seed);
+	m_seed = seed;
 }
 
 GslRandomNumberGenerator::~GslRandomNumberGenerator()

@@ -98,8 +98,10 @@ void EventBirth::fire(Algorithm *pAlgorithm, State *pState, double t)
 		population.onNewEvent(pEvtCon);
 	}
 
+#ifndef NDEBUG
 	double tDummy;
 	assert(pMother->getNextRelationshipPartner(tDummy) == 0);
+#endif // NDEBUG
 }
 
 void EventBirth::setFather(Person *pFather)

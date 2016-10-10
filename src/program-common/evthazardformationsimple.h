@@ -12,8 +12,8 @@ class ConfigSettings;
 class EvtHazardFormationSimple : public EvtHazard
 {
 public:
-	EvtHazardFormationSimple(double a0, double a1, double a2, double a3, double a4, double a5, double a6,
-			       double a7, double aDist, double Dp, double b, double tMax);
+	EvtHazardFormationSimple(const std::string &hazName, bool msm, double a0, double a1, double a2, double a3, 
+	                         double a4, double a5, double a6, double a7, double aDist, double Dp, double b, double tMax);
 	~EvtHazardFormationSimple();
 
 	double calculateInternalTimeInterval(const SimpactPopulation &population, 
@@ -21,8 +21,8 @@ public:
 	double solveForRealTimeInterval(const SimpactPopulation &population,
 			                const SimpactEvent &event, double Tdiff, double t0);
 
-	static EvtHazard *processConfig(ConfigSettings &config);
-	void obtainConfig(ConfigWriter &writer);
+	static EvtHazard *processConfig(ConfigSettings &config, const std::string &prefix, const std::string &hazName, bool msm);
+	void obtainConfig(ConfigWriter &writer, const std::string &prefix);
 private:
 	double getA0(const SimpactPopulation &population, Person *pPerson1, Person *pPerson2);
 	double getTr(const SimpactPopulation &population, Person *pPerson1, Person *pPerson2, double t0, double lastDissTime);
@@ -40,6 +40,8 @@ private:
 	double m_Dp;		// preferred_age_difference
 	double m_b;		// last_change_factor
 	double m_tMax;		
+
+	bool m_msm;
 };
 
 #endif // EVTHAZARDFORMATIONSIMPLE_H

@@ -67,7 +67,7 @@ double ExponentialHazardToRealTime(const Person *pPerson1, const Person *pPerson
 		double E = std::exp(a0 + a1*Pi + a2*Pj + a3*std::abs(Pi-Pj) + a4*(t0 - (tBi + tBj)/2.0)
 			   +a5*std::abs(-tBi+tBj-Dp) + b*(t0-tr));
 
-		dt = (E/C)*(std::exp(C*dt)-1.0);
+		dt = std::log(Tdiff*C/E + 1.0)/C;
 	}
 
 	return dt;

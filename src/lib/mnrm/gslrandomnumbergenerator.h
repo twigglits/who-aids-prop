@@ -25,6 +25,9 @@ public:
 	GslRandomNumberGenerator(int seed);
 	~GslRandomNumberGenerator();
 
+	/** Returns the seed used for the random number generator. */
+	unsigned long getSeed() const { return m_seed; }
+
 	/** Generate a random floating point number in the interval [0,1]. */
 	double pickRandomDouble();
 
@@ -67,6 +70,7 @@ public:
 	std::pair<double,double> pickBivariateGaussian(double muX, double muY, double sigmaX, double sigmaY, double rho);
 private:
 	gsl_rng *m_pRng;
+	unsigned long m_seed;
 };
 
 #endif // GSLRANDOMNUMBERGENERATOR_H

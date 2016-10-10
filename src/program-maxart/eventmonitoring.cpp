@@ -47,7 +47,7 @@ void EventMonitoring::writeLogs(const SimpactPopulation &pop, double tNow) const
 		stageName = pFac->getStageName();
 
 	LogEvent.print(",CD4,%g,Facility,%s,Stage,%s,CD4Threshold,%g", 
-			        pPerson->getCD4Count(tNow), pFac->getName().c_str(), stageName.c_str(), threshold);
+			        pPerson->hiv().getCD4Count(tNow), pFac->getName().c_str(), stageName.c_str(), threshold);
 }
 
 bool EventMonitoring::isEligibleForTreatment(double t, const MaxARTPopulation &population)
@@ -55,7 +55,7 @@ bool EventMonitoring::isEligibleForTreatment(double t, const MaxARTPopulation &p
 	Person *pPerson = getPerson(0);
 
 	// if the person has already received treatment, (s)he's still eligible
-	if (pPerson->getNumberTreatmentStarted() > 0) 
+	if (pPerson->hiv().getNumberTreatmentStarted() > 0) 
 		return true;
 
 	double threshold = -1;
@@ -63,7 +63,7 @@ bool EventMonitoring::isEligibleForTreatment(double t, const MaxARTPopulation &p
 	assert(pFac);
 	assert(threshold >= 0);
 
-	double cd4count = pPerson->getCD4Count(t);
+	double cd4count = pPerson->hiv().getCD4Count(t);
 	//cout << "T:" << t <<  " " << pPerson->getName() << " has CD4 " << cd4count << ", is at " << pFac->getName() << " in " 
 	//	 << pFac->getStageName() << " with threshold " << threshold << endl;
 
@@ -144,7 +144,7 @@ bool EventMonitoring::isWillingToStartTreatment(double t, GslRandomNumberGenerat
 
 	// Coin toss
 	double x = pRndGen->pickRandomDouble();
-	if (x < pPerson->getARTAcceptanceThreshold())
+	if (x < pPerson->hiv().getARTAcceptanceThreshold())
 		return true;
 
 	return false;
@@ -156,8 +156,8 @@ void EventMonitoring::fire(Algorithm *pAlgorithm, State *pState, double t)
 	GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
 	Person *pPerson = getPerson(0);
 
-	assert(pPerson->isInfected());
-	assert(!pPerson->hasLoweredViralLoad());
+	assert(pPerson->hiv().isInfected());
+	assert(!pPerson->hiv().hasLoweredViralLoad());
 	assert(s_treatmentVLLogFrac >= 0 && s_treatmentVLLogFrac <= 1.0);
 
 	if (isEligibleForTreatment(t, population) && isWillingToStartTreatment(t, pRndGen))
@@ -165,7 +165,7 @@ void EventMonitoring::fire(Algorithm *pAlgorithm, State *pState, double t)
 		SimpactEvent::writeEventLogStart(true, "(treatment)", t, pPerson, 0);
 
 		// Person is starting treatment, no further HIV test events will follow
-		pPerson->lowerViralLoad(s_treatmentVLLogFrac, t);
+		pPerson->hiv().lowerViralLoad(s_treatmentVLLogFrac, t);
 
 		// Dropout event becomes possible
 		EventDropout *pEvtDropout = new EventDropout(pPerson, t);
@@ -194,7 +194,7 @@ double EventMonitoring::getNewInternalTimeDifference(GslRandomNumberGenerator *p
 	const MaxARTPopulation &population = MAXARTPOPULATION(pState);
 	Person *pPerson = getPerson(0);
 	double currentTime = population.getTime();
-	double cd4 = pPerson->getCD4Count(currentTime);
+	double cd4 = pPerson->hiv().getCD4Count(currentTime);
 	double dt = s_pRecheckInterval->evaluate(cd4);
 
 	assert(dt >= 0);

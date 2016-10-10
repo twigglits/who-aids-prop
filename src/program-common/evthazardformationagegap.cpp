@@ -6,14 +6,20 @@
 #include "jsonconfig.h"
 #include <algorithm>
 
+using namespace std;
+
 // WARNING: the same instance can be called from multiple threads
 // WARNING: the same instance can be called from multiple threads
 // WARNING: the same instance can be called from multiple threads
 // WARNING: the same instance can be called from multiple threads
 
-EvtHazardFormationAgeGap::EvtHazardFormationAgeGap(double a0, double a1, double a2, double a3, double a4, double a5, double a6,
-			       double a7, double a8, double a9, double a10, double aDist, double b, double tMax)
+EvtHazardFormationAgeGap::EvtHazardFormationAgeGap(const string &hazName, bool msm,
+                   double a0, double a1, double a2, 
+		           double a3, double a4, double a5, double a6,
+			       double a7, double a8, double a9, double a10, double aDist, double b, double tMax) : EvtHazard(hazName)
 {
+	m_msm = msm;
+
 	m_a0 = a0;
 	m_a1 = a1;
 	m_a2 = a2;
@@ -67,7 +73,7 @@ double EvtHazardFormationAgeGap::calculateInternalTimeInterval(const SimpactPopu
 	double tr = getTr(population, pPerson1, pPerson2, t0, lastDissTime);
 
 	// Note: we need to use a0 here, not m_a0
-	HazardFunctionFormationAgeGap h0(pPerson1, pPerson2, tr, a0, m_a1, m_a2, m_a3, m_a4, m_a5, m_a8, m_a9, m_a10, m_b);
+	HazardFunctionFormationAgeGap h0(pPerson1, pPerson2, tr, a0, m_a1, m_a2, m_a3, m_a4, m_a5, m_a8, m_a9, m_a10, m_b, m_msm);
 	TimeLimitedHazardFunction h(h0, tMax);
 
 	return h.calculateInternalTimeInterval(t0, dt);
@@ -88,7 +94,7 @@ double EvtHazardFormationAgeGap::solveForRealTimeInterval(const SimpactPopulatio
 	double tr = getTr(population, pPerson1, pPerson2, t0, lastDissTime);
 
 	// Note: we need to use a0 here, not m_a0
-	HazardFunctionFormationAgeGap h0(pPerson1, pPerson2, tr, a0, m_a1, m_a2, m_a3, m_a4, m_a5, m_a8, m_a9, m_a10, m_b);
+	HazardFunctionFormationAgeGap h0(pPerson1, pPerson2, tr, a0, m_a1, m_a2, m_a3, m_a4, m_a5, m_a8, m_a9, m_a10, m_b, m_msm);
 	TimeLimitedHazardFunction h(h0, tMax);
 
 	return h.solveForRealTimeInterval(t0, Tdiff);
@@ -98,10 +104,19 @@ double EvtHazardFormationAgeGap::getA0(const SimpactPopulation &population, Pers
 {
 	double lastPopSizeTime = 0;
 	double n = population.getLastKnownPopulationSize(lastPopSizeTime);
-	double a0i = pPerson1->getFormationEagernessParameter();
-	double a0j = pPerson2->getFormationEagernessParameter();
+	double a0i, a0j;
+	
+	if (m_msm)
+	{
+		a0i = pPerson1->getFormationEagernessParameterMSM();
+		a0j = pPerson2->getFormationEagernessParameterMSM();
+	}
+	else
+	{
+		a0i = pPerson1->getFormationEagernessParameter();
+		a0j = pPerson2->getFormationEagernessParameter();
+	}
 	double a0_base = m_a0 + (a0i + a0j)*m_a6 + std::abs(a0i-a0j)*m_a7;
-
 	a0_base += m_aDist * pPerson1->getDistanceTo(pPerson2);
 
 	double eyeCapsFraction = population.getEyeCapsFraction();
@@ -131,50 +146,98 @@ double EvtHazardFormationAgeGap::getTr(const SimpactPopulation &population, Pers
 	return tr;
 }
 
-EvtHazard *EvtHazardFormationAgeGap::processConfig(ConfigSettings &config)
+EvtHazard *EvtHazardFormationAgeGap::processConfig(ConfigSettings &config, const string &prefix, const string &hazName, bool msm)
 {
-	double a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, aDist, b, tMax;
+	double a0 = 0, a1 = 0, a2 = 0, a3 = 0, a4 = 0, a5 = 0, a6 = 0, 
+		   a7 = 0, a8 = 0, a9 = 0, a10 = 0, aDist = 0, b = 0, tMax = 0;
 	bool_t r;
 
-	if (!(r = config.getKeyValue("formation.hazard.agegap.baseline", a0)) ||
-	    !(r = config.getKeyValue("formation.hazard.agegap.numrel_man", a1)) ||
-	    !(r = config.getKeyValue("formation.hazard.agegap.numrel_woman", a2)) ||
-	    !(r = config.getKeyValue("formation.hazard.agegap.numrel_diff", a3)) ||
-	    !(r = config.getKeyValue("formation.hazard.agegap.meanage", a4)) ||
-	    !(r = config.getKeyValue("formation.hazard.agegap.gap_factor_man", a5)) ||
-	    !(r = config.getKeyValue("formation.hazard.agegap.eagerness_sum", a6)) ||
-	    !(r = config.getKeyValue("formation.hazard.agegap.eagerness_diff", a7)) ||
-	    !(r = config.getKeyValue("formation.hazard.agegap.gap_agescale_man", a8)) ||
-	    !(r = config.getKeyValue("formation.hazard.agegap.gap_factor_woman", a9)) ||
-	    !(r = config.getKeyValue("formation.hazard.agegap.gap_agescale_woman", a10)) ||
-		!(r = config.getKeyValue("formation.hazard.agegap.distance", aDist)) ||
-	    !(r = config.getKeyValue("formation.hazard.agegap.beta", b)) ||
-	    !(r = config.getKeyValue("formation.hazard.agegap.t_max", tMax, 0)) )
-		abortWithMessage(r.getErrorString());
+	if (!msm)
+	{
+		if (!(r = config.getKeyValue(prefix + "." + hazName + ".baseline", a0)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".numrel_man", a1)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".numrel_woman", a2)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".numrel_diff", a3)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".meanage", a4)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".gap_factor_man", a5)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".eagerness_sum", a6)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".eagerness_diff", a7)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".gap_agescale_man", a8)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".gap_factor_woman", a9)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".gap_agescale_woman", a10)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".distance", aDist)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".beta", b)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".t_max", tMax, 0)) )
+			abortWithMessage(r.getErrorString());
+	}
+	else
+	{
+		if (!(r = config.getKeyValue(prefix + "." + hazName + ".baseline", a0)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".numrel_sum", a1)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".numrel_diff", a3)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".meanage", a4)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".gap_factor", a5)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".eagerness_sum", a6)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".eagerness_diff", a7)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".gap_agescale", a8)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".distance", aDist)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".beta", b)) ||
+			!(r = config.getKeyValue(prefix + "." + hazName + ".t_max", tMax, 0)) )
+			abortWithMessage(r.getErrorString());
+
+		// Several things must be equal for MSM relations
+		a2 = a1;
+		a9 = a5;
+		a10 = a8;
+	}
 	
-	return new EvtHazardFormationAgeGap(a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,aDist,b,tMax);
+	return new EvtHazardFormationAgeGap(hazName, msm, a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,aDist,b,tMax);
 }
 
-void EvtHazardFormationAgeGap::obtainConfig(ConfigWriter &config)
+void EvtHazardFormationAgeGap::obtainConfig(ConfigWriter &config, const string &prefix)
 {
+	string hazName = getHazardName();
 	bool_t r;
 
-	if (!(r = config.addKey("formation.hazard.type", "agegap")) ||
-	    !(r = config.addKey("formation.hazard.agegap.baseline", m_a0)) ||
-	    !(r = config.addKey("formation.hazard.agegap.numrel_man", m_a1)) ||
-	    !(r = config.addKey("formation.hazard.agegap.numrel_woman", m_a2)) ||
-	    !(r = config.addKey("formation.hazard.agegap.numrel_diff", m_a3)) ||
-	    !(r = config.addKey("formation.hazard.agegap.meanage", m_a4)) ||
-	    !(r = config.addKey("formation.hazard.agegap.gap_factor_man", m_a5)) ||
-	    !(r = config.addKey("formation.hazard.agegap.eagerness_sum", m_a6)) ||
-	    !(r = config.addKey("formation.hazard.agegap.eagerness_diff", m_a7)) ||
-	    !(r = config.addKey("formation.hazard.agegap.gap_agescale_man", m_a8)) ||
-	    !(r = config.addKey("formation.hazard.agegap.gap_factor_woman", m_a9)) ||
-	    !(r = config.addKey("formation.hazard.agegap.gap_agescale_woman", m_a10)) ||
-		!(r = config.addKey("formation.hazard.agegap.distance", m_aDist)) ||
-	    !(r = config.addKey("formation.hazard.agegap.beta", m_b)) ||
-	    !(r = config.addKey("formation.hazard.agegap.t_max", m_tMax)) )
-		abortWithMessage(r.getErrorString());
+	if (!m_msm)
+	{
+		if (!(r = config.addKey(prefix + ".type", "agegap")) ||
+			!(r = config.addKey(prefix + "." + hazName + ".baseline", m_a0)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".numrel_man", m_a1)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".numrel_woman", m_a2)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".numrel_diff", m_a3)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".meanage", m_a4)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".gap_factor_man", m_a5)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".eagerness_sum", m_a6)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".eagerness_diff", m_a7)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".gap_agescale_man", m_a8)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".gap_factor_woman", m_a9)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".gap_agescale_woman", m_a10)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".distance", m_aDist)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".beta", m_b)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".t_max", m_tMax)) )
+			abortWithMessage(r.getErrorString());
+	}
+	else
+	{
+		if (!(r = config.addKey(prefix + ".type", "agegap")) ||
+			!(r = config.addKey(prefix + "." + hazName + ".baseline", m_a0)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".numrel_sum", m_a1)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".numrel_diff", m_a3)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".meanage", m_a4)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".gap_factor", m_a5)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".eagerness_sum", m_a6)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".eagerness_diff", m_a7)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".gap_agescale", m_a8)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".distance", m_aDist)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".beta", m_b)) ||
+			!(r = config.addKey(prefix + "." + hazName + ".t_max", m_tMax)) )
+			abortWithMessage(r.getErrorString());
+
+			assert(m_a2 == m_a1);
+			assert(m_a9 == m_a5);
+			assert(m_a10 == m_a8);
+	}
 }
 
 JSONConfig agegapFormationJSONConfig(R"JSON(
@@ -192,7 +255,7 @@ JSONConfig agegapFormationJSONConfig(R"JSON(
                 ["formation.hazard.agegap.gap_agescale_man", 0],
                 ["formation.hazard.agegap.gap_factor_woman", 0],
                 ["formation.hazard.agegap.gap_agescale_woman", 0],
-				["formation.hazard.agegap.distance", 0],
+                ["formation.hazard.agegap.distance", 0],
                 ["formation.hazard.agegap.beta", 0],
                 ["formation.hazard.agegap.t_max", 200] ],
             "info": [ 
@@ -201,4 +264,27 @@ JSONConfig agegapFormationJSONConfig(R"JSON(
                 "for more information."
             ]
         })JSON");
+
+JSONConfig agegapFormationMSMJSONConfig(R"JSON(
+        "EventFormationMSM_agegap": { 
+            "depends": [ "EventFormationMSMTypes", "formationmsm.hazard.type", "agegap" ],
+            "params": [ 
+                ["formationmsm.hazard.agegap.baseline", 0.1],
+                ["formationmsm.hazard.agegap.numrel_sum", 0],
+                ["formationmsm.hazard.agegap.numrel_diff", 0],
+                ["formationmsm.hazard.agegap.meanage", 0],
+                ["formationmsm.hazard.agegap.eagerness_sum", 0],
+                ["formationmsm.hazard.agegap.eagerness_diff", 0],
+                ["formationmsm.hazard.agegap.gap_factor", 0],
+                ["formationmsm.hazard.agegap.gap_agescale", 0],
+                ["formationmsm.hazard.agegap.distance", 0],
+                ["formationmsm.hazard.agegap.beta", 0],
+                ["formationmsm.hazard.agegap.t_max", 200] ],
+            "info": [ 
+                "These are the parameters for the hazard in the 'agegap' formation event.",
+                "see http://research.edm.uhasselt.be/jori/simpact/",
+                "for more information."
+            ]
+        })JSON");
+
 

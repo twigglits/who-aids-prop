@@ -45,11 +45,11 @@ void EventAIDSStage::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 	if (m_finalStage)
 	{
-		pPerson->setInFinalAIDSStage();
+		pPerson->hiv().setInFinalAIDSStage();
 	}
 	else
 	{
-		pPerson->setInAIDSStage();
+		pPerson->hiv().setInAIDSStage();
 
 		// If we're not yet in the final stage, we need to schedule an event again
 		EventAIDSStage *pEvt = new EventAIDSStage(pPerson, true);
@@ -92,17 +92,17 @@ double EventAIDSStage::getNewStageTime(double currentTime) const
 {
 	const Person *pPerson = getPerson(0);
 
-	double expectedTimeOfDeath = pPerson->getAIDSMortalityTime();
+	double expectedTimeOfDeath = pPerson->hiv().getAIDSMortalityTime();
 	double newStageTime = expectedTimeOfDeath;
 
 	if (m_finalStage)
 	{
-		assert(pPerson->getInfectionStage() == Person::AIDS);
+		assert(pPerson->hiv().getInfectionStage() == Person_HIV::AIDS);
 		newStageTime -= m_relativeFinalTime;
 	}
 	else
 	{
-		assert(pPerson->getInfectionStage() == Person::Chronic);
+		assert(pPerson->hiv().getInfectionStage() == Person_HIV::Chronic);
 		newStageTime -= m_relativeStartTime;
 	}
 	

@@ -36,7 +36,7 @@ private:
 inline double EventAIDSMortality::getExpectedSurvivalTime(const Person *pPerson)
 {
 	assert(pPerson);
-	double Vsp = pPerson->getSetPointViralLoad();
+	double Vsp = pPerson->hiv().getSetPointViralLoad();
 	double log10Offset = pPerson->getSurvivalTimeLog10Offset();
 	assert(Vsp > 0);
 

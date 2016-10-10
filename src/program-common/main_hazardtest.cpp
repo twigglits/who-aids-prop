@@ -107,7 +107,7 @@ void runHazardTests(SimpactPopulation &pop)
 			//		                0, 0, 0, 0, 0, -0.1, -0.1, -0.05, -0.1, 0);
 			//
 			HazardFunctionFormationAgeGap h0(pMan, pWoman, 0, 
-							0, 0, 0, 0, 0, -0.1, -0.1, -0.05, -0.1, 0);
+							0, 0, 0, 0, 0, -0.1, -0.1, -0.05, -0.1, 0, false);
 			TimeLimitedHazardFunction h(h0, 120);
 			runHazardTest(h, "HazardFunctionFormationAgeGap", rndGen);
 		}
@@ -128,8 +128,8 @@ void runHazardTests(SimpactPopulation &pop)
 	{
 		Man *pMan = new Man(-30);
 		Woman *pWoman = new Woman(-20);
-		pMan->setInfected(-10, 0, Person::Seed);
-		pWoman->setInfected(-15, 0, Person::Seed);
+		pMan->hiv().setInfected(-10, 0, Person_HIV::Seed);
+		pWoman->hiv().setInfected(-15, 0, Person_HIV::Seed);
 
 		pMan->addRelationship(pWoman, 0.1);
 		pWoman->addRelationship(pMan, 0.1);
@@ -140,7 +140,7 @@ void runHazardTests(SimpactPopulation &pop)
 			runHazardTest(h, "HazardFunctionDiagnosis", rndGen);
 		}
 
-		pMan->increaseDiagnoseCount();
+		pMan->hiv().increaseDiagnoseCount();
 
 		{
 			HazardFunctionDiagnosis h0(pWoman, 0.1, -0.2, 0.3, 0.4, 0.5, 0.6);

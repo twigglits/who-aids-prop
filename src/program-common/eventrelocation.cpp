@@ -45,10 +45,10 @@ void EventRelocation::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 	// No relationships will be scheduled yet if not yet sexually active or if
 	// the person is already in the final AIDS stage
-	if (pPerson->isSexuallyActive() && pPerson->getInfectionStage() != Person::AIDSFinal)
+	if (pPerson->isSexuallyActive() && pPerson->hiv().getInfectionStage() != Person_HIV::AIDSFinal)
 	{
 		// if eyecaps < 1.0 a new set of persons of interest should be chosen
-		population.initializeFormationEvents(pPerson, true, t); // true: due to a relocation, does the eyecaps check if needed
+		population.initializeFormationEvents(pPerson, false, true, t); // true: due to a relocation, does the eyecaps check if needed
 	}
 
 	if (EventRelocation::isEnabled())

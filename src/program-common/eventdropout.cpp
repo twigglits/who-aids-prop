@@ -41,7 +41,7 @@ void EventDropout::fire(Algorithm *pAlgorithm, State *pState, double t)
 	pPerson->writeToTreatmentLog(t, false);
 
 	// Viral load goes back to the pre-treatment state
-	pPerson->resetViralLoad(t);
+	pPerson->hiv().resetViralLoad(t);
 
 	// HIV diagnosis event must be scheduled again so the person can possibly start treatment again
 	EventDiagnosis *pEvtDiag = new EventDiagnosis(pPerson);

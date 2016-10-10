@@ -5,6 +5,7 @@
 #include "simpactevent.h"
 
 class ConfigSettings;
+class EvtHazard;
 
 class EventDissolution : public SimpactEvent
 {
@@ -18,23 +19,16 @@ public:
 
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
+
+	double getFormationTime() const																{ return m_formationTime; }
 protected:
 	double calculateInternalTimeInterval(const State *pState, double t0, double dt);
 	double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);
 
 	double m_formationTime;
 
-	static double getTMax(Person *pPerson1, Person *pPerson2);
-
-	static double a0;		// baseline_factor
-	static double a1;		// male_current_relations_factor   -> just current_relations_factor ?
-	static double a2;		// female_current_relations_factor -> just current_relations_factor ?
-	static double a3;		// current_relations_difference_factor?? TODO can't find this
-	static double a4;		// mean_age_factor
-	static double a5;		// age_difference_factor
-	static double Dp;		// preferred_age_difference
-	static double b;		// last_change_factor
-	static double tMaxDiff;
+	static EvtHazard *s_pHazard;
+	static EvtHazard *s_pHazardMSM;
 };
 
 #endif // EVENTDISSOLUTION_H

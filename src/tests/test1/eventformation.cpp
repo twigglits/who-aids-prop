@@ -88,8 +88,8 @@ double EventFormation::solveForRealTimeInterval(const State *pState, double Tdif
 	double n = population.getInitialPopulationSize();
 	double a0 = std::log(10.0/(n/2.0));
 
-	double Pi = pPerson1->getNumberOfRelationships();
-	double Pj = pPerson2->getNumberOfRelationships();
+	//double Pi = pPerson1->getNumberOfRelationships();
+	//double Pj = pPerson2->getNumberOfRelationships();
 
 	double tr = m_lastDissolutionTime;
 	double tBi = pPerson1->getDateOfBirth();

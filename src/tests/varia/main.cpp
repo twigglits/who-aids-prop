@@ -110,7 +110,7 @@ int main4(int argc, char *argv[])
 	for (int i = 1 ; i < argc ; i++)
 		files.push_back(argv[i]);
 
-	for (int i = 0 ; i < files.size() ; i++)
+	for (size_t i = 0 ; i < files.size() ; i++)
 	{
 		TIFFDensityFile td;
 		bool_t r;
@@ -137,7 +137,7 @@ int main4(int argc, char *argv[])
 					{
 						double v = td.getValue(x, y);
 						//fwrite(&v, 1, sizeof(double), pFile);
-						fprintf(pFile, "%g\t", td.getValue(x, y));
+						fprintf(pFile, "%g\t", v);
 					}
 					fprintf(pFile, "\n");
 				}
@@ -149,7 +149,7 @@ int main4(int argc, char *argv[])
 	return 0;
 }
 
-int main5(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 	GslRandomNumberGenerator rndGen;
 	vector<string> files;
@@ -158,7 +158,7 @@ int main5(int argc, char *argv[])
 		files.push_back(argv[i]);
 
 	cout << "X,Y" << endl;
-	for (int i = 0 ; i < files.size() ; i++)
+	for (size_t i = 0 ; i < files.size() ; i++)
 	{
 		TIFFDensityFile td;
 		bool_t r;
@@ -169,7 +169,7 @@ int main5(int argc, char *argv[])
 			cerr << " Error loading TIFF: " << r.getErrorString() << endl;
 		else
 		{
-			DiscreteDistribution2D dist(0, 0, 1, 2, td, &rndGen);
+			DiscreteDistribution2D dist(0, 0, 1, 2, td, false, &rndGen);
 
 			const int numPoints = 1000000;
 
@@ -192,7 +192,7 @@ int main5(int argc, char *argv[])
 	return 0;
 }
 
-int main(void)
+int main6(void)
 {
 	GslRandomNumberGenerator rnd;
 	BinormalDistribution d(2, 8, 1, 3, 0.5, &rnd, 0, 4, 5, 15);

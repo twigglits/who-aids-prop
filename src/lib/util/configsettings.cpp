@@ -29,7 +29,7 @@ bool_t ConfigSettings::load(const std::string &fileName)
 	vector<string> keys;
 
 	reader.getKeys(keys);
-	for (int i = 0 ; i < keys.size() ; i++)
+	for (size_t i = 0 ; i < keys.size() ; i++)
 	{
 		string value;
 
@@ -86,14 +86,24 @@ bool_t ConfigSettings::getKeyValue(const std::string &key, std::string &value, c
 	{
 		bool found = false;
 
-		for (int i = 0 ;!found &&  i < allowedValues.size() ; i++)
+		for (size_t i = 0 ;!found &&  i < allowedValues.size() ; i++)
 		{
 			if (allowedValues[i] == value)
 				found = true;
 		}
 
 		if (!found)
-			return "Specified value for key '" + key + "' is not an allowed value.";
+		{
+			string extraInfo = "(Allowed: ";
+			for (size_t i = 0 ; i < allowedValues.size() ; i++)
+			{
+				if (i > 0)
+					extraInfo += ", ";
+				extraInfo += "'" + allowedValues[i] + "'";
+			}
+			extraInfo += ")";
+			return "Specified value '" + value + "' for key '" + key + "' is not an allowed value " + extraInfo + ".";
+		}
 	}
 
 	it->second.second = true; // mark the key as used

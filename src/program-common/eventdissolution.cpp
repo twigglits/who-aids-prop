@@ -1,6 +1,6 @@
 #include "eventdissolution.h"
 #include "eventformation.h"
-#include "hazardfunctionformationsimple.h"
+#include "evthazarddissolution.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
 #include "util.h"
@@ -12,6 +12,17 @@ using namespace std;
 EventDissolution::EventDissolution(Person *pPerson1, Person *pPerson2, double formationTime) : SimpactEvent(pPerson1, pPerson2)
 {
 	m_formationTime = formationTime;
+
+	assert(pPerson1->isMan());
+#ifndef NDEBUG
+	if (pPerson2->isMan()) // MSM is also possible
+	{
+		// let's keep things ordered, to help avoid double events
+		assert(pPerson1->getPersonID() < pPerson2->getPersonID()); 
+	}
+	else
+		assert(pPerson2->isWoman());
+#endif // NDEBUG
 }
 
 EventDissolution::~EventDissolution()
@@ -20,7 +31,8 @@ EventDissolution::~EventDissolution()
 
 std::string EventDissolution::getDescription(double tNow) const
 {
-	return strprintf("Dissolution between %s and %s, relationship was formed at %g (%g ago)", 
+	string evtName = (getPerson(1)->isWoman()) ? "Dissolution" : "MSM Dissolution";
+	return strprintf("%s between %s and %s, relationship was formed at %g (%g ago)", evtName.c_str(),
 		     getPerson(0)->getName().c_str(), getPerson(1)->getName().c_str(), m_formationTime, tNow-m_formationTime);
 }
 
@@ -28,6 +40,8 @@ void EventDissolution::writeLogs(const SimpactPopulation &pop, double tNow) cons
 {
 	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);
+
+	string evtName = (pPerson2->isWoman()) ? "formation" : "formationmsm";
 	writeEventLogStart(true, "dissolution", tNow, pPerson1, pPerson2);
 
 	// Relationship log will be written when handling the dissolution in person.cpp, that way
@@ -45,7 +59,7 @@ void EventDissolution::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 	// A new formation event should only be scheduled if neither person is in the
 	// final AIDS stage
-	if (pPerson1->getInfectionStage() != Person::AIDSFinal && pPerson2->getInfectionStage() != Person::AIDSFinal)
+	if (pPerson1->hiv().getInfectionStage() != Person_HIV::AIDSFinal && pPerson2->hiv().getInfectionStage() != Person_HIV::AIDSFinal)
 	{
 		// Need to add a new formation event for these two
 		EventFormation *pFormationEvent = new EventFormation(pPerson1, pPerson2, t, t);
@@ -55,113 +69,46 @@ void EventDissolution::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 double EventDissolution::calculateInternalTimeInterval(const State *pState, double t0, double dt)
 {
-	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);
+	EvtHazard *pHazard = (pPerson2->isWoman()) ? s_pHazard : s_pHazardMSM; 
+	assert(pHazard != 0);
 
-	double tr = m_formationTime;
-	double tMax = getTMax(pPerson1, pPerson2);
-
-	HazardFunctionFormationSimple h0(pPerson1, pPerson2, tr, a0, a1, a2, a3, a4, a5, Dp, b);
-	TimeLimitedHazardFunction h(h0, tMax);
-
-	return h.calculateInternalTimeInterval(t0, dt);
-	//return ExponentialHazardToInternalTime(pPerson1, pPerson2, t0, dt, tr, a0, a1, a2, a3, a4, a5, Dp, b, true, tMax);
+	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
+	return pHazard->calculateInternalTimeInterval(population, *this, t0, dt);
 }
 
 double EventDissolution::solveForRealTimeInterval(const State *pState, double Tdiff, double t0)
 {
-	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);
+	EvtHazard *pHazard = (pPerson2->isWoman()) ? s_pHazard : s_pHazardMSM; 
+	assert(pHazard != 0);
 
-	double tr = m_formationTime;
-	double tMax = getTMax(pPerson1, pPerson2);
-
-	HazardFunctionFormationSimple h0(pPerson1, pPerson2, tr, a0, a1, a2, a3, a4, a5, Dp, b);
-	TimeLimitedHazardFunction h(h0, tMax);
-
-	return h.solveForRealTimeInterval(t0, Tdiff);
-	//return ExponentialHazardToRealTime(pPerson1, pPerson2, t0, Tdiff, tr, a0, a1, a2, a3, a4, a5, Dp, b, true, tMax);
+	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
+	return pHazard->solveForRealTimeInterval(population, *this, Tdiff, t0);
 }
 
-double EventDissolution::getTMax(Person *pPerson1, Person *pPerson2)
-{
-	assert(pPerson1 != 0 && pPerson2 != 0);
-
-	double tb1 = pPerson1->getDateOfBirth();
-	double tb2 = pPerson2->getDateOfBirth();
-
-	double tMax = tb1;
-
-	if (tb2 < tMax)
-		tMax = tb2;
-
-	assert(tMaxDiff > 0);
-	tMax += tMaxDiff;
-
-	return tMax;
-}
-
-double EventDissolution::a0   = 0;		// baseline_factor
-double EventDissolution::a1   = 0;		// male_current_relations_factor
-double EventDissolution::a2   = 0;		// female_current_relations_factor
-double EventDissolution::a3   = 0;		// current_relations_difference_factor
-double EventDissolution::a4   = 0;		// mean_age_factor
-double EventDissolution::a5   = 0;		// age_difference_factor
-double EventDissolution::Dp   = 0;		// preferred_age_difference
-double EventDissolution::b    = 0;		// last_change_factor
-double EventDissolution::tMaxDiff = 0;		// t_max
+EvtHazard *EventDissolution::s_pHazard = 0;
+EvtHazard *EventDissolution::s_pHazardMSM = 0;
 
 void EventDissolution::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
-	bool_t r;
+	delete s_pHazard;
+	s_pHazard = EvtHazardDissolution::processConfig(config, "dissolution", false);
 
-	if (!(r = config.getKeyValue("dissolution.alpha_0", a0)) ||
-	    !(r = config.getKeyValue("dissolution.alpha_1", a1)) ||
-	    !(r = config.getKeyValue("dissolution.alpha_2", a2)) ||
-	    !(r = config.getKeyValue("dissolution.alpha_3", a3)) ||
-	    !(r = config.getKeyValue("dissolution.alpha_4", a4)) ||
-	    !(r = config.getKeyValue("dissolution.alpha_5", a5)) ||
-	    !(r = config.getKeyValue("dissolution.Dp", Dp)) ||
-	    !(r = config.getKeyValue("dissolution.beta", b)) ||
-	    !(r = config.getKeyValue("dissolution.t_max", tMaxDiff, 0)) )
-		abortWithMessage(r.getErrorString());
+	delete s_pHazardMSM;
+	s_pHazardMSM = EvtHazardDissolution::processConfig(config, "dissolutionmsm", true);
 }
 
 void EventDissolution::obtainConfig(ConfigWriter &config)
 {
-	bool_t r;
+	if (!s_pHazard)
+		abortWithMessage("EventDissolution::obtainConfig: s_pHazard is null");
+	if (!s_pHazardMSM)
+		abortWithMessage("EventDissolution::obtainConfig: s_pHazardMSM is null");
 
-	if (!(r = config.addKey("dissolution.alpha_0", a0)) ||
-	    !(r = config.addKey("dissolution.alpha_1", a1)) ||
-	    !(r = config.addKey("dissolution.alpha_2", a2)) ||
-	    !(r = config.addKey("dissolution.alpha_3", a3)) ||
-	    !(r = config.addKey("dissolution.alpha_4", a4)) ||
-	    !(r = config.addKey("dissolution.alpha_5", a5)) ||
-	    !(r = config.addKey("dissolution.Dp", Dp)) ||
-	    !(r = config.addKey("dissolution.beta", b)) ||
-	    !(r = config.addKey("dissolution.t_max", tMaxDiff)) )
-		abortWithMessage(r.getErrorString());
+	s_pHazard->obtainConfig(config, "dissolution");
+	s_pHazardMSM->obtainConfig(config, "dissolutionmsm");
 }
 
 ConfigFunctions dissolutionConfigFunctions(EventDissolution::processConfig, EventDissolution::obtainConfig, "EventDissolution");
-
-JSONConfig dissolutionJSONConfig(R"JSON(
-        "EventDissolution": { 
-            "depends": null,
-            "params": [ 
-                ["dissolution.alpha_0", 0.1],
-                ["dissolution.alpha_1", 0],
-                ["dissolution.alpha_2", 0],
-                ["dissolution.alpha_3", 0],
-                ["dissolution.alpha_4", 0],
-                ["dissolution.alpha_5", 0],
-                ["dissolution.Dp", 0],
-                ["dissolution.beta", 0],
-                ["dissolution.t_max", 200] ],
-            "info": [ 
-                "These are the parameters for the hazard in the dissolution event.",
-                "see http://research.edm.uhasselt.be/jori/simpact/",
-                "for more information."
-            ]
-        })JSON");
 

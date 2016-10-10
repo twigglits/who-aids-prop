@@ -45,6 +45,8 @@ public:
 
 	/** Returns true or false, depending on the contents of this object. */
 	operator bool() const;
+
+	bool success() const;
 private:
 	void strncpy(const char *pSrc);
 	void setErrorString(const std::string &err);
@@ -122,6 +124,11 @@ inline std::string bool_t::getErrorString() const
 }
 
 inline bool_t::operator bool() const
+{
+	return success();
+}
+
+inline bool bool_t::success() const
 {
 	return (m_errorString[0] == 0);
 }

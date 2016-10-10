@@ -26,7 +26,6 @@ VspModelLogDist::~VspModelLogDist()
 
 double VspModelLogDist::pickSetPointViralLoad()
 {
-	int count = 0;
 	double x;
 
 	if (m_pAltSeedDist) // We want to use an alternative seeding distribution

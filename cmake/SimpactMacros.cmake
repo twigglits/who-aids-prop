@@ -59,6 +59,11 @@ macro(simpact_setup)
 		set(RT_LIBRARIES "")
 	endif()
 
+	if (WIN32)
+		# Make sure Win32 flag is set and exceptions are enabled to avoid warnings 
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWIN32 /EHsc")
+	endif()
+
 	add_additional_stuff(EXTRA_INCLUDES EXTRA_LIBS)
 
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
@@ -101,6 +106,9 @@ macro(simpact_setup)
 		${PROJECT_SOURCE_DIR}/src/lib/util/jsonconfig.cpp
 		${PROJECT_SOURCE_DIR}/src/lib/util/binormaldistribution.cpp
 		${PROJECT_SOURCE_DIR}/src/lib/util/configfunctions.cpp
+		${PROJECT_SOURCE_DIR}/src/lib/util/discretedistributionwrapper.cpp
+		${PROJECT_SOURCE_DIR}/src/lib/util/gridvaluescsv.cpp
+		${PROJECT_SOURCE_DIR}/src/lib/util/discretedistributionwrapper2d.cpp
 		)
 	set(SOURCES_MRNM
 		${PROJECT_SOURCE_DIR}/src/lib/mnrm/gslrandomnumbergenerator.cpp

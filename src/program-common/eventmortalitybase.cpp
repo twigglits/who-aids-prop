@@ -29,8 +29,10 @@ void EventMortalityBase::markOtherAffectedPeople(const PopulationStateInterface 
 		population.markAffectedPerson(pPartner);
 	}
 
+#ifndef NDEBUG
 	double tDummy;
 	assert(pPerson->getNextRelationshipPartner(tDummy) == 0); // make sure the iteration is done
+#endif // NDEBUG
 }
 
 void EventMortalityBase::fire(Algorithm *pAlgorithm, State *pState, double t)
@@ -63,10 +65,12 @@ void EventMortalityBase::fire(Algorithm *pAlgorithm, State *pState, double t)
 		//cout << t << "\tDeath based dissolution between " << pPerson->getName() << " and " << pPartner->getName() << " (formed " << t-formationTime << " ago)" << endl;
 	}
 
+#ifndef NDEBUG
 	double tDummy;
 	assert(pPerson->getNextRelationshipPartner(tDummy) == 0); // make sure the iteration is done
+#endif // NDEBUG
 
-	if (pPerson->isInfected() && pPerson->hasLoweredViralLoad())
+	if (pPerson->hiv().isInfected() && pPerson->hiv().hasLoweredViralLoad())
 		pPerson->writeToTreatmentLog(t, true);
 
 	population.setPersonDied(pPerson);

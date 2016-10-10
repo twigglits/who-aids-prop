@@ -26,6 +26,7 @@ PieceWiseLinearFunction::~PieceWiseLinearFunction()
 
 double PieceWiseLinearFunction::evaluate(double x)
 {
+	assert(m_points.size() != 0);
 	size_t num = m_points.size() - 1;
 
 	if (num > 0)
@@ -33,7 +34,7 @@ double PieceWiseLinearFunction::evaluate(double x)
 		if (x < m_points[0].x)
 			return m_leftValue;
 
-		for (int i = 0 ; i < num ; i++)
+		for (size_t i = 0 ; i < num ; i++)
 		{
 			double x0 = m_points[i].x;
 			double x1 = m_points[i+1].x;

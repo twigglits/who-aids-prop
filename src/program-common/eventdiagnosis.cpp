@@ -45,13 +45,15 @@ void EventDiagnosis::markOtherAffectedPeople(const PopulationStateInterface &pop
 		double tDummy;
 		Person *pPartner = pPerson->getNextRelationshipPartner(tDummy);
 
-		if (pPartner->isInfected())
+		if (pPartner->hiv().isInfected())
 			population.markAffectedPerson(pPartner);
 	}
 
+#ifndef NDEBUG
 	// Double check that the iteration is done
 	double tDummy;
 	assert(pPerson->getNextRelationshipPartner(tDummy) == 0);
+#endif // NDEBUG
 }
 
 void EventDiagnosis::fire(Algorithm *pAlgorithm, State *pState, double t)
@@ -59,11 +61,11 @@ void EventDiagnosis::fire(Algorithm *pAlgorithm, State *pState, double t)
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	Person *pPerson = getPerson(0);
 
-	assert(pPerson->isInfected());
-	assert(!pPerson->hasLoweredViralLoad());
+	assert(pPerson->hiv().isInfected());
+	assert(!pPerson->hiv().hasLoweredViralLoad());
 
 	// Mark the person as diagnosed
-	pPerson->increaseDiagnoseCount();
+	pPerson->hiv().increaseDiagnoseCount();
 
 	// Schedule an initial monitoring event right away! (the 'true' is for 'right away')
 	EventMonitoring *pEvtMonitor = new EventMonitoring(pPerson, true);
@@ -160,10 +162,10 @@ HazardFunctionDiagnosis::HazardFunctionDiagnosis(Person *pPerson, double baselin
 	m_pPerson = pPerson;
 
 	double tb = pPerson->getDateOfBirth();
-	double tinf = pPerson->getInfectionTime();
+	double tinf = pPerson->hiv().getInfectionTime();
 	double G = (pPerson->isMan())?0:1;
 	int D = pPerson->getNumberOfDiagnosedPartners();
-	int hasBeenDiagnosed = (pPerson->isDiagnosed())?1:0;
+	int hasBeenDiagnosed = (pPerson->hiv().isDiagnosed())?1:0;
 
 	double A = baseline - ageFactor*tb + genderFactor*G + diagPartnersFactor*D 
 		   + isDiagnosedFactor*hasBeenDiagnosed - beta*tinf;
@@ -176,10 +178,10 @@ HazardFunctionDiagnosis::HazardFunctionDiagnosis(Person *pPerson, double baselin
 double HazardFunctionDiagnosis::evaluate(double t)
 {
 	double tb = m_pPerson->getDateOfBirth();
-	double tinf = m_pPerson->getInfectionTime();
+	double tinf = m_pPerson->hiv().getInfectionTime();
 	double G = (m_pPerson->isMan())?0:1;
 	int D = m_pPerson->getNumberOfDiagnosedPartners();
-	int hasBeenDiagnosed = (m_pPerson->isDiagnosed())?1:0;
+	int hasBeenDiagnosed = (m_pPerson->hiv().isDiagnosed())?1:0;
 
 	double age = (t-tb);
 

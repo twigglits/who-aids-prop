@@ -22,11 +22,11 @@ double EventChronicStage::getNewInternalTimeDifference(GslRandomNumberGenerator 
 
 	assert(pPerson != 0);
 	assert(getNumberOfPersons() == 1);
-	assert(pPerson->isInfected());
+	assert(pPerson->hiv().isInfected());
 
 	assert(m_acuteTime > 0); 
 
-	double tEvt = pPerson->getInfectionTime() + m_acuteTime;
+	double tEvt = pPerson->hiv().getInfectionTime() + m_acuteTime;
 	double dt = tEvt - population.getTime();
 	
 	assert(dt >= 0); // should not be in the past!
@@ -54,9 +54,9 @@ void EventChronicStage::fire(Algorithm *pAlgorithm, State *pState, double t)
 	assert(getNumberOfPersons() == 1);
 
 	Person *pPerson = getPerson(0);
-	assert(pPerson->getInfectionStage() == Person::Acute);
+	assert(pPerson->hiv().getInfectionStage() == Person_HIV::Acute);
 
-	pPerson->setInChronicStage();
+	pPerson->hiv().setInChronicStage();
 
 	// Schedule the event that will mark the start of the AIDS stage
 	EventAIDSStage *pEvt = new EventAIDSStage(pPerson, false);

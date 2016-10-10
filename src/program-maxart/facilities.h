@@ -40,7 +40,7 @@ public:
 	static Facilities *getInstance()													{ return s_pInstance; }
 
 	int getNumberOfFacilities() const													{ return m_facilities.size(); }
-	const Facility *getFacility(int idx) const											{ assert(idx >= 0 && idx < m_facilities.size()); return &(m_facilities[idx]); }
+	const Facility *getFacility(int idx) const											{ assert(idx >= 0 && idx < (int)m_facilities.size()); return &(m_facilities[idx]); }
 
 	int getNumberOfRandomizationSteps() const											{ return m_numSteps; }
 	// Counting starts at 0 here

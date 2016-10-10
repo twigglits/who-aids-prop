@@ -4,12 +4,13 @@
 #include "eventformation.h"
 #include "eventdebut.h"
 #include "eventchronicstage.h"
-#include "eventtransmission.h"
 #include "eventhivseed.h"
+#include "eventhsv2seed.h"
 #include "eventintervention.h"
 #include "eventperiodiclogging.h"
 #include "eventsyncpopstats.h"
 #include "eventsyncrefyear.h"
+#include "eventcheckstopalgorithm.h"
 #include "eventrelocation.h"
 #include "populationdistribution.h"
 #include "populationalgorithmadvanced.h"
@@ -31,6 +32,7 @@ SimpactPopulationConfig::SimpactPopulationConfig()
 	m_initialMen = 100;
 	m_initialWomen = 100;
 	m_eyeCapsFraction = 1;
+	m_msm = false;
 }
 
 SimpactPopulationConfig::~SimpactPopulationConfig()
@@ -48,7 +50,9 @@ SimpactPopulation::SimpactPopulation(PopulationAlgorithmInterface &alg, Populati
 	m_lastKnownPopulationSizeTime = -1;
 	m_referenceYear = 0;
 	m_eyeCapsFraction = 1;
+	m_msm = false;
 	m_pCoarseMap = 0;
+	
 
 	m_init = false;
 }
@@ -67,6 +71,7 @@ bool_t SimpactPopulation::init(const SimpactPopulationConfig &config, const Popu
 	assert(eyeCapsFraction >= 0 && eyeCapsFraction <= 1.0);
 
 	m_eyeCapsFraction = eyeCapsFraction;
+	m_msm = config.getMSM();
 
 	bool_t r;
 	if (!(r = createInitialPopulation(config, popDist)))
@@ -149,16 +154,29 @@ bool_t SimpactPopulation::scheduleInitialEvents()
 		EventMortality *pEvt = new EventMortality(pPerson);
 		onNewEvent(pEvt);
 	}
-
-	// Relationship formation. We'll only process the women, the
-	// events for the men are scheduled automatically
+	
+	// Relationship formation. For heterosexual relations, we'll only process 
+	// the women, the events for the men are scheduled automatically
 	for (int i = 0 ; i < numWomen ; i++)
 	{
 		Woman *pWoman = ppWomen[i];
 		assert(pWoman->getGender() == Person::Female);
 
 		if (pWoman->isSexuallyActive())
-			initializeFormationEvents(pWoman, false, 0);
+			initializeFormationEvents(pWoman, true, false, 0);
+	}
+
+	// For MSM relations, TODO: check this!
+	if (m_msm)
+	{
+		for (int i = 0 ; i < numMen ; i++)
+		{
+			Man *pMan = ppMen[i];
+			assert(pMan->getGender() == Person::Male);
+
+			if (pMan->isSexuallyActive())
+				initializeFormationEvents(pMan, true, false, 0); // Only do MSM stuff, relationships with women are already done
+		}
 	}
 
 	// For the people who are not sexually active, set a debut event
@@ -177,6 +195,12 @@ bool_t SimpactPopulation::scheduleInitialEvents()
 	if (EventHIVSeed::getSeedTime() >= 0)
 	{
 		EventHIVSeed *pEvt = new EventHIVSeed(); // this is a global event
+		onNewEvent(pEvt);
+	}
+
+	if (EventHSV2Seed::getSeedTime() >= 0)
+	{
+		EventHSV2Seed *pEvt = new EventHSV2Seed(); // this is a global event
 		onNewEvent(pEvt);
 	}
 
@@ -208,6 +232,12 @@ bool_t SimpactPopulation::scheduleInitialEvents()
 		onNewEvent(pEvt);
 	}
 
+	if (EventCheckStopAlgorithm::isEnabled())
+	{
+		EventCheckStopAlgorithm *pEvt = new EventCheckStopAlgorithm();
+		onNewEvent(pEvt);
+	}
+
 	if (EventRelocation::isEnabled())
 	{
 		for (int i = 0 ; i < numPeople ; i++)
@@ -235,10 +265,10 @@ void SimpactPopulation::onAboutToFire(PopulationEvent *pEvt)
 	pEvent->writeLogs(*this, t);
 }
 
-void SimpactPopulation::initializeFormationEvents(Person *pPerson, bool relocation, double tNow)
+void SimpactPopulation::initializeFormationEvents(Person *pPerson, bool initializationPhase, bool relocation, double tNow)
 {
 	assert(pPerson->isSexuallyActive());
-	assert(pPerson->getInfectionStage() != Person::AIDSFinal);
+	assert(pPerson->hiv().getInfectionStage() != Person_HIV::AIDSFinal);
 
 	GslRandomNumberGenerator *pRngGen = getRandomNumberGenerator();
 
@@ -252,22 +282,53 @@ void SimpactPopulation::initializeFormationEvents(Person *pPerson, bool relocati
 			if (pPerson->getGender() == Person::Male)
 			{
 				Man *pMan = MAN(pPerson);
-				Woman **ppWomen = getWomen();
-				int numWomen = getNumberOfWomen();
 
-				for (int i = 0 ; i < numWomen ; i++)
+				if (!initializationPhase)
 				{
-					Woman *pWoman = ppWomen[i];
-					
-					// No events will be scheduled of the person
-					if (pWoman->isSexuallyActive() && pWoman->getInfectionStage() != Person::AIDSFinal)
+					Woman **ppWomen = getWomen();
+					int numWomen = getNumberOfWomen();
+
+					for (int i = 0 ; i < numWomen ; i++)
 					{
-						EventFormation *pEvt = new EventFormation(pMan, pWoman, -1, tNow);
-						onNewEvent(pEvt);
+						Woman *pWoman = ppWomen[i];
+						
+						if (pWoman->isSexuallyActive() && pWoman->hiv().getInfectionStage() != Person_HIV::AIDSFinal)
+						{
+							EventFormation *pEvt = new EventFormation(pMan, pWoman, -1, tNow); 
+							onNewEvent(pEvt);
+						}
+					}
+				}
+
+				// Schedule additional events in case MSM is enabled
+				if (m_msm)
+				{
+					Man **ppMen = getMen();
+					int numMen = getNumberOfMen();
+
+					for (int i = 0 ; i < numMen ; i++)
+					{
+						Man *pMan2 = ppMen[i];
+
+						if (pMan != pMan2 && pMan2->isSexuallyActive() && pMan2->hiv().getInfectionStage() != Person_HIV::AIDSFinal)
+						{
+							if (initializationPhase && pMan->getPersonID() > pMan2->getPersonID())
+								continue;
+
+							EventFormation *pEvt = 0;
+							
+							// TODO: is this ordering really useful for something?
+							if (pMan->getPersonID() < pMan2->getPersonID())
+								pEvt = new EventFormation(pMan, pMan2, -1, tNow);
+							else
+								pEvt = new EventFormation(pMan2, pMan, -1, tNow);
+
+							onNewEvent(pEvt);
+						}
 					}
 				}
 			}
-			else // Female
+			else // Female, eyecaps >= 1.0
 			{
 				Woman *pWoman = WOMAN(pPerson);
 				Man **ppMen = getMen();
@@ -277,7 +338,7 @@ void SimpactPopulation::initializeFormationEvents(Person *pPerson, bool relocati
 				{
 					Man *pMan = ppMen[i];
 
-					if (pMan->isSexuallyActive() && pMan->getInfectionStage() != Person::AIDSFinal)
+					if (pMan->isSexuallyActive() && pMan->hiv().getInfectionStage() != Person_HIV::AIDSFinal)
 					{
 						EventFormation *pEvt = new EventFormation(pMan, pWoman, -1, tNow);
 						onNewEvent(pEvt);
@@ -289,6 +350,7 @@ void SimpactPopulation::initializeFormationEvents(Person *pPerson, bool relocati
 	else // Use eyecaps
 	{
 		vector<Person *> interests;
+		vector<Person *> interestsMSM;
 
 		// The person of interest list is only used here, and is mainly intended to remove
 		// doubles, we'll clear it at the start.
@@ -298,30 +360,66 @@ void SimpactPopulation::initializeFormationEvents(Person *pPerson, bool relocati
 		{
 			Man *pMan = MAN(pPerson);
 			int numWomen = getNumberOfWomen();
+			int numMen = getNumberOfMen();
 
-			int numInterests = (int)pRngGen->pickBinomialNumber(m_eyeCapsFraction, numWomen);
+			int numInterests = 0;
+			int numInterestsMSM = 0;
+
+			if (!initializationPhase) // Make sure relationships with women were not already processed
+				numInterests = (int)pRngGen->pickBinomialNumber(m_eyeCapsFraction, numWomen);
+
+			if (m_msm)
+				numInterestsMSM = (int)pRngGen->pickBinomialNumber(m_eyeCapsFraction, numMen);
+
 			interests.resize(numInterests);
+			interestsMSM.resize(numInterestsMSM);
 
-			getInterestsForPerson(pMan, interests);
+			getInterestsForPerson(pMan, interests, interestsMSM);
 			
 			for (int i = 0 ; i < numInterests ; i++)
 			{
 				Person *pWoman = interests[i];
 				assert(pWoman->isWoman());
 
-				if (pWoman->isSexuallyActive() && pWoman->getInfectionStage() != Person::AIDSFinal)
+				if (pWoman->isSexuallyActive() && pWoman->hiv().getInfectionStage() != Person_HIV::AIDSFinal)
 					pMan->addPersonOfInterest(pWoman);
 			}
 
+			for (int i = 0 ; i < numInterestsMSM ; i++) // MSM interests
+			{
+				Person *pMan2 = interestsMSM[i];
+				assert(pMan2 && pMan2->isMan());
+
+				if (pMan != pMan2 && pMan2->isSexuallyActive() && 
+					pMan2->hiv().getInfectionStage() != Person_HIV::AIDSFinal)
+					pMan->addPersonOfInterest(pMan2);
+			}
+
+			// Now we process _all_ the interests, both woman and men
 			numInterests = pMan->getNumberOfPersonsOfInterest();
 
 			for (int i = 0 ; i < numInterests ; i++)
 			{
 				Person *pPoi = pMan->getPersonOfInterest(i);
+				EventFormation *pEvt = 0;
+
+				// Some checks to make sure we don't process certain events twice
+				// during initialization
+				if (initializationPhase)
+				{
+					if (pPoi->isMan() && pMan->getPersonID() > pPoi->getPersonID())
+						continue;
+					if (pPoi->isWoman())
+						continue;
+				}
 
 				// TODO: it's possible that even after a relocation the same partner will still
 				//       be chosen. At the moment this is ignored by using the parameter -1 here
-				EventFormation *pEvt = new EventFormation(pMan, pPoi, -1, tNow);
+				if (pPoi->isMan() && pPoi->getPersonID() < pMan->getPersonID()) // MSM, order persons TODO: is this really necessary?
+					pEvt = new EventFormation(pPoi, pMan, -1, tNow);
+				else
+					pEvt = new EventFormation(pMan, pPoi, -1, tNow);
+
 				onNewEvent(pEvt);
 			}
 		}
@@ -333,14 +431,14 @@ void SimpactPopulation::initializeFormationEvents(Person *pPerson, bool relocati
 			int numInterests = (int)pRngGen->pickBinomialNumber(m_eyeCapsFraction, numMen);
 			interests.resize(numInterests);
 
-			getInterestsForPerson(pWoman, interests);
+			getInterestsForPerson(pWoman, interests, interestsMSM);
 			
 			for (int i = 0 ; i < numInterests ; i++)
 			{
 				Person *pMan = interests[i];
 				assert(pMan->isMan());
 
-				if (pMan->isSexuallyActive() && pMan->getInfectionStage() != Person::AIDSFinal)
+				if (pMan->isSexuallyActive() && pMan->hiv().getInfectionStage() != Person_HIV::AIDSFinal)
 					pWoman->addPersonOfInterest(pMan);
 			}
 
@@ -360,7 +458,8 @@ void SimpactPopulation::initializeFormationEvents(Person *pPerson, bool relocati
 }
 
 // Doubles and persons who are not sexually active will be removed from the list in another stage
-void SimpactPopulation::getInterestsForPerson(const Person *pPerson, vector<Person *> &interests)
+void SimpactPopulation::getInterestsForPerson(const Person *pPerson, 
+		                                      vector<Person *> &interests, vector<Person *> &interestsMSM)
 {
 	assert(pPerson);
 
@@ -382,6 +481,21 @@ void SimpactPopulation::getInterestsForPerson(const Person *pPerson, vector<Pers
 
 				Woman *pWoman = ppWomen[idx];
 				interests[i] = pWoman;
+			}
+
+			// MSM
+			int numInterestsMSM = interestsMSM.size();
+
+			for (int i = 0 ; i < numInterestsMSM ; i++)
+			{
+				int idx = (int)(pRngGen->pickRandomDouble() * (double)numMen);
+				assert(idx >= 0 && idx < numMen);
+
+				// In principle it's possible that we're interested in ourselves, but this will
+				// be filtered later on. At this point it's important that we set all entries
+				// of the interestsMSM vector
+				Man *pMan = ppMen[idx];
+				interestsMSM[i] = pMan;
 			}
 		}
 		else // Woman
@@ -418,31 +532,66 @@ void SimpactPopulation::getInterestsForPerson(const Person *pPerson, vector<Pers
 		abortWithMessage("TODO");
 #endif
 
-		// For now, only heterosexual relationships are considered	
-
 		Person::Gender personGender = pPerson->getGender();
-
-		int intPos = 0;
-		int cellPos = 0;
-		while (intPos < interests.size() && cellPos < cells.size())
 		{
-			CoarseMapCell *pCell = cells[cellPos];
-			cellPos++;
+			// First we consider heterosexual relationships
 
-			vector<Person *> &people = pCell->m_personsInCell;
-			int interestsLeft = interests.size() - intPos;
-
-			// For now we'll either add the entire cell or as many people as are still needed
-			// I don't think adding just the first N people will matter (as opposed to choosing
-			// people at random) 
-			for (int i = 0 ; i < people.size() && intPos < interests.size() ; i++)
+			size_t intPos = 0;
+			size_t cellPos = 0;
+			while (intPos < interests.size() && cellPos < cells.size())
 			{
-				Person *pPartner = people[i];
+				CoarseMapCell *pCell = cells[cellPos];
+				cellPos++;
 
-				if (pPartner->getGender() != personGender)
+				vector<Person *> &people = pCell->m_personsInCell;
+				int interestsLeft = interests.size() - intPos;
+
+				// For now we'll either add the entire cell or as many people as are still needed
+				// I don't think adding just the first N people will matter (as opposed to choosing
+				// people at random) 
+				for (size_t i = 0 ; i < people.size() && intPos < interests.size() ; i++)
 				{
-					interests[intPos] = pPartner;
-					intPos++;
+					Person *pPartner = people[i];
+
+					if (pPartner->getGender() != personGender)
+					{
+						interests[intPos] = pPartner;
+						intPos++;
+					}
+				}
+			}
+		}
+
+		// Then we consider MSM
+		// TODO: merge common code with above?
+		if (personGender == Person::Male)
+		{
+			size_t intPos = 0;
+			size_t cellPos = 0;
+			while (intPos < interestsMSM.size() && cellPos < cells.size())
+			{
+				CoarseMapCell *pCell = cells[cellPos];
+				cellPos++;
+
+				vector<Person *> &people = pCell->m_personsInCell;
+				int interestsLeft = interestsMSM.size() - intPos;
+
+				// For now we'll either add the entire cell or as many people as are still needed
+				// I don't think adding just the first N people will matter (as opposed to choosing
+				// people at random) 
+				for (size_t i = 0 ; i < people.size() && intPos < interestsMSM.size() ; i++)
+				{
+					Person *pPartner = people[i];
+
+					// MSM
+					// In principle it's possible that we're interested in ourselves, but this will
+					// be filtered later on. At this point it's important that we set all entries
+					// of the interestsMSM vector
+					if (pPartner->getGender() == Person::Male)
+					{
+						interestsMSM[intPos] = pPartner;
+						intPos++;
+					}
 				}
 			}
 		}
@@ -478,7 +627,8 @@ JSONConfig populationJSONConfig(R"JSON(
                 ["population.numwomen", 100],
                 ["population.simtime", 15],
                 ["population.maxevents", -1],
-                ["population.agedistfile", "${SIMPACT_DATA_DIR}sa_2003.csv"] ],
+                ["population.agedistfile", "${SIMPACT_DATA_DIR}sa_2003.csv"],
+				["population.msm", "no" ] ],
             "info": [
                 "By default, the 'maxevents' parameter is negative, causing it to be",
                 "ignored. Set this to a positive value to make sure the simulation stops",

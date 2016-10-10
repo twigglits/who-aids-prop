@@ -18,7 +18,7 @@ EventAIDSMortality::~EventAIDSMortality()
 string EventAIDSMortality::getDescription(double tNow) const
 {
 	Person *pPerson = getPerson(0);
-	return strprintf("AIDS death of %s (current age %g, in treatment: %d)", pPerson->getName().c_str(), pPerson->getAgeAt(tNow), (int)pPerson->hasLoweredViralLoad());
+	return strprintf("AIDS death of %s (current age %g, in treatment: %d)", pPerson->getName().c_str(), pPerson->getAgeAt(tNow), (int)pPerson->hiv().hasLoweredViralLoad());
 }
 
 void EventAIDSMortality::writeLogs(const SimpactPopulation &pop, double tNow) const
@@ -26,18 +26,17 @@ void EventAIDSMortality::writeLogs(const SimpactPopulation &pop, double tNow) co
 	Person *pPerson = getPerson(0);
 	writeEventLogStart(false, "aidsmortality", tNow, pPerson, 0);
 
-	LogEvent.print(",intreatment,%d", (int)pPerson->hasLoweredViralLoad());
+	LogEvent.print(",intreatment,%d", (int)pPerson->hiv().hasLoweredViralLoad());
 }
 
 double EventAIDSMortality::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	Person *pPerson = getPerson(0);
 
-	assert(pPerson->isInfected());
-	assert(!pPerson->hasLoweredViralLoad());
+	assert(pPerson->hiv().isInfected());
+	assert(!pPerson->hiv().hasLoweredViralLoad());
 
-	double expectedTimeOfDeath = pPerson->getAIDSMortalityTime();
+	double expectedTimeOfDeath = pPerson->hiv().getAIDSMortalityTime();
 
 	m_eventHelper.setFireTime(expectedTimeOfDeath);
 	return m_eventHelper.getNewInternalTimeDifference(pRndGen, pState);
@@ -61,9 +60,9 @@ double EventAIDSMortality::solveForRealTimeInterval(const State *pState, double 
 void EventAIDSMortality::checkFireTime(double t0)
 {
 	Person *pPerson = getPerson(0);
-	assert(pPerson->isInfected());
+	assert(pPerson->hiv().isInfected());
 
-	double expectedTimeOfDeath = pPerson->getAIDSMortalityTime();
+	double expectedTimeOfDeath = pPerson->hiv().getAIDSMortalityTime();
 	double scheduledFireTime = m_eventHelper.getFireTime();
 
 	assert(expectedTimeOfDeath > t0);
@@ -83,15 +82,17 @@ void EventAIDSMortality::fire(Algorithm *pAlgorithm, State *pState, double t)
 	// time, and it's possible that the mortality fires before this is done)
 	//assert(pPerson->getInfectionStage() == Person::AIDSFinal); // Should be in final aids stage by now
 
-	double expectedTimeOfDeath = pPerson->getAIDSMortalityTime();
-
+#ifndef NDEBUG
+	double expectedTimeOfDeath = pPerson->hiv().getAIDSMortalityTime();
 	assert(std::abs(expectedTimeOfDeath - t) < 1e-8);
+#endif // NDEBUG
+
 	m_eventHelper.checkFireTime(t);
 
 	// Note that we need to call this after the previous check, otherwise the person will
 	// already have been marked as deceased
 	EventMortalityBase::fire(pAlgorithm, pState, t);
-	pPerson->markAIDSDeath(); // The person already needs to be marked as deceased
+	pPerson->hiv().markAIDSDeath(); // The person already needs to be marked as deceased
 }
 
 void EventAIDSMortality::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)

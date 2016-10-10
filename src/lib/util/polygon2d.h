@@ -30,7 +30,7 @@ inline bool_t Polygon2D::init(const std::vector<double> &xCoords, const std::vec
 
 	std::vector<std::pair<double,double> > points(xCoords.size());
 
-	for (int i = 0 ; i < xCoords.size() ; i++)
+	for (size_t i = 0 ; i < xCoords.size() ; i++)
 		points[i] = std::pair<double, double>(xCoords[i], yCoords[i]);
 
 	return init(points);
@@ -41,7 +41,7 @@ inline bool_t Polygon2D::init(const std::vector<std::pair<double, double> > &poi
 	if (points.size() < 3)
 	    return "Too few points to be a polygon";
 
-	m_numCoords = points.size();
+	m_numCoords = (int)points.size();
 	m_xyCoords.resize(m_numCoords+1);
 
 	for (int i = 0 ; i < m_numCoords ; i++)

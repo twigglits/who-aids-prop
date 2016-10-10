@@ -5,10 +5,13 @@
 #include <cmath>
 #include <stdlib.h>
 
-DiscreteDistribution::DiscreteDistribution(std::vector<double> &binStarts,
-		                           std::vector<double> &histValues, 
+DiscreteDistribution::DiscreteDistribution(const std::vector<double> &binStarts,
+		                           const std::vector<double> &histValues, 
+								   bool floor,
 		                           GslRandomNumberGenerator *pRndGen) : ProbabilityDistribution(pRndGen)
 {
+	m_floor = floor;
+
 	m_histSums.resize(histValues.size());
 	m_binStarts.resize(binStarts.size() + 1); // allocate one more for the start of the next one
 
@@ -18,7 +21,7 @@ DiscreteDistribution::DiscreteDistribution(std::vector<double> &binStarts,
 		abortWithMessage("DiscreteDistribution: last value should be nearly zero, but is " + doubleToString(lastValue));
 
 	double sum = 0;
-	for (int i = 0 ; i < histValues.size() ; i++)
+	for (size_t i = 0 ; i < histValues.size() ; i++)
 	{
 		sum += histValues[i];
 		m_histSums[i] = sum;
@@ -28,7 +31,7 @@ DiscreteDistribution::DiscreteDistribution(std::vector<double> &binStarts,
 	int lastPos = histValues.size() - 1;
 	m_binStarts[lastPos+1] = binStarts[lastPos] + (binStarts[lastPos] - binStarts[lastPos-1]); 
 
-	for (int i = 0 ; i < histValues.size() ; i++)
+	for (size_t i = 0 ; i < histValues.size() ; i++)
 	{
 		// Check that the bin start values are ascending
 		if (!(m_binStarts[i+1] > m_binStarts[i]))
@@ -49,11 +52,11 @@ double DiscreteDistribution::pickNumber() const
 	double r = getRandomNumberGenerator()->pickRandomDouble() * m_totalSum;
 	int foundBin = -1;
 
-	for (int i = 0 ; i < m_histSums.size() ; i++)
+	for (size_t i = 0 ; i < m_histSums.size() ; i++)
 	{
-		if (r < m_histSums[i] || i == m_histSums.size()-1)
+		if (r < m_histSums[i] || i+1 == m_histSums.size())
 		{
-			foundBin = i;
+			foundBin = (int)i;
 			break;
 		}
 	}
@@ -72,6 +75,10 @@ double DiscreteDistribution::pickNumber() const
 		frac = 1.0;
 
 	double binStart = m_binStarts[foundBin];
+
+	if (m_floor)
+		return binStart;
+
 	double binEnd = m_binStarts[foundBin+1]; // we've allocated one position more, so this is ok
 	double binSize = binEnd - binStart;
 

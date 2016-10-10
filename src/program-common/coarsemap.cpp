@@ -128,7 +128,7 @@ CoarseMapCell *CoarseMap::getCell(Person *pPerson, bool canRearrange)
 	assert(x >= 0 && x < m_subDivX && y >= 0 && y < m_subDivY);
 
 	int pos = x+y*m_subDivX;
-	assert(pos >= 0 && pos < m_cells.size());
+	assert(pos >= 0 && pos < (int)m_cells.size());
 
 	return m_cells[pos];
 }

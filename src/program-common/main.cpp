@@ -1,6 +1,7 @@
 #include "gslrandomnumbergenerator.h"
 #include "populationdistributioncsv.h"
 #include "person.h"
+#include "person_relations.h"
 #include "simpactpopulation.h"
 #include "configsettings.h"
 #include "inverseerfi.h"
@@ -70,7 +71,6 @@ int real_main(int argc, char **argv)
 	PopulationDistributionCSV ageDist(&rng);
 	SimpactPopulationConfig populationConfig; // use defaults
 	double tMax = -1;
-	double tStart = 0;
 	int64_t maxEvents = -1;
 
 	if (!(r = configure(config, populationConfig, ageDist, &rng, tMax, maxEvents)))
@@ -118,8 +118,16 @@ int real_main(int argc, char **argv)
 	logInitialLocations(*pPop);
 
 	if (!(r = pPop->run(tMax, maxEvents)))
-		cerr << "# Error running simulation: " << r.getErrorString() << endl;
-	
+	{
+		string reason = r.getErrorString();
+		cerr << "# Error running simulation: " << reason << endl;
+		if (reason.find("NaN") != string::npos)
+			abortWithMessage("NaN detected in internal event time calculation");
+
+		if (reason.find("Check failed") != string::npos)
+			abortWithMessage(reason);
+	}
+
 	cerr << "# Current simulation time is " << pPop->getTime() << endl;
 
 	int numEndPeople = pPop->getNumberOfPeople();
@@ -145,7 +153,7 @@ int real_main(int argc, char **argv)
 
 // Log current, non-dissolved relationships
 // TODO: we only iterate over the men, since relationships are logged in lists of both men and women
-// TODO: this needs to be changed for homosexual relationships
+// TODO: an extra check is done for MSM relations, so that they are not logged twice
 void logOnGoingRelationships(SimpactPopulation &pop)
 {
 	int numMen = pop.getNumberOfMen();
@@ -165,11 +173,20 @@ void logOnGoingRelationships(SimpactPopulation &pop)
 			pPartner = pMan->getNextRelationshipPartner(formationTime);
 			assert(pPartner != 0);
 
-			Person::writeToRelationLog(pMan, pPartner, formationTime, infinity); // infinity for not dissolved yet
+			bool writeToLog = false;
+			if (pPartner->isWoman())
+				writeToLog = true;
+			else if (pPartner->isMan() && pMan->getPersonID() < pPartner->getPersonID())
+				writeToLog = true;
+
+			if (writeToLog)
+				Person_Relations::writeToRelationLog(pMan, pPartner, formationTime, infinity); // infinity for not dissolved yet
 		}
 
+#ifndef NDEBUG
 		double tDummy;
 		assert(pMan->getNextRelationshipPartner(tDummy) == 0); // make sure the iteration is done
+#endif // NDEBUG
 	}
 }	
 
@@ -184,7 +201,7 @@ void logAllPersons(SimpactPopulation &pop)
 		Person *pPerson = ppPersons[i];
 
 		pPerson->writeToPersonLog();
-		if (pPerson->isInfected() && pPerson->hasLoweredViralLoad())
+		if (pPerson->hiv().isInfected() && pPerson->hiv().hasLoweredViralLoad())
 			pPerson->writeToTreatmentLog(infinity, false);
 	}
 

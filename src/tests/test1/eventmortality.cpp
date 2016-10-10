@@ -42,47 +42,16 @@ double EventMortality::getNewInternalTimeDifference(GslRandomNumberGenerator *pR
 	return pRndGen->pickWeibull(scale, shape, ageOffset) - ageOffset; // time left to live
 }
 
-#if 1
-
-// The 'n' in the formation hazard now is just the initial number of persons 
-// and won't change, so we do not need to recalculate every event when
-// someone dies and the number of people changes
-int EventMortality::getNumberOfOtherAffectedPersons() const
+void EventMortality::markOtherAffectedPeople(const PopulationStateInterface &population)
 {
 	Person *pPerson = getPerson(0);
-	return pPerson->getNumberOfRelationships();
-}
-
-void EventMortality::startOtherAffectedPersonIteration()
-{
-	Person *pPerson = getPerson(0);
-	return pPerson->startRelationshipIteration();
-}
-
-PersonBase *EventMortality::getNextOtherAffectedPerson()
-{
-	Person *pPerson = getPerson(0);
+	pPerson->startRelationshipIteration();
 	double t;
 
-	return pPerson->getNextRelationshipPartner(t);
+	Person *pPartner = 0;
+	while ((pPartner = pPerson->getNextRelationshipPartner(t)))
+		population.markAffectedPerson(pPartner);
 }
-#else
-// TODO: since the total number of people is used in the formation event
-//       all formation hazards need to be recalculated
-int EventMortality::getNumberOfOtherAffectedPersons() const
-{
-	return -1; // We're using this to recalculate everyone's events
-}
-
-void EventMortality::startOtherAffectedPersonIteration()
-{
-}
-
-PersonBase *EventMortality::getNextOtherAffectedPerson()
-{
-	return 0;
-}
-#endif
 
 std::string EventMortality::getDescription(double tNow) const
 {
@@ -120,8 +89,10 @@ void EventMortality::fire(Algorithm *pAlgorithm, State *pState, double t)
 		std::cout << t << "\tDeath based dissolution between " << pPerson->getName() << " and " << pPartner->getName() << " (formed " << t-formationTime << " ago)" << std::endl;
 	}
 
+#ifndef NDEBUG
 	double tDummy;
 	assert(pPerson->getNextRelationshipPartner(tDummy) == 0); // make sure the iteration is done
+#endif // NDEBUG
 
 	population.setPersonDied(pPerson);
 }

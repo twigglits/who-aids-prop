@@ -37,8 +37,8 @@ bool_t PopulationDistributionCSV::load(const std::string &csvFileName)
 
 	clear();
 
-	m_pMaleDist = new DiscreteDistribution(binStarts, maleValues, getRandomNumberGenerator());
-	m_pFemaleDist = new DiscreteDistribution(binStarts, femaleValues, getRandomNumberGenerator());
+	m_pMaleDist = new DiscreteDistribution(binStarts, maleValues, false, getRandomNumberGenerator());
+	m_pFemaleDist = new DiscreteDistribution(binStarts, femaleValues, false, getRandomNumberGenerator());
 
 	return true;
 }

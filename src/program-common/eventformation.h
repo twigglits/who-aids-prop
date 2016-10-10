@@ -25,6 +25,8 @@ public:
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
 protected:
+	static EvtHazard *getHazard(ConfigSettings &config, const std::string &prefix, bool msm);
+
 	double calculateInternalTimeInterval(const State *pState, double t0, double dt);
 	double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);
 	bool isUseless(const PopulationStateInterface &population) override;
@@ -33,6 +35,7 @@ protected:
 	const double m_formationScheduleTime;
 
 	static EvtHazard *m_pHazard;
+	static EvtHazard *m_pHazardMSM;
 };
 
 #endif // EVENTFORMATION_H

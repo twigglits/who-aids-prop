@@ -18,6 +18,18 @@ private:
 	omp_lock_t m_lock;
 };
 
+#else
+
+class Mutex
+{
+public:
+	Mutex() { }
+	~Mutex() { }
+
+	void lock()	{ }
+	void unlock() { }
+};
+
 #endif // !DISABLEOPENMP
 
 #endif // MUTEX_H

@@ -11,6 +11,10 @@
 #include "populationevent.h"
 #include <assert.h>
 
+#ifdef STATE_SHOW_EVENTS
+#include <iostream>
+#endif // STATE_SHOW_EVENTS
+
 class GslRandomNumberGenerator;
 class PersonBase;
 class PopulationEvent;
@@ -62,7 +66,7 @@ private:
 	const std::vector<EventBase *> &getCurrentEvents() const					{ return m_allEvents; }
 	void onFiredEvent(EventBase *pEvt, int position);
 	int64_t getNextEventID();
-	void onAboutToFire(EventBase *pEvt)												{ if (m_pOnAboutToFire) m_pOnAboutToFire->onAboutToFire(static_cast<PopulationEvent *>(pEvt)); }
+	void onAboutToFire(EventBase *pEvt);
 
 	std::vector<EventBase *> m_allEvents;
 	PopulationStateSimple &m_popState;
@@ -86,6 +90,16 @@ inline int64_t PopulationAlgorithmSimple::getNextEventID()
 {
 	int64_t id = m_nextEventID++;
 	return id;
+}
+
+inline void PopulationAlgorithmSimple::onAboutToFire(EventBase *pEvt)												
+{ 
+#ifdef STATE_SHOW_EVENTS
+	std::cerr << getTime() << "\t" << static_cast<PopulationEvent *>(pEvt)->getDescription(getTime()) << std::endl;
+#endif // STATE_SHOW_EVENTS
+
+	if (m_pOnAboutToFire) 
+		m_pOnAboutToFire->onAboutToFire(static_cast<PopulationEvent *>(pEvt)); 
 }
 
 #endif // POPULATIONALGORITHMSIMPLE_H

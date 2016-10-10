@@ -17,7 +17,7 @@ AIDSTimeOfDeathUtility::~AIDSTimeOfDeathUtility()
 
 void AIDSTimeOfDeathUtility::changeTimeOfDeath(double currentTime, const Person *pPerson)
 {
-	assert(pPerson && pPerson->isInfected());
+	assert(pPerson && pPerson->hiv().isInfected());
 	double survivalTime = EventAIDSMortality::getExpectedSurvivalTime(pPerson);
 	double newHazard = 1.0/survivalTime;
 

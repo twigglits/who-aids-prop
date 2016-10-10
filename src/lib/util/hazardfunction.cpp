@@ -1,4 +1,5 @@
 #include "hazardfunction.h"
+#include "util.h"
 #include <gsl/gsl_integration.h>
 #include <assert.h>
 
@@ -35,6 +36,9 @@ double HazardFunction::integrateNumerically(double t0, double dt)
 	size_t nevals = 0;
 
 	int status = gsl_integration_cquad(&F, t0, t0+dt, 0, 1e-10, pWorkspace, &result, &err, &nevals);
+	if (status != 0)
+		abortWithMessage("Unable to evaluate integral using gsl_integration_cquad");
+
 	gsl_integration_cquad_workspace_free(pWorkspace);
 
 	assert(status == 0);

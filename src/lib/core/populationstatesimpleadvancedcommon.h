@@ -14,7 +14,7 @@ public:
 	PopulationStateSimpleAdvancedCommon();
 	~PopulationStateSimpleAdvancedCommon();
 
-	PersonBase **getAllPeople()										{ if (m_people.size() == m_numGlobalDummies) return 0; return &(m_people[m_numGlobalDummies]); }
+	PersonBase **getAllPeople()										{ if ((int)m_people.size() <= m_numGlobalDummies) return 0; return &(m_people[m_numGlobalDummies]); }
 	PersonBase **getMen();
 	PersonBase **getWomen();
 	PersonBase **getDeceasedPeople()								{ if (m_deceasedPersons.size() == 0) return 0; return &(m_deceasedPersons[0]); }

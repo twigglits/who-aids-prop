@@ -80,7 +80,7 @@ bool ReadInputLine(FILE *fi, string &line)
 
 bool HasCharacter(const string &charList, char c)
 {
-	for (int i = 0 ; i < charList.length() ; i++)
+	for (size_t i = 0 ; i < charList.length() ; i++)
 	{
 		if (c == charList[i])
 			return true;
@@ -92,7 +92,7 @@ void SplitLine(const string &line, vector<string> &args, const string &separator
 	       const string &quoteChars, const string &commentStartChars, bool ignoreZeroLengthFields)
 {
 	vector<string> arguments;
-	int startPos = 0;
+	size_t startPos = 0;
 
 	while (startPos < line.length() && HasCharacter(separatorChars, line[startPos]))
 	{
@@ -113,7 +113,7 @@ void SplitLine(const string &line, vector<string> &args, const string &separator
 
 	while (startPos < line.length() && !done)
 	{
-		int endPos = startPos;
+		size_t endPos = startPos;
 		bool endFound = false;
 		bool gotSeparator = false;
 
@@ -199,7 +199,7 @@ string trim(const string &str, const string &trimChars)
 		return "";
 
 	bool foundStart = false;
-	int startIdx = 0;
+	size_t startIdx = 0;
 
 	while (startIdx < str.length() && !foundStart)
 	{
@@ -383,4 +383,20 @@ string replace(const string &input, const string &target, const string &replacem
 	return result;
 }
 
+string doublesToString(const vector<double> &values)
+{
+	string result;
+
+	if (values.size() > 0)
+	{
+		result += doubleToString(values[0]);
+		for (size_t i = 1 ; i < values.size() ; i++)
+		{
+			result += ",";
+			result += doubleToString(values[i]);
+		}
+	}
+
+	return result;
+}
 

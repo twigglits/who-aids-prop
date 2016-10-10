@@ -28,8 +28,6 @@ void EventSyncReferenceYear::fire(Algorithm *pAlgorithm, State *pState, double t
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	population.setReferenceYear(t);
 
-	double lastTime = 0;
-
 	if (isEnabled())
 	{
 		EventSyncReferenceYear *pEvt = new EventSyncReferenceYear();

@@ -12,7 +12,8 @@ class ConfigSettings;
 class EvtHazardFormationAgeGapRefYear : public EvtHazard
 {
 public:
-	EvtHazardFormationAgeGapRefYear(double a0, double a1, double a2, double a3, double a4, double a6,
+	EvtHazardFormationAgeGapRefYear(const std::string &hazName, bool msm,
+	               double a0, double a1, double a2, double a3, double a4, double a6,
 			       double a7, double a8, double a10, double aDist,
 				   double agfmConst, double agfmExp, double agfmAge,
 				   double agfwConst, double agfwExp, double agfwAge,
@@ -26,8 +27,8 @@ public:
 	double solveForRealTimeInterval(const SimpactPopulation &population,
 			                const SimpactEvent &event, double Tdiff, double t0);
 
-	static EvtHazard *processConfig(ConfigSettings &config);
-	void obtainConfig(ConfigWriter &writer);
+	static EvtHazard *processConfig(ConfigSettings &config, const std::string &prefix, const std::string &hazName, bool msm);
+	void obtainConfig(ConfigWriter &writer, const std::string &prefix);
 private:
 	double getA0(const SimpactPopulation &population, Person *pPerson1, Person *pPerson2);
 	double getTr(const SimpactPopulation &population, Person *pPerson1, Person *pPerson2, double t0, double lastDissTime);
@@ -57,6 +58,8 @@ private:
 	double m_b;		// last_change_factor
 	double m_tMax;		
 	double m_tMaxAgeRefDiff;
+
+	bool m_msm;
 };
 
 #endif // EVTHAZARDFORMATIONAGEGAPREFYEAR_H

@@ -37,7 +37,7 @@ inline double DiscreteFunction::getFunctionValueFixedBinWidth(double x) const
 
 	if (pos1 < 0)
 		pos1 = 0;
-	else if (pos1 >= m_yValues.size()-1)
+	else if (pos1 >= (int)m_yValues.size() - 1)
 		pos1 = m_yValues.size()-2;
 
 	int pos2 = pos1+1;

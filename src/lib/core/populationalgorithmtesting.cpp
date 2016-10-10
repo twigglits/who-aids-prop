@@ -74,15 +74,14 @@ void PopulationAlgorithmTesting::onAlgorithmLoop(bool finished)
 	if (m_eventsToRemove.size() < 10000) // Don't do this too often?
 		return;
 
-	for (int i = 0 ; i < m_eventsToRemove.size() ; i++)
+	for (size_t i = 0 ; i < m_eventsToRemove.size() ; i++)
 	{
 #ifdef POPULATIONEVENT_FAKEDELETE
 		static_cast<PopulationEvent *>(m_eventsToRemove[i])->setDeleted();
 #else
- 		delete m_eventsToRemove[i];
+		delete m_eventsToRemove[i];
 #endif // POPULATIONEVENT_FAKEDELETE
 	}
-
 	m_eventsToRemove.resize(0);
 }
 
@@ -111,7 +110,7 @@ bool_t PopulationAlgorithmTesting::getNextScheduledEvent(double &dt, EventBase *
 #endif // ALGORITHM_DEBUG_TIMER
 
 	assert(!m_parallel);
-	for (int i = 0 ; i < m_people.size() ; i++)
+	for (size_t i = 0 ; i < m_people.size() ; i++)
 		personalEventList(m_people[i])->processUnsortedEvents(*this, m_popState, curTime);
 
 	// TODO: can this be done in a faster way? 
@@ -261,7 +260,7 @@ PopulationEvent *PopulationAlgorithmTesting::getEarliestEvent(const std::vector<
 	double bestTime = -1;
 
 	assert(!m_parallel);
-	for (int i = 0 ; i < people.size() ; i++)
+	for (size_t i = 0 ; i < people.size() ; i++)
 	{
 		PopulationEvent *pFirstEvent = personalEventList(people[i])->getEarliestEvent();
 
@@ -291,7 +290,7 @@ void PopulationAlgorithmTesting::onNewEvent(PopulationEvent *pEvt)
 	assert(pEvt != 0);
 	assert(pEvt->getEventID() < 0);
 
-	int id = getNextEventID();
+	int64_t id = getNextEventID();
 	pEvt->setEventID(id);
 
 	assert(!pEvt->isInitialized());
@@ -350,7 +349,7 @@ void PopulationAlgorithmTesting::showEvents()
 	}
 
 	for (it = m.begin() ; it != m.end() ; it++)
-		std::cout << "   " << it->first << " -> " << it->second->getEventTime() << "," << it->second->getDescription(0) << std::endl;
+		std::cout << "   " << it->first << "(" << (void*)it->second << ") -> " << it->second->getEventTime() << "," << it->second->getDescription(0) << std::endl;
 }
 #endif // ALGORITHM_SHOW_EVENTS
 

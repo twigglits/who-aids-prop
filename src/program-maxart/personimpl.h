@@ -9,7 +9,7 @@ class PersonImpl
 public:
 	PersonImpl(Person &p);
 	~PersonImpl();
-private:
+protected:
 	Person &m_person;
 };
 

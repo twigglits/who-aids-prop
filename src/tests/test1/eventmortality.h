@@ -12,10 +12,7 @@ public:
 	~EventMortality();
 
 	std::string getDescription(double tNow) const;
-
-	int getNumberOfOtherAffectedPersons() const;
-	void startOtherAffectedPersonIteration();
-	PersonBase *getNextOtherAffectedPerson();
+	void markOtherAffectedPeople(const PopulationStateInterface &population);
 
 	void fire(Algorithm *pAlgorithm, State *pState, double t);
 private:

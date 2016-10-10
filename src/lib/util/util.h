@@ -25,6 +25,7 @@ bool parseAsInt(const std::string &str, int64_t &number);
 bool parseAsDouble(const std::string &str, double &number);
 bool parseAsDoubleVector(const std::string &str, std::vector<double> &numbers, std::string &badField);
 std::string doubleToString(double x);
+std::string doublesToString(const std::vector<double> &values);
 std::string intToString(int x);
 std::string intToString(int64_t x);
 std::string stringToString(const std::string &str);
@@ -82,6 +83,26 @@ inline std::string intToString(int64_t x)
 inline std::string stringToString(const std::string &str)
 {
 	return str;
+}
+
+inline bool endsWith(const std::string &value, const std::string &ending, bool ignoreCase = false)
+{
+	    if (ending.size() > value.size()) 
+			return false;
+
+		if (!ignoreCase)
+			return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+
+		auto it1 = ending.rbegin();
+		auto it1end = ending.rend();
+		auto it2 = value.rbegin();
+
+		for ( ; it1 != it1end ; ++it1, ++it2)
+		{
+			if (tolower(*it1) != tolower(*it2))
+				return false;
+		}
+		return true;
 }
 
 #endif // UTIL_H

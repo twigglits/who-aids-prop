@@ -183,7 +183,7 @@ void Facilities::processConfig(ConfigSettings &config, GslRandomNumberGenerator 
 				abortWithMessage("Should be 3 columns in CSV file " + coordsFile);
 			
 			string facilityName = trim(parts[0]);
-			double x, y;
+			double x = 0, y = 0;
 
 			if (!parseAsDouble(parts[1], y) || !parseAsDouble(parts[2], x))
 				abortWithMessage("Can't interpret '" + parts[1] + "' or '" + parts[2] + "' as a number in file " + coordsFile);
@@ -195,7 +195,7 @@ void Facilities::processConfig(ConfigSettings &config, GslRandomNumberGenerator 
 			if (std::abs(y - s_startLattitude) > 3.0 || std::abs(x - s_startLongitude) > 3.0 * std::cos(toRad(s_startLattitude)))
 				abortWithMessage("Coordinates '" + parts[1] + "' or '" + parts[2] + "' lie too far from start coordinates for flat approximation to work in file " + coordsFile);
 
-			double X, Y;
+			double X = 0, Y = 0;
 
 			if (s_corner == "top")
 			{

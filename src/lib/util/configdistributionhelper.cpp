@@ -9,7 +9,10 @@
 #include "uniformdistribution2d.h"
 #include "binormaldistribution.h"
 #include "discretedistribution2d.h"
+#include "discretedistributionwrapper.h"
+#include "discretedistributionwrapper2d.h"
 #include "tiffdensityfile.h"
+#include "csvfile.h"
 #include "configsettings.h"
 #include "configwriter.h"
 #include "jsonconfig.h"
@@ -31,6 +34,9 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	supportedDistributions.push_back("lognormal");
 	supportedDistributions.push_back("normal");
 	supportedDistributions.push_back("exponential");
+	supportedDistributions.push_back("discrete.csv.onecol");
+	supportedDistributions.push_back("discrete.csv.twocol");
+	supportedDistributions.push_back("discrete.inline");
 	
 	if (!(r = config.getKeyValue(prefix + ".dist.type", distName, supportedDistributions)))
 		abortWithMessage(r.getErrorString());
@@ -38,7 +44,7 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	ProbabilityDistribution *pDist = 0;
 	if (distName == "fixed")
 	{
-		double value;
+		double value = 0;
 
 		if (!(r = config.getKeyValue(prefix + ".dist.fixed.value", value)))
 			abortWithMessage(r.getErrorString());
@@ -47,7 +53,7 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	}
 	else if (distName == "uniform")
 	{
-		double minValue, maxValue;
+		double minValue = 0, maxValue = 0;
 
 		if (!(r = config.getKeyValue(prefix + ".dist.uniform.min", minValue)) ||
 		    !(r = config.getKeyValue(prefix + ".dist.uniform.max", maxValue, minValue)) )
@@ -57,7 +63,7 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	}
 	else if (distName == "beta")
 	{
-		double a, b, minVal, maxVal;
+		double a = 0, b = 0, minVal = 0, maxVal = 0;
 
 		if (!(r = config.getKeyValue(prefix + ".dist.beta.a", a)) ||
 		    !(r = config.getKeyValue(prefix + ".dist.beta.b", b)) ||
@@ -69,7 +75,7 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	}
 	else if (distName == "gamma")
 	{
-		double a, b;
+		double a = 0, b = 0;
 
 		if (!(r = config.getKeyValue(prefix + ".dist.gamma.a", a)) ||
 		    !(r = config.getKeyValue(prefix + ".dist.gamma.b", b)) )
@@ -79,7 +85,7 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	}
 	else if (distName == "lognormal")
 	{
-		double zeta, sigma;
+		double zeta = 0, sigma = 0;
 
 		if (!(r = config.getKeyValue(prefix + ".dist.lognormal.zeta", zeta)) ||
 		    !(r = config.getKeyValue(prefix + ".dist.lognormal.sigma", sigma, 0)) )
@@ -89,7 +95,7 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	}
 	else if (distName == "normal")
 	{
-		double mu, sigma, minValue, maxValue;
+		double mu = 0, sigma = 0, minValue = 0, maxValue = 0;
 
 		if (!(r = config.getKeyValue(prefix + ".dist.normal.mu", mu)) ||
 		    !(r = config.getKeyValue(prefix + ".dist.normal.sigma", sigma, 0)) ||
@@ -102,12 +108,68 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	}
 	else if (distName == "exponential")
 	{
-		double lambda;
+		double lambda = 0;
 
 		if (!(r = config.getKeyValue(prefix + ".dist.exponential.lambda", lambda, 0)))
 			abortWithMessage(r.getErrorString());
 
 		pDist = new ExponentialDistribution(lambda, pRndGen);
+	}
+	else if (distName == "discrete.csv.onecol")
+	{
+		string fileName;
+		double xMin = 0, xMax = 0;
+		int yCol = 0;
+		bool floor = false;
+
+		if (!(r = config.getKeyValue(prefix + ".dist.discrete.csv.onecol.file", fileName)) ||
+			!(r = config.getKeyValue(prefix + ".dist.discrete.csv.onecol.xmin", xMin)) ||
+			!(r = config.getKeyValue(prefix + ".dist.discrete.csv.onecol.xmax", xMax, xMin)) ||
+			!(r = config.getKeyValue(prefix + ".dist.discrete.csv.onecol.ycolumn", yCol, 1)) ||
+			!(r = config.getKeyValue(prefix + ".dist.discrete.csv.onecol.floor", floor)) )
+			abortWithMessage(r.getErrorString());
+
+		DiscreteDistributionWrapper *pDist0 = new DiscreteDistributionWrapper(pRndGen);
+		pDist = pDist0;
+
+		if (!(r = pDist0->init(fileName, xMin, xMax, yCol, floor)))
+			abortWithMessage("Unable to initialize 1D distribution for " + prefix + ": " + r.getErrorString());
+	}
+	else if (distName == "discrete.csv.twocol")
+	{
+		string fileName;
+		int xCol = 0, yCol = 0;
+		bool floor = false;
+
+		if (!(r = config.getKeyValue(prefix + ".dist.discrete.csv.twocol.file", fileName)) ||
+			!(r = config.getKeyValue(prefix + ".dist.discrete.csv.twocol.xcolumn", xCol, 1)) ||
+			!(r = config.getKeyValue(prefix + ".dist.discrete.csv.twocol.ycolumn", yCol, 1)) ||
+			!(r = config.getKeyValue(prefix + ".dist.discrete.csv.twocol.floor", floor)) 
+			)
+			abortWithMessage(r.getErrorString());
+
+		DiscreteDistributionWrapper *pDist0 = new DiscreteDistributionWrapper(pRndGen);
+		pDist = pDist0;
+
+		if (!(r = pDist0->init(fileName, xCol, yCol, floor)))
+			abortWithMessage("Unable to initialize 1D distribution for " + prefix + ": " + r.getErrorString());
+	}
+	else if (distName == "discrete.inline")
+	{
+		vector<double> xValues;
+		vector<double> yValues;
+		bool floor = false;
+
+		if (!(r = config.getKeyValue(prefix + ".dist.discrete.inline.xvalues", xValues)) ||
+			!(r = config.getKeyValue(prefix + ".dist.discrete.inline.yvalues", yValues, 0)) ||
+			!(r = config.getKeyValue(prefix + ".dist.discrete.inline.floor", floor)) )
+			abortWithMessage(r.getErrorString());
+
+		DiscreteDistributionWrapper *pDist0 = new DiscreteDistributionWrapper(pRndGen);
+		pDist = pDist0;
+
+		if (!(r = pDist0->init(xValues, yValues, floor)))
+			abortWithMessage("Unable to initialize 1D distribution for " + prefix + ": " + r.getErrorString());
 	}
 	else
 		abortWithMessage("ERROR: unknown distribution name for " + prefix + ".dist.type:" + distName);
@@ -228,6 +290,50 @@ void addDistributionToConfig(ProbabilityDistribution *pSrcDist, ConfigWriter &co
 		}
 	}
 
+	// Just some curly braces to limite the name scope
+	{
+		DiscreteDistributionWrapper *pDist = 0;
+		if ((pDist = dynamic_cast<DiscreteDistributionWrapper *>(pSrcDist)) != 0)
+		{
+			int xCol = pDist->getXCol();
+			int yCol = pDist->getYCol();
+			bool floor = pDist->getFloor();
+
+			if (xCol < 0 && yCol < 0) // inline
+			{
+				string xValueStr = doublesToString(pDist->getXValues());
+				string yValueStr = doublesToString(pDist->getYValues());
+
+				if (!(r = config.addKey(prefix + ".dist.type", "discrete.inline")) ||
+					!(r = config.addKey(prefix + ".dist.discrete.inline.xvalues", xValueStr)) ||
+					!(r = config.addKey(prefix + ".dist.discrete.inline.yvalues", yValueStr)) ||
+					!(r = config.addKey(prefix + ".dist.discrete.inline.floor", floor)) )
+					abortWithMessage(r.getErrorString());
+			}
+			else if (yCol > 0 && xCol < 0) // CSV, one column
+			{
+				if (!(r = config.addKey(prefix + ".dist.type", "discrete.csv.onecol")) ||
+					!(r = config.addKey(prefix + ".dist.discrete.csv.onecol.file", pDist->getFileName())) ||
+					!(r = config.addKey(prefix + ".dist.discrete.csv.onecol.xmin", pDist->getXMin())) ||
+					!(r = config.addKey(prefix + ".dist.discrete.csv.onecol.xmax", pDist->getXMax())) ||
+					!(r = config.addKey(prefix + ".dist.discrete.csv.onecol.ycolumn", yCol)) ||
+					!(r = config.addKey(prefix + ".dist.discrete.csv.onecol.floor", floor)) )
+					abortWithMessage(r.getErrorString());
+			}
+			else // CSV, two columns
+			{
+				if (!(r = config.addKey(prefix + ".dist.type", "discrete.csv.twocol")) ||
+					!(r = config.addKey(prefix + ".dist.discrete.csv.twocol.file", pDist->getFileName())) ||
+					!(r = config.addKey(prefix + ".dist.discrete.csv.twocol.xcolumn", xCol)) ||
+					!(r = config.addKey(prefix + ".dist.discrete.csv.twocol.ycolumn", yCol)) ||
+					!(r = config.addKey(prefix + ".dist.discrete.csv.twocol.floor", floor)) )
+					abortWithMessage(r.getErrorString());
+			}
+
+			return;
+		}
+	}
+
 	abortWithMessage("addDistributionToConfig: specified unknown distribution!");
 }
 
@@ -250,7 +356,7 @@ ProbabilityDistribution2D *getDistribution2DFromConfig(ConfigSettings &config, G
 	ProbabilityDistribution2D *pDist = 0;
 	if (distName == "fixed")
 	{
-		double xvalue, yvalue;
+		double xvalue = 0, yvalue = 0;
 
 		if (!(r = config.getKeyValue(prefix + ".dist2d.fixed.xvalue", xvalue)) ||
 		    !(r = config.getKeyValue(prefix + ".dist2d.fixed.yvalue", yvalue)) )
@@ -260,8 +366,8 @@ ProbabilityDistribution2D *getDistribution2DFromConfig(ConfigSettings &config, G
 	}
 	else if (distName == "uniform")
 	{
-		double minXValue, maxXValue;
-		double minYValue, maxYValue;
+		double minXValue = 0, maxXValue = 0;
+		double minYValue = 0, maxYValue = 0;
 
 		if (!(r = config.getKeyValue(prefix + ".dist2d.uniform.xmin", minXValue)) ||
 		    !(r = config.getKeyValue(prefix + ".dist2d.uniform.xmax", maxXValue, minXValue)) ||
@@ -273,9 +379,9 @@ ProbabilityDistribution2D *getDistribution2DFromConfig(ConfigSettings &config, G
 	}
 	else if (distName == "binormal")
 	{
-		double xMean, xSigma, xMin, xMax;
-		double yMean, ySigma, yMin, yMax;
-		double rho;
+		double xMean = 0, xSigma = 0, xMin = 0, xMax = 0;
+		double yMean = 0, ySigma = 0, yMin = 0, yMax = 0;
+		double rho = 0;
 
 		if (!(r = config.getKeyValue(prefix + ".dist2d.binormal.meanx", xMean)) ||
 		    !(r = config.getKeyValue(prefix + ".dist2d.binormal.meany", yMean)) ||
@@ -293,8 +399,8 @@ ProbabilityDistribution2D *getDistribution2DFromConfig(ConfigSettings &config, G
 	}
 	else if (distName == "binormalsymm")
 	{
-		double xMean, xSigma, xMin, xMax;
-		double rho;
+		double xMean = 0, xSigma = 0, xMin = 0, xMax = 0;
+		double rho = 0;
 
 		if (!(r = config.getKeyValue(prefix + ".dist2d.binormalsymm.mean", xMean)) ||
 		    !(r = config.getKeyValue(prefix + ".dist2d.binormalsymm.sigma", xSigma)) ||
@@ -308,50 +414,26 @@ ProbabilityDistribution2D *getDistribution2DFromConfig(ConfigSettings &config, G
 	}
 	else if (distName == "discrete")
 	{
-		string tiffFileName, maskFileName;
-		double xOffset, yOffset, width, height;
-		bool flipy;
+		string densFileName, maskFileName;
+		double xOffset = 0, yOffset = 0, width = 0, height = 0;
+		bool flipy = false, floor = false;
 
-		if (!(r = config.getKeyValue(prefix + ".dist2d.discrete.densfile", tiffFileName)) ||
+		if (!(r = config.getKeyValue(prefix + ".dist2d.discrete.densfile", densFileName)) ||
 		    !(r = config.getKeyValue(prefix + ".dist2d.discrete.maskfile", maskFileName)) ||
 		    !(r = config.getKeyValue(prefix + ".dist2d.discrete.xoffset", xOffset)) ||
 		    !(r = config.getKeyValue(prefix + ".dist2d.discrete.yoffset", yOffset)) ||
 		    !(r = config.getKeyValue(prefix + ".dist2d.discrete.width", width)) ||
 		    !(r = config.getKeyValue(prefix + ".dist2d.discrete.height", height)) ||
-		    !(r = config.getKeyValue(prefix + ".dist2d.discrete.flipy", flipy))
+		    !(r = config.getKeyValue(prefix + ".dist2d.discrete.flipy", flipy)) ||
+			!(r = config.getKeyValue(prefix + ".dist2d.discrete.floor", floor)) 
 		   )
 			abortWithMessage(r.getErrorString());
 
-		TIFFDensityFile tiffFile;
+		DiscreteDistributionWrapper2D *pDist0 = new DiscreteDistributionWrapper2D(pRndGen);
+		pDist = pDist0;
 
-		if (!(r = tiffFile.init(tiffFileName, true, flipy)))
-			abortWithMessage("Unable to read specified TIFF density file: " + r.getErrorString());
-
-		if (maskFileName.length() > 0) // A mask file was specified
-		{
-			TIFFDensityFile maskFile;
-
-			if (!(r = maskFile.init(maskFileName, false, flipy)))
-				abortWithMessage("Unable to read specified TIFF mask file: " + r.getErrorString());
-
-			int w = tiffFile.getWidth();
-			int h = tiffFile.getHeight();
-
-			if (!(maskFile.getWidth() == w && maskFile.getHeight() == h))
-				abortWithMessage("Dimensions of density file '" + tiffFileName + "' and mask file '" + maskFileName + "' don't match");
-
-			for (int y = 0 ; y < h ; y++)
-			{
-				for (int x = 0 ; x < w ; x++)
-				{
-					double maskVal = maskFile.getValue(x, y);
-					if (maskVal <= 0)
-						tiffFile.setValue(x, y, 0);
-				}
-			}
-		}
-
-		pDist = new DiscreteDistribution2D(xOffset, yOffset, width, height, tiffFile, pRndGen);
+		if (!(r = pDist0->init(densFileName, maskFileName, xOffset, yOffset, width, height, flipy, floor)))
+			abortWithMessage("Unable to initialize 2D discrete distribution for " + prefix + ": " + r.getErrorString());
 	}
 	else
 		abortWithMessage("ERROR: unknown 2D distribution name for " + prefix + ".dist2d.type:" + distName);
@@ -440,17 +522,18 @@ void addDistribution2DToConfig(ProbabilityDistribution2D *pSrcDist, ConfigWriter
 
 	// Just some curly braces to limit the name scope
 	{
-		DiscreteDistribution2D *pDist = 0;
-		if ((pDist = dynamic_cast<DiscreteDistribution2D *>(pSrcDist)) != 0)
+		DiscreteDistributionWrapper2D *pDist = 0;
+		if ((pDist = dynamic_cast<DiscreteDistributionWrapper2D *>(pSrcDist)) != 0)
 		{
 			if (!(r = config.addKey(prefix + ".dist2d.type", "discrete")) ||
-			    !(r = config.addKey(prefix + ".dist2d.discrete.densfile", "IGNORE")) ||
-			    !(r = config.addKey(prefix + ".dist2d.discrete.maskfile", "IGNORE")) ||
+			    !(r = config.addKey(prefix + ".dist2d.discrete.densfile", pDist->getDensFileName())) ||
+			    !(r = config.addKey(prefix + ".dist2d.discrete.maskfile", pDist->getMaskFileName())) ||
 			    !(r = config.addKey(prefix + ".dist2d.discrete.xoffset", pDist->getXOffset())) ||
 			    !(r = config.addKey(prefix + ".dist2d.discrete.yoffset", pDist->getYOffset())) ||
-			    !(r = config.addKey(prefix + ".dist2d.discrete.width", pDist->getXSize())) ||
-			    !(r = config.addKey(prefix + ".dist2d.discrete.height", pDist->getYSize())) ||
-			    !(r = config.addKey(prefix + ".dist2d.discrete.flipy", pDist->isYFlipped())) )
+			    !(r = config.addKey(prefix + ".dist2d.discrete.width", pDist->getWidth())) ||
+			    !(r = config.addKey(prefix + ".dist2d.discrete.height", pDist->getHeight())) ||
+			    !(r = config.addKey(prefix + ".dist2d.discrete.flipy", pDist->isYFlipped())) ||
+				!(r = config.addKey(prefix + ".dist2d.discrete.floor", pDist->isFloored())) )
 				abortWithMessage(r.getErrorString());
 
 			return;
@@ -498,7 +581,7 @@ JSONConfig distributionJSONConfig("distTypes", R"JSON(
             "info": [ 
                 "Parameters for a clipped normal distribution",
                 "prob(x) = 1.0/(s*sqrt(2.0*pi)) * exp(- (x-m)^2 / (2.0*s^2))",
-        "possibly truncated to [min,max] (using rejection sampling)"
+				"possibly truncated to [min,max] (using rejection sampling)"
             ]
         },
         "exponential": {
@@ -507,7 +590,25 @@ JSONConfig distributionJSONConfig("distTypes", R"JSON(
                 "Parameters for an exponential distribution",
                 "prob(x) = lambda * exp(-lambda * x)"
             ]
-        })JSON");
+        },
+		"discrete.inline": {
+			"params": [ ["xvalues", null ], ["yvalues", null ], [ "floor", "no" ] ],
+			"info": [
+				"TODO"
+			]
+		},
+		"discrete.csv.onecol": {
+			"params": [ ["file", null ], ["xmin", 0 ], [ "xmax", 1 ], [ "ycolumn", 1 ], [ "floor", "no" ] ],
+			"info": [
+				"TODO"
+			]
+		},
+		"discrete.csv.twocol": {
+			"params": [ [ "file", null ], [ "xcolumn", 1 ], [ "ycolumn" , 2 ], [ "floor", "no" ] ],
+			"info": [
+				"TODO"
+			]
+		})JSON");
 
 JSONConfig distribution2DJSONConfig("distTypes2D", R"JSON(
         "fixed": {
@@ -572,7 +673,8 @@ JSONConfig distribution2DJSONConfig("distTypes2D", R"JSON(
                 [ "yoffset", 0 ],
                 [ "width", 1 ],
                 [ "height", 1 ],
-                [ "flipy", "yes", [ "yes", "no"] ]
+                [ "flipy", "yes", [ "yes", "no"] ],
+				[ "floor", "no" ]
             ],
             "info": [ 
                 "The 'densfile' parameter specifies a TIFF file you want to use to base a",

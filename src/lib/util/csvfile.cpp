@@ -49,7 +49,7 @@ bool_t CSVFile::load(const std::string &fileName)
 			{
 				bool allNumbers = true;
 
-				for (int i = 0 ; allNumbers && i < args.size() ; i++)
+				for (size_t i = 0 ; allNumbers && i < args.size() ; i++)
 				{
 					double v;
 
@@ -71,7 +71,7 @@ bool_t CSVFile::load(const std::string &fileName)
 			if (numCols < 0)
 				numCols = args.size();
 
-			if (numCols != args.size())
+			if (numCols != (int)args.size())
 			{
 				fclose(pFile);
 				return strprintf("Number of columns changed from %d to %d on line %d", numCols, (int)args.size(), lineNumber);
@@ -120,9 +120,9 @@ int CSVFile::getNumberOfRows()
 
 bool CSVFile::hasValue(int row, int column)
 {
-	if (row >= m_map.size() || row < 0)
+	if (row >= (int)m_map.size() || row < 0)
 		return false;
-	if (column >= m_map[row].size() || column < 0)
+	if (column >= (int)m_map[row].size() || column < 0)
 		return false;
 	return m_map[row][column];
 }
@@ -136,7 +136,7 @@ const std::string CSVFile::getColumnName(int col) const
 {
 	if (m_headers.size() == 0)
 		return std::string("No column names are defined");
-	if (col < 0 || col >= m_headers.size())
+	if (col < 0 || col >= (int)m_headers.size())
 		return std::string("Invalid column ID");
 	return m_headers[col];
 }

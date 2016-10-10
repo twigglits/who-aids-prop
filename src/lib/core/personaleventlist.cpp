@@ -324,7 +324,7 @@ void PersonalEventList::adjustingEvent(PopulationEvent *pEvt) // this should mov
 
 	int idx = pEvt->getEventIndex(m_pPerson);
 
-	assert(idx >= 0 && idx < m_timedEvents.size());
+	assert(idx >= 0 && idx < (int)m_timedEvents.size());
 	assert(m_timedEvents[idx] == pEvt);
 
 	int lastIdx = m_timedEvents.size()-1;

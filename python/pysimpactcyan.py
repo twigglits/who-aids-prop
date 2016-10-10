@@ -323,6 +323,11 @@ def _replaceVariables(value, variables):
 
 def _getSimpactPathBasedOnModule():
     
+    def endSlash(dirName):
+        if not dirName.endswith(os.sep): # Make sure it ends with "/" or "\"
+            dirName += os.sep
+        return dirName
+
     possiblePaths = [ ]
 
     moduleName = __name__
@@ -335,11 +340,14 @@ def _getSimpactPathBasedOnModule():
                 dirName = os.path.dirname(full) 
                 baseName = os.path.basename(dirName) # should be 'python'
                 if baseName.lower() == "python":
-                    dirName = os.path.dirname(dirName)
-                    if not dirName.endswith(os.sep): # Make sure it ends with "/" or "\"
-                        dirName += os.sep
-
+                    dirName = endSlash(os.path.dirname(dirName))
                     possiblePaths.append(dirName)
+
+                if baseName.lower() == "site-packages":
+                    dirName = os.path.dirname(os.path.dirname(dirName))
+                    possiblePaths.append(endSlash(os.path.join(dirName, "Library", "share", "simpact-cyan")))
+                    dirName = os.path.dirname(dirName)
+                    possiblePaths.append(endSlash(os.path.join(dirName, "share", "simpact-cyan")))
 
     #print("Possible paths:")
     #print(possiblePaths)
@@ -395,8 +403,16 @@ class PySimpactCyan(object):
             paths = [ ]
             if platform.system() == "Windows":
                 paths += [ "C:\\Program Files (x86)\\SimpactCyan", "C:\\Program Files\\SimpactCyan" ]
+            else:
+                paths += [ "/Applications/SimpactCyan.app/Contents/bin" ]
 
-            paths += _getSimpactPathBasedOnModule()
+            for p in _getSimpactPathBasedOnModule():
+                paths.append(p)
+                p2 = os.path.join(p, "bin")
+                if not p2.endswith(os.sep):
+                    p2 += os.sep
+
+                paths.append(p2)
 
             exe = "simpact-cyan-release" # This should always exist
 
@@ -630,7 +646,69 @@ class PySimpactCyan(object):
 
         return v
 
-    def run(self, config, destDir, agedist = None, parallel = False, opt = True, release = True, seed = -1, interventionConfig = None, dryRun = False, identifierFormat = "%T-%y-%m-%d-%H-%M-%S_%p_%r%r%r%r%r%r%r%r-", quiet = False):
+    def _writeDataFrame(self, f, data, dataName):
+        nrows, ncols = data.shape
+
+        colNames = data.columns
+        if len(colNames) == ncols:
+            f.write(",".join(['"{}"'.format(colNames[c]) for c in range(ncols)]))
+            f.write("\n")
+
+        matrix = data.as_matrix()
+        self._writeMatrix(f, matrix, dataName, False)
+
+    def _writeMatrix(self, f, data, dataName, writeColumnNames = True):
+        nrows = len(data)
+        ncols = -1
+        for r in range(nrows):
+
+            if ncols < 0:
+                ncols = len(data[r])
+
+            if len(data[r]) != ncols:
+                raise Exception("Error processing row %d for data '%s': expecting %d columns, but got %d" % (r+1, dataName, ncols, len(data[r])))
+
+            if writeColumnNames and r == 0:
+                colNames = [ '"Col{}"'.format(c+1) for c in range(ncols) ]
+                colNamesStr = ",".join(colNames)
+                f.write(colNamesStr + "\n")
+
+            entries = [ "%.15g" % data[r][c] for c in range(ncols) ]
+            entriesStr = ",".join(entries)
+            f.write(entriesStr)
+            f.write("\n")
+
+    def _writeDataFile(self, destDir, fileName, dataName, data):
+        fullPath = os.path.join(destDir, fileName)
+        if os.path.exists(fullPath):
+            raise Exception("Error while writing data file for '%s': file '%s' already exists" % (dataName, fileName))
+
+        with open(fullPath, "wt") as f:
+
+            isDataFrame = False
+            try:
+                s = data.columns # Assume that it's a pandas dataframe if this exists
+                isDataFrame = True
+            except:
+                pass
+
+            if isDataFrame:
+                self._writeDataFrame(f, data, dataName)
+            else: # Not a dataframe
+                self._writeMatrix(f, data, dataName)
+
+    def _toFileName(self, s):
+        ret = ""
+        for c in s:
+            if c.isalnum():
+                ret += c
+            else:
+                ret += "_"
+        return ret
+
+    def run(self, config, destDir, agedist = None, parallel = False, opt = True, release = True, seed = -1, 
+            interventionConfig = None, dryRun = False, identifierFormat = "%T-%y-%m-%d-%H-%M-%S_%p_%r%r%r%r%r%r%r%r-",
+            dataFiles = { }, quiet = False):
 
         if not destDir:
             raise Exception("A destination directory must be specified")
@@ -638,6 +716,8 @@ class PySimpactCyan(object):
         # Make sure config is a dict
         if not config:
             config = { }
+
+        originalConfig = copy.deepcopy(config)
 
         idStr = self._getID(identifierFormat)
         if not idStr:
@@ -734,6 +814,14 @@ class PySimpactCyan(object):
                 print("Specified destination directory '%s' does not exist, creating it" % destDir)
             os.makedirs(destDir)
 
+        # Replace things that start with "data:" by "${SIMPACT_INDATA_PREFIX}"
+        dataPrefix = "data:"
+        for c in config:
+            v = config[c]
+            if str(v).startswith(dataPrefix):
+                v = "${SIMPACT_INDATA_PREFIX}" + self._toFileName(v[len(dataPrefix):]) + ".csv"
+                config[c] = v
+
         # Here, the actual configuration file lines are created
         finalConfig, lines, notNeeded = self._createConfigLines(config, True)
 
@@ -756,6 +844,8 @@ class PySimpactCyan(object):
             f.write("# Some variables. Note that if set, environment variables will have\n")
             f.write("# Precedence.\n")
             f.write("$SIMPACT_OUTPUT_PREFIX = %s\n" % idStr)
+            if dataFiles:
+                f.write("$SIMPACT_INDATA_PREFIX = %s\n" % (idStr + "data-"))
             if self._dataDirectory:
                 f.write("$SIMPACT_DATA_DIR = %s\n" % self._dataDirectory)	
             f.write("\n")
@@ -790,6 +880,13 @@ class PySimpactCyan(object):
                         f.write("%s = %s\n" % (k,iv[k]))
                     f.close()
 
+        # write data files
+
+        #pprint.pprint(dataFiles)
+        if dataFiles:
+            for d in dataFiles:
+                self._writeDataFile(destDir, idStr + "data-" + self._toFileName(d) + ".csv", d, dataFiles[d])
+
         # Set environment variables (if necessary) and start executable
 
         if not dryRun:
@@ -805,6 +902,7 @@ class PySimpactCyan(object):
         if self._dataDirectory: 
             replaceVars["SIMPACT_DATA_DIR"] = self._dataDirectory
         replaceVars["SIMPACT_OUTPUT_PREFIX"] = idStr
+        replaceVars["SIMPACT_INDATA_PREFIX"] = os.path.join(destDir, idStr + "data-")
         
         # These are the output log files in a generic way
         outFileSpec = ".outfile."
@@ -820,6 +918,11 @@ class PySimpactCyan(object):
                     fileName = os.path.join(destDir, value)
                     if os.path.exists(fileName):
                         results[logName] = fileName
+
+        # Also show the 'data:' entries in the returned dictionary
+        for n in originalConfig:
+            if str(originalConfig[n]).startswith(dataPrefix):
+                results[originalConfig[n]] = _replaceVariables(finalConfig[n], replaceVars)
 
         results["configfile"] = os.path.join(destDir, configFile)
         results["outputfile"] = os.path.join(destDir, outputFile)

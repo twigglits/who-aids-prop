@@ -21,13 +21,16 @@ public:
 	void setInitialMen(int number)									{ m_initialMen = number; }
 	void setInitialWomen(int number)								{ m_initialWomen = number; }
 	void setEyeCapsFraction(double f)								{ m_eyeCapsFraction = f; }
+	void setMSM(bool f)												{ m_msm = f; }
 
 	int getInitialMen() const										{ return m_initialMen; }
 	int getInitialWomen() const										{ return m_initialWomen; }
 	double getEyeCapsFraction() const								{ return m_eyeCapsFraction; }
+	bool getMSM() const												{ return m_msm; }
 private:
 	int m_initialMen, m_initialWomen;
 	double m_eyeCapsFraction;
+	bool m_msm;
 };
 
 class SimpactPopulation : public PopulationStateExtra, public PopulationAlgorithmAboutToFireInterface
@@ -67,20 +70,22 @@ public:
 	double getEyeCapsFraction() const								{ return m_eyeCapsFraction; }
 
 	// Is called by debut event
-	virtual void initializeFormationEvents(Person *pPerson, bool relocation, double tNow);
+	virtual void initializeFormationEvents(Person *pPerson, bool initializationPhase, bool relocation, double tNow);
+	
 	// Needed by relocation event
 	void removePersonFromCoarseMap(Person *pPerson);
 	void addPersonToCoarseMap(Person *pPerson);
 protected:
 	virtual bool_t createInitialPopulation(const SimpactPopulationConfig &config, const PopulationDistribution &popDist);
 	virtual bool_t scheduleInitialEvents();
-	virtual void getInterestsForPerson(const Person *pPerson, std::vector<Person *> &interests);
+	virtual void getInterestsForPerson(const Person *pPerson, std::vector<Person *> &interests, std::vector<Person *> &interestsMSM);
 private:
 	void onAboutToFire(PopulationEvent *pEvt);
 
 	//int m_initialPopulationSize;
 	double m_eyeCapsFraction;
 	double m_referenceYear;
+	bool m_msm;
 
 	int m_lastKnownPopulationSize;
 	double m_lastKnownPopulationSizeTime;

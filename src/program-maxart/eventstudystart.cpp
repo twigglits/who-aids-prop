@@ -44,9 +44,11 @@ void EventStudyStart::fire(Algorithm *pAlgorithm, State *pState, double t)
 	// Mark the beginning of the study
 	population.setInStudy(); 
 
+#ifndef NDEBUG
 	// Schedule the event to proceed to the first step
 	Facilities *pFacilities = Facilities::getInstance();
 	assert(pFacilities && pFacilities->getNumberOfRandomizationSteps() > 0);
+#endif // NDEBUG
 
 	EventStudyStep *pEvt = new EventStudyStep((int)0);
 	population.onNewEvent(pEvt);

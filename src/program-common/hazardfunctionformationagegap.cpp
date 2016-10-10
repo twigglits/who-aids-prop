@@ -7,7 +7,7 @@ using namespace std;
 
 HazardFunctionFormationAgeGap::HazardFunctionFormationAgeGap(const Person *pPerson1, const Person *pPerson2, double tr,
 		                   double a0, double a1, double a2, double a3, double a4, 
-				   double a5, double a8, double a9, double a10, double b) : 
+						   double a5, double a8, double a9, double a10, double b, bool msm) : 
 					m_pPerson1(pPerson1),
 					m_pPerson2(pPerson2),
 					m_tr(tr),
@@ -19,9 +19,12 @@ HazardFunctionFormationAgeGap::HazardFunctionFormationAgeGap(const Person *pPers
 					m_a5(a5),
 					m_a8(a8),
 					m_a9(a9),
-					m_a10(a10),
-					m_b(b)
+					m_a10(getA10(msm, a10)),
+					m_b(b),
+					m_msm(msm)
 {
+	assert((!msm && (pPerson1->isMan() && pPerson2->isWoman())) || 
+		    (msm && (pPerson1->isMan() && pPerson2->isMan())) );
 }
 
 HazardFunctionFormationAgeGap::~HazardFunctionFormationAgeGap()
@@ -34,11 +37,12 @@ double HazardFunctionFormationAgeGap::evaluate(double t)
 	double Pj = m_pPerson2->getNumberOfRelationships();
 	double tBi = m_pPerson1->getDateOfBirth();
 	double tBj = m_pPerson2->getDateOfBirth();
-	double Dpi = m_pPerson1->getPreferredAgeDifference();
-	double Dpj = m_pPerson2->getPreferredAgeDifference();
+
+	double Dpi, Dpj;
+	getPreferredAgeDifferences(m_msm, m_pPerson1, m_pPerson2, Dpi, Dpj);
 
 	return std::exp(m_a0 + m_a1*Pi + m_a2*Pj + m_a3*std::abs(Pi-Pj) + m_a4*(t-(tBi + tBj)/2.0)
-	                + m_a5*std::abs( (m_a8-1.0)*tBi+tBj-Dpi-m_a8*t )
+            + m_a5*std::abs( (m_a8-1.0)*tBi+tBj-Dpi-m_a8*t )
 			+ m_a9*std::abs( (m_a10+1.0)*tBj-tBi-Dpj-m_a10*t )
 			+ m_b*(t-m_tr));
 }
@@ -50,8 +54,9 @@ double HazardFunctionFormationAgeGap::calculateInternalTimeInterval(double t0, d
 		double a0 = m_a0; // we'll be adding some things to this constant term
 		double tBi = m_pPerson1->getDateOfBirth();
 		double tBj = m_pPerson2->getDateOfBirth();
-		double Dpi = m_pPerson1->getPreferredAgeDifference();
-		double Dpj = m_pPerson2->getPreferredAgeDifference();
+		
+		double Dpi, Dpj;
+		getPreferredAgeDifferences(m_msm, m_pPerson1, m_pPerson2, Dpi, Dpj);
 
 		a0 += m_a5*std::abs(tBj-tBi-Dpi);
 		a0 += m_a9*std::abs(tBj-tBi-Dpj);
@@ -158,8 +163,9 @@ double HazardFunctionFormationAgeGap::solveForRealTimeInterval(double t0, double
 		double a0 = m_a0; // we'll be adding some things to this constant term
 		double tBi = m_pPerson1->getDateOfBirth();
 		double tBj = m_pPerson2->getDateOfBirth();
-		double Dpi = m_pPerson1->getPreferredAgeDifference();
-		double Dpj = m_pPerson2->getPreferredAgeDifference();
+		
+		double Dpi, Dpj;
+		getPreferredAgeDifferences(m_msm, m_pPerson1, m_pPerson2, Dpi, Dpj);
 
 		a0 += m_a5*std::abs(tBj-tBi-Dpi);
 		a0 += m_a9*std::abs(tBj-tBi-Dpj);

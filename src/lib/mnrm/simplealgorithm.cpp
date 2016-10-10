@@ -44,7 +44,7 @@ bool_t SimpleAlgorithm::initEventTimes() const
 	// NOTE: this cannot be parallellized this way, unless multiple
 	// random number generators are used. Shouldn't be the bottleneck 
 	// anyway
-	for (int i = 0 ; i < events.size() ; i++)
+	for (size_t i = 0 ; i < events.size() ; i++)
 		events[i]->generateNewInternalTimeDifference(pRndGen, pState);
 
 	return true;
@@ -72,14 +72,15 @@ bool_t SimpleAlgorithm::getNextScheduledEvent(double &dt, EventBase **ppEvt)
 	if (m_parallel)
 	{
 #ifndef DISABLEOPENMP
-		for (int i = 0 ; i < m_dtMinValues.size() ; i++)
+		for (size_t i = 0 ; i < m_dtMinValues.size() ; i++)
 		{
 			m_dtMinValues[i] = dtMin;
 			m_minPosValues[i] = eventPos;
 		}
 
+		int numEvts = events.size();
 		#pragma omp parallel for
-		for (int i = 0 ; i < events.size() ; i++)
+		for (int i = 0 ; i < numEvts ; i++)
 		{
 			double dt = events[i]->solveForRealTimeInterval(pState, t);
 
@@ -92,7 +93,7 @@ bool_t SimpleAlgorithm::getNextScheduledEvent(double &dt, EventBase **ppEvt)
 			}
 		}
 
-		for (int i = 0 ; i < m_dtMinValues.size() ; i++)
+		for (size_t i = 0 ; i < m_dtMinValues.size() ; i++)
 		{
 			if (m_dtMinValues[i] < dtMin)
 			{

@@ -94,15 +94,14 @@ void PopulationAlgorithmAdvanced::onAlgorithmLoop(bool finished)
 	if (m_eventsToRemove.size() < 10000) // Don't do this too often?
 		return;
 
-	for (int i = 0 ; i < m_eventsToRemove.size() ; i++)
+	for (size_t i = 0 ; i < m_eventsToRemove.size() ; i++)
 	{
 #ifdef POPULATIONEVENT_FAKEDELETE
 		static_cast<PopulationEvent *>(m_eventsToRemove[i])->setDeleted();
 #else
- 		delete m_eventsToRemove[i];
+		delete m_eventsToRemove[i];
 #endif // POPULATIONEVENT_FAKEDELETE
 	}
-
 	m_eventsToRemove.resize(0);
 }
 
@@ -132,7 +131,7 @@ bool_t PopulationAlgorithmAdvanced::getNextScheduledEvent(double &dt, EventBase 
 
 	if (!m_parallel)
 	{
-		for (int i = 0 ; i < m_people.size() ; i++)
+		for (size_t i = 0 ; i < m_people.size() ; i++)
 			personalEventList(m_people[i])->processUnsortedEvents(*this, m_popState, curTime);
 
 		// TODO: can this be done in a faster way? 
@@ -297,7 +296,7 @@ PopulationEvent *PopulationAlgorithmAdvanced::getEarliestEvent(const std::vector
 
 	if (!m_parallel)
 	{
-		for (int i = 0 ; i < people.size() ; i++)
+		for (size_t i = 0 ; i < people.size() ; i++)
 		{
 			PopulationEvent *pFirstEvent = personalEventList(people[i])->getEarliestEvent();
 
@@ -318,7 +317,7 @@ PopulationEvent *PopulationAlgorithmAdvanced::getEarliestEvent(const std::vector
 #ifndef DISABLEOPENMP
 		int numPeople = people.size();
 
-		for (int i = 0 ; i < m_tmpEarliestEvents.size() ; i++)
+		for (size_t i = 0 ; i < m_tmpEarliestEvents.size() ; i++)
 		{
 			m_tmpEarliestEvents[i] = 0;
 			m_tmpEarliestTimes[i] = -1;
@@ -344,7 +343,7 @@ PopulationEvent *PopulationAlgorithmAdvanced::getEarliestEvent(const std::vector
 			}
 		}
 
-		for (int i = 0 ; i < m_tmpEarliestEvents.size() ; i++)
+		for (size_t i = 0 ; i < m_tmpEarliestEvents.size() ; i++)
 		{
 			PopulationEvent *pFirstEvent = m_tmpEarliestEvents[i];
 
@@ -418,7 +417,7 @@ void PopulationAlgorithmAdvanced::onNewEvent(PopulationEvent *pEvt)
 	assert(pEvt != 0);
 	assert(pEvt->getEventID() < 0);
 
-	int id = getNextEventID();
+	int64_t id = getNextEventID();
 	pEvt->setEventID(id);
 
 	assert(!pEvt->isInitialized());
@@ -454,7 +453,7 @@ void PopulationAlgorithmAdvanced::showEvents()
 	std::map<int64_t, PopulationEvent *> m;
 	std::map<int64_t, PopulationEvent *>::const_iterator it;
 
-	std::vector<PersonBase *> &m_people = m_popState.m_people; // TODO: rename m_people
+	auto &m_people = m_popState.m_people;
 
 	for (int i = 0 ; i < m_people.size() ; i++)
 	{
@@ -477,7 +476,7 @@ void PopulationAlgorithmAdvanced::showEvents()
 	}
 
 	for (it = m.begin() ; it != m.end() ; it++)
-		std::cout << "   " << it->first << " -> " << it->second->getEventTime() << "," << it->second->getDescription(0) << std::endl;
+		std::cout << "   " << it->first << " -> " << it->second->getEventTime() << "," << it->second->getDescription(getTime()) << std::endl;
 }
 #endif // ALGORITHM_SHOW_EVENTS
 

@@ -1,6 +1,7 @@
 #include "eventformation.h"
 #include "eventdissolution.h"
-#include "eventtransmission.h"
+#include "eventhivtransmission.h"
+#include "eventhsv2transmission.h"
 #include "eventdebut.h"
 #include "simpactpopulation.h"
 #include "simpactevent.h"
@@ -22,18 +23,25 @@ EventFormation::EventFormation(Person *pPerson1, Person *pPerson2, double lastDi
 	  m_lastDissolutionTime(lastDissTime),
 	  m_formationScheduleTime(formationScheduleTime)
 {
-	// Just a check because in the hazard we'll be interpreting a1 as a factor for the
-	// men and a2 as a factor for the women
 	assert(pPerson1->isMan());
-	assert(pPerson2->isWoman());
+	assert(pPerson1 != pPerson2); // Never form a relationship with ourselves
+#ifndef NDEBUG
+	if (pPerson2->isMan()) // MSM is also possible
+	{
+		// let's keep things ordered, to help avoid double events
+		assert(pPerson1->getPersonID() < pPerson2->getPersonID()); 
+	}
+	else
+		assert(pPerson2->isWoman());
+#endif // NDEBUG
 
 	assert(pPerson1->isSexuallyActive());
 	assert(pPerson2->isSexuallyActive());
 
 	// New formation events must not be scheduled if one of the persons is in the
 	// final AIDS stage
-	assert(pPerson1->getInfectionStage() != Person::AIDSFinal);
-	assert(pPerson2->getInfectionStage() != Person::AIDSFinal);
+	assert(pPerson1->hiv().getInfectionStage() != Person_HIV::AIDSFinal);
+	assert(pPerson2->hiv().getInfectionStage() != Person_HIV::AIDSFinal);
 }
 
 EventFormation::~EventFormation()
@@ -42,14 +50,17 @@ EventFormation::~EventFormation()
 
 string EventFormation::getDescription(double tNow) const
 {
-	return strprintf("Formation between %s and %s", getPerson(0)->getName().c_str(), getPerson(1)->getName().c_str());
+	string evtName = (getPerson(1)->isWoman()) ? "Formation" : "MSM Formation";
+	return strprintf("%s between %s and %s", evtName.c_str(), getPerson(0)->getName().c_str(), getPerson(1)->getName().c_str());
 }
 
 void EventFormation::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);
-	writeEventLogStart(true, "formation", tNow, pPerson1, pPerson2);
+
+	string evtName = (pPerson2->isWoman()) ? "formation" : "formationmsm";
+	writeEventLogStart(true, evtName, tNow, pPerson1, pPerson2);
 }
 
 bool EventFormation::isUseless(const PopulationStateInterface &pop)
@@ -59,7 +70,7 @@ bool EventFormation::isUseless(const PopulationStateInterface &pop)
 	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);
 	
-	if (pPerson1->getInfectionStage() == Person::AIDSFinal || pPerson2->getInfectionStage() == Person::AIDSFinal)
+	if (pPerson1->hiv().getInfectionStage() == Person_HIV::AIDSFinal || pPerson2->hiv().getInfectionStage() == Person_HIV::AIDSFinal)
 		return true;
 
 	// Check if old formation events need to be dropped because a person moved
@@ -104,37 +115,54 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	EventDissolution *pDissEvent = new EventDissolution(pPerson1, pPerson2, t);
 	population.onNewEvent(pDissEvent);
 
-	Woman *pWoman = WOMAN(pPerson2);
+	// In case it's a man/woman relationship, conception is possible
 
-	if (!pWoman->isPregnant())
+	if (pPerson2->isWoman())
 	{
-		EventConception *pEvtConception = new EventConception(pPerson1, pPerson2, t); // should be: man, woman, formation time
-		population.onNewEvent(pEvtConception);
-	}
+		Woman *pWoman = WOMAN(pPerson2);
 
-	/*
-	if (m_lastDissolutionTime >= 0)
-	{
-		std::cerr << "New formation between " << pPerson1->getName() << " and " << pPerson2->getName() << " after " << (t-m_lastDissolutionTime) << " years" << std::endl;
+		if (!pWoman->isPregnant())
+		{
+			EventConception *pEvtConception = new EventConception(pPerson1, pPerson2, t); // should be: man, woman, formation time
+			population.onNewEvent(pEvtConception);
+		}
 	}
-	*/
 
 	// If one of the partners is infected (but not both), schedule a
 	// transmission event
 
-	if (pPerson1->isInfected())
+	if (pPerson1->hiv().isInfected())
 	{
-		if (!pPerson2->isInfected())
+		if (!pPerson2->hiv().isInfected())
 		{
-			EventTransmission *pEvtTrans = new EventTransmission(pPerson1, pPerson2);
+			EventHIVTransmission *pEvtTrans = new EventHIVTransmission(pPerson1, pPerson2);
 			population.onNewEvent(pEvtTrans);
 		}
 	}
 	else // pPerson1 not infected
 	{
-		if (pPerson2->isInfected())
+		if (pPerson2->hiv().isInfected())
 		{
-			EventTransmission *pEvtTrans = new EventTransmission(pPerson2, pPerson1);
+			EventHIVTransmission *pEvtTrans = new EventHIVTransmission(pPerson2, pPerson1);
+			population.onNewEvent(pEvtTrans);
+		} 
+	}
+	
+	// Same for HSV2
+
+	if (pPerson1->hsv2().isInfected())
+	{
+		if (!pPerson2->hsv2().isInfected())
+		{
+			EventHSV2Transmission *pEvtTrans = new EventHSV2Transmission(pPerson1, pPerson2);
+			population.onNewEvent(pEvtTrans);
+		}
+	}
+	else // pPerson1 not infected
+	{
+		if (pPerson2->hsv2().isInfected())
+		{
+			EventHSV2Transmission *pEvtTrans = new EventHSV2Transmission(pPerson2, pPerson1);
 			population.onNewEvent(pEvtTrans);
 		} 
 	}
@@ -142,52 +170,74 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 double EventFormation::calculateInternalTimeInterval(const State *pState, double t0, double dt)
 {
-	assert(m_pHazard != 0);
+	Person *pPerson2 = getPerson(1);
+	EvtHazard *pHazard = (pPerson2->isWoman()) ? m_pHazard : m_pHazardMSM; 
+	assert(pHazard != 0);
 
 	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
-	return m_pHazard->calculateInternalTimeInterval(population, *this, t0, dt);
+	return pHazard->calculateInternalTimeInterval(population, *this, t0, dt);
 }
 
 double EventFormation::solveForRealTimeInterval(const State *pState, double Tdiff, double t0)
 {
-	assert(m_pHazard != 0);
+	Person *pPerson2 = getPerson(1);
+	EvtHazard *pHazard = (pPerson2->isWoman()) ? m_pHazard : m_pHazardMSM; 
+	assert(pHazard != 0);
 
 	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
-	return m_pHazard->solveForRealTimeInterval(population, *this, Tdiff, t0);
+	return pHazard->solveForRealTimeInterval(population, *this, Tdiff, t0);
 }
 
 EvtHazard *EventFormation::m_pHazard = 0;
+EvtHazard *EventFormation::m_pHazardMSM = 0;
 
-void EventFormation::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
+EvtHazard *EventFormation::getHazard(ConfigSettings &config, const string &prefix, bool msm)
 {
 	string hazardType;
 	bool_t r;
 
-	if (!(r = config.getKeyValue("formation.hazard.type", hazardType)))
+	string hazSimple = "simple";
+	string hazAgegap = "agegap";
+	string hazRefyear = "agegapry";
+
+	vector<string> allowedValues = { hazSimple, hazAgegap, hazRefyear };
+
+	if (!(r = config.getKeyValue(prefix + ".type", hazardType, allowedValues)))
 		abortWithMessage(r.getErrorString());
 
-	if (m_pHazard)
-	{
-		delete m_pHazard;
-		m_pHazard = 0;
-	}
+	// Here, the MSM flag is used to set Dp to zero in the hazard
+	if (hazardType == hazSimple)
+		return EvtHazardFormationSimple::processConfig(config, prefix, hazSimple, msm);
+	
+	if (hazardType == hazAgegap)
+		return EvtHazardFormationAgeGap::processConfig(config, prefix, hazAgegap, msm);
+	
+	if (hazardType == hazRefyear)
+		return EvtHazardFormationAgeGapRefYear::processConfig(config, prefix, hazRefyear, msm);
+	
+	// In case it's not covered by 'allowedValues'
+	abortWithMessage("Unknown " + prefix + ".type value: " + hazardType);
+	return 0; // Won't get here but otherwise there's a compiler warning
+}
 
-	if (hazardType == "simple")
-		m_pHazard = EvtHazardFormationSimple::processConfig(config);
-	else if (hazardType == "agegap")
-		m_pHazard = EvtHazardFormationAgeGap::processConfig(config);
-	else if (hazardType == "agegapry")
-		m_pHazard = EvtHazardFormationAgeGapRefYear::processConfig(config);
-	else
-		abortWithMessage("Unknown formation.hazard.type value: " + hazardType);
+void EventFormation::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
+{
+	delete m_pHazard;
+	m_pHazard = getHazard(config, "formation.hazard", false);
+
+	delete m_pHazardMSM;
+	m_pHazardMSM = getHazard(config, "formationmsm.hazard", true);
 }
 
 void EventFormation::obtainConfig(ConfigWriter &config)
 {
 	if (!m_pHazard)
 		abortWithMessage("EventFormation::obtainConfig: m_pHazard is null");
+	if (!m_pHazardMSM)
+		abortWithMessage("EventFormation::obtainConfig: m_pHazardMSM is null");
 
-	m_pHazard->obtainConfig(config);
+	m_pHazard->obtainConfig(config, "formation.hazard");
+	m_pHazardMSM->obtainConfig(config, "formationmsm.hazard");
 }
 
 ConfigFunctions formationConfigFunctions(EventFormation::processConfig, EventFormation::obtainConfig, "EventFormation");
@@ -198,4 +248,12 @@ JSONConfig formationTypesJSONConfig(R"JSON(
             "params": [ ["formation.hazard.type", "agegap", [ "simple", "agegap", "agegapry" ] ] ],
             "info": null 
         })JSON");
+
+JSONConfig formationMSMTypesJSONConfig(R"JSON(
+        "EventFormationMSMTypes": { 
+            "depends": null,
+            "params": [ ["formationmsm.hazard.type", "agegap", [ "simple", "agegap", "agegapry" ] ] ],
+            "info": null 
+        })JSON");
+
 

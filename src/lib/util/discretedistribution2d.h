@@ -8,7 +8,7 @@
 #include "polygon2d.h"
 #include <vector>
 
-class TIFFDensityFile;
+class GridValues;
 
 //#define OLDTEST
 
@@ -16,7 +16,7 @@ class DiscreteDistribution2D : public ProbabilityDistribution2D
 {
 public:
 	DiscreteDistribution2D(double xOffset, double yOffset, double xSize, double ySize,
-			       const TIFFDensityFile &density, GslRandomNumberGenerator *pRngGen,
+			       const GridValues &density, bool floor, GslRandomNumberGenerator *pRngGen,
 			       const Polygon2D &filter = Polygon2D()
 			       );
 	~DiscreteDistribution2D();
@@ -34,9 +34,10 @@ public:
 	double getYSize() const									{ return m_ySize; }
 
 	bool isYFlipped() const									{ return m_flippedY; }
+	bool getFloor() const									{ return m_floor; }
 private:
 	static void generateConditionalsAndMarginal(double xOffset, double yOffset, double xSize, double ySize,
-		                                             const TIFFDensityFile &density, GslRandomNumberGenerator *pRngGen,
+		                                             const GridValues &density, GslRandomNumberGenerator *pRngGen,
 		                                             const Polygon2D &filter, bool transpose,
 #ifdef OLDTEST
 							     std::vector<DiscreteDistribution *> &conditionals,
@@ -61,6 +62,7 @@ private:
 	double m_xSize, m_ySize;
 	int m_width, m_height; // discrete size (pixels)
 	bool m_flippedY;
+	bool m_floor;
 };
 
 #endif // DISCRETEDISTRIBUTION2D_H

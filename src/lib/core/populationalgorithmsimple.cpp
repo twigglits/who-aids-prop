@@ -68,7 +68,7 @@ void PopulationAlgorithmSimple::onAlgorithmLoop(bool finished)
 	if (m_eventsToRemove.size() < 10000) // Don't do this too often?
 		return;
 
-	for (int i = 0 ; i < m_eventsToRemove.size() ; i++)
+	for (size_t i = 0 ; i < m_eventsToRemove.size() ; i++)
 		delete m_eventsToRemove[i];
 	m_eventsToRemove.resize(0);
 }
@@ -91,7 +91,7 @@ void PopulationAlgorithmSimple::onNewEvent(PopulationEvent *pEvt)
 	assert(pEvt != 0);
 	assert(pEvt->getEventID() < 0);
 
-	int id = getNextEventID();
+	int64_t id = getNextEventID();
 	pEvt->setEventID(id);
 
 	assert(!pEvt->isInitialized());
@@ -112,7 +112,7 @@ void PopulationAlgorithmSimple::onFiredEvent(EventBase *pEvt, int position)
 	// to avoid a difference in random number generator state
 	// with the other version (see log Oct 24, 2013)
 
-	int idx = 0;
+	size_t idx = 0;
 	while (idx < m_allEvents.size())
 	{
 		PopulationEvent *pEvt = static_cast<PopulationEvent *>(m_allEvents[idx]);
@@ -121,7 +121,7 @@ void PopulationAlgorithmSimple::onFiredEvent(EventBase *pEvt, int position)
 		{
 			scheduleForRemoval(pEvt);
 			
-			int lastEvent = m_allEvents.size()-1;
+			size_t lastEvent = m_allEvents.size()-1;
 
 			m_allEvents[idx] = m_allEvents[lastEvent];
 			m_allEvents.resize(lastEvent);
@@ -151,7 +151,7 @@ void PopulationAlgorithmSimple::showEvents()
 	}
 
 	for (it = m.begin() ; it != m.end() ; it++)
-		std::cout << "   " << it->first << " -> " << it->second->getEventTime() << "," << it->second->getDescription(0) << std::endl;
+		std::cout << "   " << it->first << " -> " << it->second->getEventTime() << "," << it->second->getDescription(getTime()) << std::endl;
 }
 #endif // ALGORITHM_SHOW_EVENTS
 

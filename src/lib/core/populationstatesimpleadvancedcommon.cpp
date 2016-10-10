@@ -8,6 +8,10 @@ PopulationStateSimpleAdvancedCommon::PopulationStateSimpleAdvancedCommon() : m_n
 
 PopulationStateSimpleAdvancedCommon::~PopulationStateSimpleAdvancedCommon()
 {
+	for (size_t i = 0 ; i < m_people.size() ; i++)
+		delete m_people[i];
+	for (size_t i = 0 ; i < m_deceasedPersons.size() ; i++)
+		delete m_deceasedPersons[i];
 }
 
 void PopulationStateSimpleAdvancedCommon::setPersonDied(PersonBase *pPerson)
@@ -26,14 +30,14 @@ void PopulationStateSimpleAdvancedCommon::setPersonDied(PersonBase *pPerson)
 
 	int listIndex = getListIndex(pPerson);
 
-	assert(listIndex >= 0 && listIndex < m_people.size());
+	assert(listIndex >= 0 && listIndex < (int)m_people.size());
 	assert(m_people[listIndex] == pPerson);
 
 	if (pPerson->getGender() == PersonBase::Female) // second part of the list
 	{
 		int lastFemaleIdx = m_numGlobalDummies + m_numMen + m_numWomen - 1;
 
-		assert(lastFemaleIdx >= 0 && lastFemaleIdx+1 == m_people.size());
+		assert(lastFemaleIdx >= 0 && lastFemaleIdx+1 == (int)m_people.size());
 
 		if (lastFemaleIdx != listIndex) // we need to move someone
 		{
@@ -58,7 +62,7 @@ void PopulationStateSimpleAdvancedCommon::setPersonDied(PersonBase *pPerson)
 
 		int lastMaleIdx = m_numGlobalDummies + m_numMen - 1;
 
-		assert(lastMaleIdx >= 0 && lastMaleIdx < m_people.size());
+		assert(lastMaleIdx >= 0 && lastMaleIdx < (int)m_people.size());
 
 		// First, we're going to rearrange the males, afterwards
 		// we'll need to move a female as well, to fill the space
@@ -114,7 +118,7 @@ void PopulationStateSimpleAdvancedCommon::addNewPerson(PersonBase *pPerson)
 	{
 		if (m_numWomen == 0) // then it's easy
 		{
-			assert(m_people.size() == m_numMen+m_numGlobalDummies);
+			assert((int)m_people.size() == m_numMen+m_numGlobalDummies);
 
 			int pos = m_people.size();
 			m_people.resize(pos+1);
@@ -147,7 +151,7 @@ void PopulationStateSimpleAdvancedCommon::addNewPerson(PersonBase *pPerson)
 	{
 		int pos = m_numGlobalDummies + m_numMen + m_numWomen;
 
-		assert(pos == m_people.size());
+		assert(pos == (int)m_people.size());
 		m_people.resize(pos+1);
 
 		m_people[pos] = pPerson;
@@ -164,7 +168,9 @@ PersonBase **PopulationStateSimpleAdvancedCommon::getMen()
 	if (m_numMen == 0)
 		return 0;
 
+#ifndef NDEBUG
 	PersonBase *pFirstMan = m_people[m_numGlobalDummies];
+#endif // NDEBUG
 	assert(pFirstMan->getGender() == PersonBase::Male);
 
 	return &(m_people[m_numGlobalDummies]);
@@ -178,8 +184,9 @@ PersonBase **PopulationStateSimpleAdvancedCommon::getWomen()
 		return 0;
 
 	int idx = m_numGlobalDummies+m_numMen;
+#ifndef NDEBUG
 	PersonBase *pFirstWoman = m_people[idx];
-
+#endif // NDEBUG
 	assert(pFirstWoman->getGender() == PersonBase::Female);
 
 	return &(m_people[idx]);

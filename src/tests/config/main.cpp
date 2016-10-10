@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 	if (keys.size() != 0)
 	{
 		cerr << "Error: the following entries from the configuration file were not used:" << endl;
-		for (int i = 0 ; i < keys.size() ; i++)
+		for (size_t i = 0 ; i < keys.size() ; i++)
 			cerr << "  " << keys[i] << endl;
 		
 		cerr << endl;

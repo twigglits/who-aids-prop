@@ -119,9 +119,9 @@ bool_t TIFFDensityFile::readTiffFile(const string &fileName, bool noNeg, bool fl
 
 		if (bps == 64)
 		{
-			assert(TIFFScanlineSize(pTiff) == width*sizeof(double));
+			assert(TIFFScanlineSize(pTiff) == (int)(width*sizeof(double)));
 
-			for (int y = 0 ; y < height ; y++)
+			for (uint32_t y = 0 ; y < height ; y++)
 			{
 				if(TIFFReadScanline(pTiff, &(m_values[width*y]), y, 0) < 0)
 					return "Error reading scan line from file " + fileName;
@@ -129,16 +129,16 @@ bool_t TIFFDensityFile::readTiffFile(const string &fileName, bool noNeg, bool fl
 		}
 		else if (bps == 32)
 		{
-			assert(TIFFScanlineSize(pTiff) == width*sizeof(float));
+			assert(TIFFScanlineSize(pTiff) == (int)(width*sizeof(float)));
 			vector<float> tmpBuf(width);
 
-			for (int y = 0 ; y < height ; y++)
+			for (uint32_t y = 0 ; y < height ; y++)
 			{
 				if(TIFFReadScanline(pTiff, &(tmpBuf[0]), y, 0) < 0)
 					return "Error reading scan line from file " + fileName;
 
 				int offset = y*width;
-				for (int x = 0 ; x < width ; x++, offset++)
+				for (uint32_t x = 0 ; x < width ; x++, offset++)
 					m_values[offset] = tmpBuf[x];
 			}
 		}
@@ -179,7 +179,6 @@ bool_t TIFFDensityFile::readTilesFromTIFF(void *pTiffVoid, int tileWidth, int ti
 	uint32_t numXTiles = width/tileWidth + ((width%tileWidth == 0)?0:1);
 	uint32_t numYTiles = height/tileHeight + ((height%tileHeight == 0)?0:1);
 
-	uint32_t numTiles = numXTiles*numYTiles;
 #if TIFFVERSION >= 4
 	uint64_t *pNumTileBytes = 0;
 #else
@@ -196,7 +195,7 @@ bool_t TIFFDensityFile::readTilesFromTIFF(void *pTiffVoid, int tileWidth, int ti
 		for (size_t x = 0 ; x < numXTiles ; x++)
 		{
 			size_t tileNumber = x+y*numXTiles;
-			size_t s = pNumTileBytes[tileNumber];
+			size_t s = (size_t)pNumTileBytes[tileNumber];
 
 			assert(s == tileWidth*tileHeight*sizeof(T));
 			
@@ -208,14 +207,14 @@ bool_t TIFFDensityFile::readTilesFromTIFF(void *pTiffVoid, int tileWidth, int ti
 	m_values.resize(width*height);
 
 	bool gotNeg = false;
-	for (size_t y = 0 ; y < height ; y++)
+	for (int y = 0 ; y < height ; y++)
 	{
-		for (size_t x = 0 ; x < width ; x++)
+		for (int x = 0 ; x < width ; x++)
 		{
-			size_t tx = x/tileWidth;
-			size_t ty = y/tileHeight;
-			size_t xp = x%tileWidth;
-			size_t yp = y%tileHeight;
+			int tx = x/tileWidth;
+			int ty = y/tileHeight;
+			int xp = x%tileWidth;
+			int yp = y%tileHeight;
 
 			T *pData = tiles[ty][tx].getData();
 			T val = pData[xp+yp*tileWidth];

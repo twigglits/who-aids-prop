@@ -2,6 +2,8 @@
 
 #define DEBUGTIMER_H
 
+#ifndef NODEBUGTIMER
+
 #include <stdint.h>
 #include <string>
 #include <map>
@@ -76,5 +78,7 @@ inline DebugTimer *DebugTimer::getTimer(const std::string &name)
 
 	return pTimer;
 }
+
+#endif // NODEBUGTIMER
 
 #endif // DEBUGTIMER_H

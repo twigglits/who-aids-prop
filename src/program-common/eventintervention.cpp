@@ -105,7 +105,7 @@ void EventIntervention::processConfig(ConfigSettings &config, GslRandomNumberGen
 	timeStr = trim(timeStr);
 	SplitLine(timeStr, timeStrParts, ",", "", "", false);
 
-	for (int i = 0 ; i < timeStrParts.size() ; i++)
+	for (size_t i = 0 ; i < timeStrParts.size() ; i++)
 	{
 		string valueStr = trim(timeStrParts[i]);
 		double t;
@@ -132,7 +132,7 @@ void EventIntervention::processConfig(ConfigSettings &config, GslRandomNumberGen
 	assert(m_interventionTimes.size() == 0);
 
 	// Ok, got everything we need. Load the config files.
-	for (int i = 0 ; i < fileIDParts.size() ; i++)
+	for (size_t i = 0 ; i < fileIDParts.size() ; i++)
 	{
 		string fileName = replace(baseConfigName, "%", fileIDParts[i]);
 		ConfigSettings interventionSettings;

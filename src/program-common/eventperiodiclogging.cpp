@@ -50,7 +50,7 @@ void EventPeriodicLogging::fire(Algorithm *pAlgorithm, State *pState, double t)
 		Person *pPerson = ppPeople[i];
 		assert(pPerson);
 
-		if (pPerson->isInfected() && pPerson->hasLoweredViralLoad())
+		if (pPerson->hiv().isInfected() && pPerson->hiv().hasLoweredViralLoad())
 			inTreatmentCount++;
 	}
 
