@@ -10,6 +10,7 @@
 
 inline int getResponsiblePersonIndex(PopulationEvent *pEvt)
 {
+	assert(pEvt && !pEvt->isDeleted());
 	return 0; // Just 0 seems to work best
 	//assert(pEvt->getNumberOfPersons() > 0);
 	//return pEvt->getEventID() % pEvt->getNumberOfPersons();
@@ -45,6 +46,7 @@ void PersonalEventListTesting::registerPersonalEvent(PopulationEvent *pEvt)
 	// should still be undefined, since it is called from the PopulationEvent constructor
 
 	assert(pEvt != 0);
+	assert(!pEvt->isDeleted());
 	assert(pEvt->needsEventTimeCalculation());
 
 	// TODO: do something more random here
@@ -76,6 +78,7 @@ void PersonalEventListTesting::processUnsortedEvents(PopulationAlgorithmTesting 
 		PopulationEvent *pEvt = m_untimedEventsPrimary[i];
 
 		assert(pEvt != 0);
+		assert(!pEvt->isDeleted());
 		
 		if (pEvt->isScheduledForRemoval()) // event was already examined and considered to be useless
 			m_untimedEventsPrimary[i] = 0; 
@@ -85,6 +88,17 @@ void PersonalEventListTesting::processUnsortedEvents(PopulationAlgorithmTesting 
 			if (pEvt->isNoLongerUseful()) // for example if it refers to a dead person, of the maximum number of relationships has been reached
 			{
 	//			std::cout << "Detected useless event: " << pEvt << std::endl;
+
+				// Also remove the useless event from secondary lists
+				int numPersons = pEvt->getNumberOfPersons();
+				int respIdx = getResponsiblePersonIndex(pEvt);
+
+				for (int k = 0 ; k < numPersons ; k++)
+				{
+					if (k != respIdx) // only for the secondary lists
+						personalEventList(pEvt->getPersonWithoutChecking(k))->removeSecondaryEvent(pEvt);
+				}
+
 				alg.scheduleForRemoval(pEvt);
 				m_untimedEventsPrimary[i] = 0;
 			}
@@ -111,6 +125,8 @@ void PersonalEventListTesting::processUnsortedEvents(PopulationAlgorithmTesting 
 		int num = m_timedEventsPrimary.size();
 
 		m_pEarliestEvent = m_timedEventsPrimary[0];
+		assert(!m_pEarliestEvent->isDeleted());
+
 		double bestTime = m_pEarliestEvent->getEventTime();
 
 		assert(bestTime >= 0);
@@ -118,6 +134,8 @@ void PersonalEventListTesting::processUnsortedEvents(PopulationAlgorithmTesting 
 		for (int i = 1 ; i < num ; i++)
 		{
 			PopulationEvent *pCheckEvt = m_timedEventsPrimary[i];
+			assert(!pCheckEvt->isDeleted());
+
 			double t = pCheckEvt->getEventTime();
 
 			if (t < bestTime)
@@ -139,6 +157,8 @@ void PersonalEventListTesting::processUnsortedEvents(PopulationAlgorithmTesting 
 
 		if (pEvt) // can be NULL because of the previous code that checks the validity
 		{
+			assert(!pEvt->isDeleted());
+
 			int idx = m_timedEventsPrimary.size();
 
 			m_timedEventsPrimary.push_back(pEvt);
@@ -199,6 +219,7 @@ void PersonalEventListTesting::advanceEventTimes(PopulationAlgorithmTesting &alg
 		for (int i = 0 ; i < num ; i++)
 		{
 			PopulationEvent *pEvt = m_timedEventsPrimary[i];
+			assert(!pEvt->isDeleted());
 
 			m_untimedEventsPrimary.push_back(pEvt);
 		}
@@ -219,6 +240,7 @@ void PersonalEventListTesting::advanceEventTimes(PopulationAlgorithmTesting &alg
 		PopulationEvent *pEvt = m_untimedEventsPrimary[i];
 
 		assert(pEvt != 0);
+		assert(!pEvt->isDeleted());
 		assert(pEvt->isInitialized());
 
 		// Check that we still need to process it, it may already have been done
@@ -241,6 +263,7 @@ void PersonalEventListTesting::advanceEventTimes(PopulationAlgorithmTesting &alg
 	{
 		PopulationEvent *pEvt = m_secondaryEvents[i];
 		assert(pEvt);
+		assert(!pEvt->isDeleted());
 
 		if (pEvt->needsEventTimeCalculation()) // we've already processed this event
 			continue;
@@ -264,6 +287,8 @@ void PersonalEventListTesting::adjustingEvent(PopulationEvent *pEvt) // this sho
 
 	checkEarliestEvent();
 	checkEvents();
+
+	assert(!pEvt->isDeleted());
 
 	int idx = pEvt->getEventIndex(m_pPerson);
 
@@ -309,6 +334,8 @@ PopulationEvent *PersonalEventListTesting::getEarliestEvent()
 		int num = m_timedEventsPrimary.size();
 
 		m_pEarliestEvent = m_timedEventsPrimary[0];
+		assert(!m_pEarliestEvent->isDeleted());
+
 		double bestTime = m_pEarliestEvent->getEventTime();
 
 		assert(bestTime >= 0);
@@ -316,6 +343,8 @@ PopulationEvent *PersonalEventListTesting::getEarliestEvent()
 		for (int i = 1 ; i < num ; i++)
 		{
 			PopulationEvent *pCheckEvt = m_timedEventsPrimary[i];
+			assert(!pCheckEvt->isDeleted());
+
 			double t = pCheckEvt->getEventTime();
 
 			if (t < bestTime)
@@ -329,6 +358,7 @@ PopulationEvent *PersonalEventListTesting::getEarliestEvent()
 	}
 
 	assert(pEvt != 0);
+	assert(!pEvt->isDeleted());
 	checkEarliestEvent();
 
 	return pEvt; 
@@ -340,6 +370,7 @@ void PersonalEventListTesting::removeTimedEvent(PopulationEvent *pEvt)
 	checkEvents();
 
 	assert(pEvt != 0);
+	assert(!pEvt->isDeleted());
 
 	int resposibleIdx = getResponsiblePersonIndex(pEvt);
 	PersonBase *pResponsiblePerson = pEvt->getPerson(resposibleIdx);
@@ -381,6 +412,37 @@ void PersonalEventListTesting::removeTimedEvent(PopulationEvent *pEvt)
 	checkEarliestEvent();
 	checkEvents();
 }
+
+void PersonalEventListTesting::removeSecondaryEvent(PopulationEvent *pEvt)
+{
+	checkEarliestEvent();
+	checkEvents();
+
+	assert(pEvt != 0);
+	assert(!pEvt->isDeleted());
+
+#ifndef NDEBUG
+	int resposibleIdx = getResponsiblePersonIndex(pEvt);
+	PersonBase *pResponsiblePerson = pEvt->getPerson(resposibleIdx);
+	assert(pResponsiblePerson != m_pPerson); // make sure it's in the secondary list
+#endif
+
+	int idx = pEvt->getEventIndex(m_pPerson);
+	int lastIdx = m_secondaryEvents.size()-1;
+
+	assert(m_secondaryEvents[idx] == pEvt);
+
+	if (m_secondaryEvents[lastIdx] != pEvt)
+	{
+		m_secondaryEvents[idx] = m_secondaryEvents[lastIdx];
+		m_secondaryEvents[idx]->setEventIndex(m_pPerson, idx);
+	}
+	m_secondaryEvents.resize(lastIdx);
+
+	checkEarliestEvent();
+	checkEvents();
+}
+
 
 #ifdef PERSONALEVENTLIST_EXTRA_DEBUGGING
 

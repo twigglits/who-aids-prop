@@ -71,7 +71,7 @@ private:
 #ifdef ALGORITHM_SHOW_EVENTS
 	void showEvents(); // FOR DEBUGGING
 #endif // ALGORITHM_SHOW_EVENTS
-	void onAlgorithmLoop();
+	void onAlgorithmLoop(bool finished);
 
 	std::vector<EventBase *> m_eventsToRemove;
 

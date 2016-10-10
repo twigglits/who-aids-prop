@@ -30,7 +30,8 @@ void usage(const string &progName)
 	cerr << "or" << endl;
 	cerr << "Usage: " << progName << " --showconfigoptions" << endl << endl;;
 	cerr << endl;
-	cerr << "Version: " << SIMPACT_CYAN_VERSION << endl;
+	cerr << "Version:  " << SIMPACT_CYAN_VERSION << endl;
+	cerr << "Compiler: " << SIMPACT_CYAN_COMPILER << endl;
 	exit(-1);
 }
 

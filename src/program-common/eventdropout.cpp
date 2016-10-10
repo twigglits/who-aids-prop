@@ -21,7 +21,7 @@ EventDropout::~EventDropout()
 {
 }
 
-string EventDropout::getDescription(double tNow)
+string EventDropout::getDescription(double tNow) const
 {
 	return strprintf("Dropout event for %s", getPerson(0)->getName().c_str());
 }

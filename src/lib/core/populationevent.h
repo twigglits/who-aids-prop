@@ -14,6 +14,8 @@
 
 #define POPULATIONEVENT_MAXPERSONS								2
 
+//#define POPULATIONEVENT_FAKEDELETE
+
 class PersonBase;
 class PopulationStateInterface;
 
@@ -78,14 +80,14 @@ public:
 
 	// These are for internal use
 	void setGlobalEventPerson(PersonBase *pDummyPerson);
-	void setEventID(int64_t id)								{ assert(m_eventID < 0); assert(id >= 0); m_eventID = id; }
-	int64_t getEventID() const								{ return m_eventID; }
+	void setEventID(int64_t id);
+	int64_t getEventID() const;
 
 	/** Returns the number of people specified during the creation of
 	 *  the event (will be one for global events since these are registered
 	 *  with the 'dummy' person mentioned above).
 	 */
-	int getNumberOfPersons() const								{ assert(m_numPersons >= 0 && m_numPersons <= POPULATIONEVENT_MAXPERSONS); return (int)m_numPersons; }
+	int getNumberOfPersons() const;
 
 	/** Returns a person that was specified when the event was constructed,
 	 *  where \c idx can range from 0 to PopulationEvent::getNumberOfPersons() - 1. */
@@ -118,6 +120,16 @@ public:
 	bool isScheduledForRemoval() const							{ return m_scheduledForRemoval; }
 
 	bool isNoLongerUseful();
+
+	// For debugging
+#if !defined(NDEBUG) && defined(POPULATIONEVENT_FAKEDELETE)
+	void setDeleted()											{ m_deleted = true; }
+	bool isDeleted() const										{ return m_deleted; }
+#else
+	void setDeleted()											{  }
+	bool isDeleted() const										{ return false; }
+#endif
+	PersonBase *getPersonWithoutChecking(int idx) const;
 protected:
 	/** This function can be used to inform the algorithm that an event is no longer
 	 *  of any use and should be discarded. An event is automatically useless if one of the
@@ -133,6 +145,10 @@ private:
 
 	bool m_scheduledForRemoval;
 	int64_t m_eventID;
+
+#ifdef POPULATIONEVENT_FAKEDELETE
+	bool m_deleted;
+#endif // POPULATIONEVENT_FAKEDELETE
 };
 
 inline void PopulationEvent::setEventIndex(PersonBase *pPerson, int idx)
@@ -178,5 +194,37 @@ inline PersonBase *PopulationEvent::getPerson(int idx) const
 	return m_pPersons[idx];
 }
 #endif
+
+inline PersonBase *PopulationEvent::getPersonWithoutChecking(int idx) const
+{ 
+	return m_pPersons[idx];
+}
+
+inline void PopulationEvent::setEventID(int64_t id)
+{ 
+#ifdef POPULATIONEVENT_FAKEDELETE
+	assert(!m_deleted);
+#endif
+	assert(m_eventID < 0); 
+	assert(id >= 0); 
+	m_eventID = id; 
+}
+
+inline int64_t PopulationEvent::getEventID() const								
+{ 
+#ifdef POPULATIONEVENT_FAKEDELETE
+	assert(!m_deleted);
+#endif
+	return m_eventID; 
+}
+
+inline int PopulationEvent::getNumberOfPersons() const
+{ 
+#ifdef POPULATIONEVENT_FAKEDELETE
+	assert(!m_deleted);
+#endif
+	assert(m_numPersons >= 0 && m_numPersons <= POPULATIONEVENT_MAXPERSONS); 
+	return (int)m_numPersons; 
+}
 
 #endif // POPULATIONEVENT_H

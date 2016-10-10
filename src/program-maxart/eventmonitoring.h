@@ -16,7 +16,7 @@ public:
 	EventMonitoring(Person *pPerson, bool scheduleImmediately = false);
 	~EventMonitoring();
 
-	std::string getDescription(double tNow);
+	std::string getDescription(double tNow) const;
 	void writeLogs(const SimpactPopulation &pop, double tNow) const;
 	void fire(Algorithm *pAlgorithm, State *pState, double t);
 

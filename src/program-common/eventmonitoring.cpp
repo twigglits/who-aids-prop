@@ -22,7 +22,7 @@ EventMonitoring::~EventMonitoring()
 {
 }
 
-string EventMonitoring::getDescription(double tNow)
+string EventMonitoring::getDescription(double tNow) const
 {
 	return strprintf("Monitoring event for %s", getPerson(0)->getName().c_str());
 }

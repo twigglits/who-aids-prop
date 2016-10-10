@@ -89,13 +89,20 @@ bool_t PopulationAlgorithmAdvanced::run(double &tMax, int64_t &maxEvents, double
 }
 
 // Each loop we'll delete events that may be deleted
-void PopulationAlgorithmAdvanced::onAlgorithmLoop()
+void PopulationAlgorithmAdvanced::onAlgorithmLoop(bool finished)
 {
 	if (m_eventsToRemove.size() < 10000) // Don't do this too often?
 		return;
 
 	for (int i = 0 ; i < m_eventsToRemove.size() ; i++)
-		delete m_eventsToRemove[i];
+	{
+#ifdef POPULATIONEVENT_FAKEDELETE
+		static_cast<PopulationEvent *>(m_eventsToRemove[i])->setDeleted();
+#else
+ 		delete m_eventsToRemove[i];
+#endif // POPULATIONEVENT_FAKEDELETE
+	}
+
 	m_eventsToRemove.resize(0);
 }
 

@@ -19,7 +19,7 @@ EventDiagnosis::~EventDiagnosis()
 {
 }
 
-string EventDiagnosis::getDescription(double tNow)
+string EventDiagnosis::getDescription(double tNow) const
 {
 	return strprintf("Diagnosis event for %s", getPerson(0)->getName().c_str());
 }

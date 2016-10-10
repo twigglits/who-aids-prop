@@ -3,6 +3,13 @@ POPULATIONEVENT_MAXPERSONS: src/lib/core/populationevent.h
 	The maximum number of persons that can be stored in an event
 	on creation. 
 
+POPULATIONEVENT_FAKEDELETE: src/lib/core/populationevent.h
+
+	If this is enabled, some algorithms will not actually delete
+	an event when it's no longer used, but will just set a flag.
+	The algorithms can then check to make sure that a (fake)
+	deleted event is not used in the code.
+
 DISABLE_PARALLEL: src/lib/core/parallel.h
 
 	This disables the use of the '#pragma omp' stuff, so that when

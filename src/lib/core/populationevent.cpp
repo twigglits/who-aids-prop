@@ -5,7 +5,11 @@
 #include <iostream>
 
 void PopulationEvent::commonConstructor()
-{
+{	
+#ifdef POPULATIONEVENT_FAKEDELETE
+	m_deleted = false;
+#endif // POPULATIONEVENT_FAKEDELETE
+
 	// Since we'll be removing each event when executed, this
 	// avoids the needless generation of a random number
 	setWillBeRemoved(true); 
@@ -30,6 +34,9 @@ PopulationEvent::PopulationEvent()
 
 void PopulationEvent::setGlobalEventPerson(PersonBase *pDummyPerson)
 {
+#ifdef POPULATIONEVENT_FAKEDELETE
+	assert(!m_deleted);
+#endif // POPULATIONEVENT_FAKEDELETE
 	assert(m_numPersons == 0);
 	assert(pDummyPerson != 0 && pDummyPerson->getGender() == PersonBase::GlobalEventDummy);
 
@@ -64,6 +71,10 @@ PopulationEvent::~PopulationEvent()
 
 bool PopulationEvent::isNoLongerUseful()
 {
+#ifdef POPULATIONEVENT_FAKEDELETE
+	assert(!m_deleted);
+#endif // POPULATIONEVENT_FAKEDELETE
+
 	int num = m_numPersons;
 
 	for (int i = 0 ; i < num ; i++)
@@ -81,6 +92,10 @@ bool PopulationEvent::isNoLongerUseful()
 #ifndef NDEBUG
 PersonBase *PopulationEvent::getPerson(int idx) const
 { 
+#ifdef POPULATIONEVENT_FAKEDELETE
+	assert(!m_deleted);
+#endif // POPULATIONEVENT_FAKEDELETE
+
 	assert(m_numPersons >= 0 && m_numPersons <= POPULATIONEVENT_MAXPERSONS); 
 	assert(idx < (int)m_numPersons); 
 

@@ -116,7 +116,7 @@ private:
 #ifdef ALGORITHM_SHOW_EVENTS
 	void showEvents(); // FOR DEBUGGING
 #endif // ALGORITHM_SHOW_EVENTS
-	void onAlgorithmLoop();
+	void onAlgorithmLoop(bool finished);
 
 	int64_t getNextEventID();
 

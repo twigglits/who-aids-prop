@@ -33,6 +33,7 @@ public:
 	int getListIndex() const							{ return m_listIndex; }
 private:
 	static PersonalEventListTesting *personalEventList(PersonBase *pPerson);
+	void removeSecondaryEvent(PopulationEvent *pEvt);
 #ifndef PERSONALEVENTLIST_EXTRA_DEBUGGING
 	void checkEarliestEvent() { }
 	void checkEvents() { }

@@ -1,6 +1,6 @@
 <img src="SimpactCyan_cropped.png" style="float:right;width:10%;">
 
-Simpact Cyan - 0.19.4
+Simpact Cyan - 0.19.5
 =====================
 
 This document is the reference documentation for the Simpact Cyan

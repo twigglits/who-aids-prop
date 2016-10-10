@@ -63,7 +63,7 @@ bool_t PopulationAlgorithmSimple::run(double &tMax, int64_t &maxEvents, double s
 }
 
 // Each loop we'll delete events that may be deleted
-void PopulationAlgorithmSimple::onAlgorithmLoop()
+void PopulationAlgorithmSimple::onAlgorithmLoop(bool finished)
 {
 	if (m_eventsToRemove.size() < 10000) // Don't do this too often?
 		return;

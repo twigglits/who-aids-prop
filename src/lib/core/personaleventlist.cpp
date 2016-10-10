@@ -38,6 +38,7 @@ void PersonalEventList::registerPersonalEvent(PopulationEvent *pEvt)
 	// should still be undefined, since it is called from the PopulationEvent constructor
 
 	assert(pEvt != 0);
+	assert(!pEvt->isDeleted());
 	assert(pEvt->needsEventTimeCalculation());
 
 	m_untimedEvents.push_back(pEvt);
@@ -61,6 +62,7 @@ void PersonalEventList::processUnsortedEvents(PopulationAlgorithmAdvanced &alg, 
 		PopulationEvent *pEvt = m_untimedEvents[i];
 
 		assert(pEvt != 0);
+		assert(!pEvt->isDeleted());
 		
 		alg.lockEvent(pEvt);
 
@@ -100,13 +102,15 @@ void PersonalEventList::processUnsortedEvents(PopulationAlgorithmAdvanced &alg, 
 		int num = m_timedEvents.size();
 
 		m_pEarliestEvent = m_timedEvents[0];
-		double bestTime = m_pEarliestEvent->getEventTime();
+		assert(!m_pEarliestEvent->isDeleted());
 
+		double bestTime = m_pEarliestEvent->getEventTime();
 		assert(bestTime >= 0);
 		
 		for (int i = 1 ; i < num ; i++)
 		{
 			PopulationEvent *pCheckEvt = m_timedEvents[i];
+			assert(!pCheckEvt->isDeleted());
 			double t = pCheckEvt->getEventTime();
 
 			if (t < bestTime)
@@ -128,6 +132,7 @@ void PersonalEventList::processUnsortedEvents(PopulationAlgorithmAdvanced &alg, 
 
 		if (pEvt) // can be NULL because of the previous code that checks the validity
 		{
+			assert(!pEvt->isDeleted());
 			int idx = m_timedEvents.size();
 
 			m_timedEvents.push_back(pEvt);
@@ -189,6 +194,7 @@ void PersonalEventList::advanceEventTimes(PopulationAlgorithmAdvanced &alg, cons
 		for (int i = 0 ; i < num ; i++)
 		{
 			PopulationEvent *pEvt = m_timedEvents[i];
+			assert(!pEvt->isDeleted());
 
 			m_untimedEvents.push_back(pEvt);
 		}
@@ -211,6 +217,7 @@ void PersonalEventList::advanceEventTimes(PopulationAlgorithmAdvanced &alg, cons
 			PopulationEvent *pEvt = m_untimedEvents[i];
 
 			assert(pEvt != 0);
+			assert(!pEvt->isDeleted());
 			assert(pEvt->isInitialized());
 
 			// Check that we still need to process it, it may already have been done
@@ -256,6 +263,7 @@ void PersonalEventList::advanceEventTimes(PopulationAlgorithmAdvanced &alg, cons
 			PopulationEvent *pEvt = m_untimedEvents[i];
 
 			assert(pEvt != 0);
+			assert(!pEvt->isDeleted());
 				
 			alg.lockEvent(pEvt);
 
@@ -309,6 +317,8 @@ void PersonalEventList::adjustingEvent(PopulationEvent *pEvt) // this should mov
 {
 	//std::cout << "adjustingEvent: Person " << (void *)m_pPerson << ": looking for index for " << (void *)pEvt << std::endl;
 
+	assert(!pEvt->isDeleted());
+
 	checkEarliestEvent();
 	checkEvents();
 
@@ -356,6 +366,7 @@ PopulationEvent *PersonalEventList::getEarliestEvent()
 		int num = m_timedEvents.size();
 
 		m_pEarliestEvent = m_timedEvents[0];
+		assert(!m_pEarliestEvent->isDeleted());
 		double bestTime = m_pEarliestEvent->getEventTime();
 
 		assert(bestTime >= 0);
@@ -363,6 +374,7 @@ PopulationEvent *PersonalEventList::getEarliestEvent()
 		for (int i = 1 ; i < num ; i++)
 		{
 			PopulationEvent *pCheckEvt = m_timedEvents[i];
+			assert(!pCheckEvt->isDeleted());
 			double t = pCheckEvt->getEventTime();
 
 			if (t < bestTime)
@@ -376,6 +388,7 @@ PopulationEvent *PersonalEventList::getEarliestEvent()
 	}
 
 	assert(pEvt != 0);
+	assert(!pEvt->isDeleted());
 	checkEarliestEvent();
 
 	return pEvt; 
@@ -387,6 +400,7 @@ void PersonalEventList::removeTimedEvent(PopulationEvent *pEvt)
 	checkEvents();
 
 	assert(pEvt != 0);
+	assert(!pEvt->isDeleted());
 
 	int idx = pEvt->getEventIndex(m_pPerson);
 	int lastIdx = m_timedEvents.size()-1;
