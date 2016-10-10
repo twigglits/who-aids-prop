@@ -14,21 +14,16 @@ PopulationDistributionCSV::~PopulationDistributionCSV()
 	clear();
 }
 
-bool PopulationDistributionCSV::load(const std::string &csvFileName)
+bool_t PopulationDistributionCSV::load(const std::string &csvFileName)
 {
 	CSVFile csvFile;
+	bool_t r = csvFile.load(csvFileName);
 
-	if (!csvFile.load(csvFileName))
-	{
-		setErrorString("Can't open " + csvFileName + ": " + csvFile.getErrorString());
-		return false;
-	}
+	if (!r)
+		return "Can't open " + csvFileName + ": " + r.getErrorString();
 
 	if (csvFile.getNumberOfColumns() < 3)
-	{
-		setErrorString("The file should contain at least three columns");
-		return false;
-	}
+		return "The file should contain at least three columns";
 
 	std::vector<double> binStarts;
 	std::vector<double> maleValues, femaleValues;

@@ -6,19 +6,17 @@
  * \file populationdistribution.h 
  */
 
-#include "errut/errorbase.h"
-
 class GslRandomNumberGenerator;
 
 /** Base class for picking random numbers according to some kind
  *  of age distribution. */
-class PopulationDistribution : public errut::ErrorBase
+class PopulationDistribution
 {
 public:
 	/** Constructor of the class, in which you need to specify a
 	 *  random number generator which can then be used internally. */
 	PopulationDistribution(GslRandomNumberGenerator *pRndGen);
-	~PopulationDistribution();
+	virtual ~PopulationDistribution();
 
 	/** This function generates the random age, for either a man or a woman. */
 	virtual double pickAge(bool male) const = 0;

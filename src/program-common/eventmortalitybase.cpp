@@ -14,7 +14,7 @@ EventMortalityBase::~EventMortalityBase()
 {
 }
 
-void EventMortalityBase::markOtherAffectedPeople(const Population &population)
+void EventMortalityBase::markOtherAffectedPeople(const PopulationStateInterface &population)
 {
 	Person *pPerson = getPerson(0);
 	assert(pPerson != 0);
@@ -33,7 +33,7 @@ void EventMortalityBase::markOtherAffectedPeople(const Population &population)
 	assert(pPerson->getNextRelationshipPartner(tDummy) == 0); // make sure the iteration is done
 }
 
-void EventMortalityBase::fire(State *pState, double t)
+void EventMortalityBase::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	assert(getNumberOfPersons() == 1);

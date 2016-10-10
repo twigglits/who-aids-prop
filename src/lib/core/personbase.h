@@ -6,21 +6,21 @@
  * \file personbase.h
  */
 
-#include "personaleventlist.h"
+#include "populationinterfaces.h"
 #include <assert.h>
 #include <string>
 #include <list>
 #include <set>
 #include <iostream>
 
-class Population;
-
-/** This is the base class for a person in a population-based simulation
- *  that used the Population class. It is not mean to be used directly,
- *  but provides some common functions for a class which should derive
+/** This is the base class for a person in a population-based simulation.
+ *
+ *  Such a simulation uses an algorithm derived from PopulationAlgorithmInterface
+ *  and a state derived from PopulationStateInterface. It is not mean to be used 
+ *  directly, but provides some common functions for a class which should derive
  *  from it.
  */
-class PersonBase : public PersonalEventList
+class PersonBase
 {
 public:
 	/** The gender of a person. */
@@ -43,6 +43,7 @@ protected:
 public:
 	virtual ~PersonBase();
 
+	// These are for internal use
 	void setPersonID(int64_t id);
 	int64_t getPersonID() const							{ return m_personID; }
 
@@ -67,19 +68,20 @@ public:
 	/** Retrieves the time of death of the person, negative meaning that the person is still alive. */
 	double getTimeOfDeath() const							{ return m_timeOfDeath; }
 
-	// TODO: Move this to a base class or shield from user in
-	//       some other way?
-	//       "PersonalEventList" is a good candidate, but conceptually
-	//       it doesn't really make that much sense
-	void setListIndex(int i) 							{ m_listIndex = i; }
-	int getListIndex() const							{ return m_listIndex; }
+	/** This is only meant to be used by the implementation of an algorithm,
+	 *  and allows you to store algorithm-specific data for each person
+	 *  (gets deleted automatically in the destructor). */
+	void setAlgorithmInfo(PersonAlgorithmInfo *pAlgInfo)				{ delete m_pAlgInfo; m_pAlgInfo = pAlgInfo; }
+
+	/** Returns what was stored using PersonBase::PersonAlgorithmInfo. */
+	PersonAlgorithmInfo *getAlgorithmInfo() const					{ return m_pAlgInfo; }
 private:
 	Gender m_gender;
 	std::string m_name;
 	double m_dateOfBirth, m_timeOfDeath;
 
 	int64_t m_personID;
-	int m_listIndex;
+	PersonAlgorithmInfo *m_pAlgInfo;
 };
 
 class GlobalEventDummyPerson : public PersonBase

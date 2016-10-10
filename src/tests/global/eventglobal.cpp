@@ -18,7 +18,7 @@ std::string EventGlobal::getDescription(double tNow) const
 	return std::string("Global event");
 }
 
-void EventGlobal::fire(State *pState, double t)
+void EventGlobal::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	population.modifyGlobalEventFactor();

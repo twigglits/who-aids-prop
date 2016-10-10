@@ -15,8 +15,8 @@ public:
 	~EventFormation();
 
 	std::string getDescription(double tNow) const;
-	void writeLogs(const Population &pop, double tNow) const;
-	void fire(State *pState, double t);
+	void writeLogs(const SimpactPopulation &pop, double tNow) const;
+	void fire(Algorithm *pAlgorithm, State *pState, double t);
 
 	double getLastDissolutionTime() const								{ return m_lastDissolutionTime; }
 

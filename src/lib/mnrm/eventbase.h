@@ -6,20 +6,13 @@
  * \file eventbase.h
  */
 
-#include "state.h"
+#include "algorithm.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <iostream>
 #include <cmath>
 
 class GslRandomNumberGenerator;
-
-// To perform a check on solveForRealTimeInterval <-> calculateInternalTimeInterval compatibility
-#ifndef NDEBUG
-	#ifdef SIMPLEMNRM
-		#define EVENTBASE_CHECK_INVERSE
-	#endif
-#endif // NDEBUG
 
 // IMPORTANT: this is only meant for positive times! we use a negative
 // event time to indicate that a recalculation is necessary
@@ -70,12 +63,16 @@ public:
 	
 	/** This function will be called when the event fires, so this should most
 	 *  likely be re-implemented in your own event.
+	 *
+	 *  \param pAlgorithm The algorithm that's firing this event. This may be needed
+	 *                    to inject new events into the engine (conceptually, events are 
+	 *                    not part of the state)
 	 *  \param pState The current simulation state when the event fires. The firing
 	 *                of the event can change this state.
 	 *  \param t The time at which the event fires, so this is the current simulation
 	 *           time (a real world time).
 	 */
-	virtual void fire(State *pState, double t);
+	virtual void fire(Algorithm *pAlgorithm, State *pState, double t);
 
 	// This calls a virtual function so that a derived class can use another distribution for example,
 	// and does not need to limit itself to a poisson process
@@ -107,6 +104,10 @@ public:
 	/** When an event has fired, by default a new internal fire time will be calculated; setting
 	 *  this flag avoids this which can be useful if the event isn't going to be used again. */
 	void setWillBeRemoved(bool f)								{ m_willBeRemoved = f; }
+
+	/** In case the program is compiled in debug mode, setting this flag will enable
+	 *  double checking of the mapping between \f$ \Delta T \f$ and \f$ \Delta t \f$. */
+	static bool_t setCheckInverse(bool check);
 protected:
 	/** This function will be called to generate a new internal time difference.
 	 *  By default, as is common in the mNRM, a random number from an exponential
@@ -150,6 +151,9 @@ private:
 	double m_tEvent; // we'll also use this as a marker to indicate that recalculation is needed
 
 	bool m_willBeRemoved;
+#ifndef NDEBUG
+	static bool s_checkInverse;
+#endif // !NDEBUG
 };
 
 inline double EventBase::solveForRealTimeInterval(const State *pState, double t0)
@@ -164,15 +168,18 @@ inline double EventBase::solveForRealTimeInterval(const State *pState, double t0
 	double dt = solveForRealTimeInterval(pState, m_Tdiff, t0);
 	assert(dt >= 0);
 
-#ifdef EVENTBASE_CHECK_INVERSE
-	double tmpDT = calculateInternalTimeInterval(pState, t0, dt);
-	double diff = std::abs(tmpDT - m_Tdiff);
-	if (diff > 1e-8)
+#ifndef NDEBUG
+	if (s_checkInverse)
 	{
-		std::cerr << "ERROR: mismatch 1 between solveForRealTimeInterval and calculateInternalTimeInterval" << std::endl;
-		abort();
+		double tmpDT = calculateInternalTimeInterval(pState, t0, dt);
+		double diff = std::abs(tmpDT - m_Tdiff);
+		if (diff > 1e-8)
+		{
+			std::cerr << "ERROR: mismatch 1 between solveForRealTimeInterval and calculateInternalTimeInterval" << std::endl;
+			abort();
+		}
 	}
-#endif // EVENTBASE_CHECK_INVERSE
+#endif // !NDEBUG
 
 	m_tEvent = t0 + dt; // automatically marks that we don't need to calculate this again
 	assert(m_tEvent >= 0);
@@ -197,16 +204,19 @@ inline void EventBase::subtractInternalTimeInterval(const State *pState, double 
 
 	double dT = calculateInternalTimeInterval(pState, m_tLastCalc, t1 - m_tLastCalc); 
 
-#ifdef EVENTBASE_CHECK_INVERSE
-	double dt = t1 - m_tLastCalc;
-	double tmpDt = solveForRealTimeInterval(pState, dT, m_tLastCalc);
-	double diff = std::abs(tmpDt - dt);
-	if (diff > 1e-8)
+#ifndef NDEBUG
+	if (s_checkInverse)
 	{
-		std::cerr << "ERROR: mismatch 2 between solveForRealTimeInterval and calculateInternalTimeInterval" << std::endl;
-		abort();
+		double dt = t1 - m_tLastCalc;
+		double tmpDt = solveForRealTimeInterval(pState, dT, m_tLastCalc);
+		double diff = std::abs(tmpDt - dt);
+		if (diff > 1e-8)
+		{
+			std::cerr << "ERROR: mismatch 2 between solveForRealTimeInterval and calculateInternalTimeInterval" << std::endl;
+			abort();
+		}
 	}
-#endif // EVENTBASE_CHECK_INVERSE
+#endif // !NDEBUG
 
 	// It's possible that due to numerical inaccuracies dT even becomes
 	// negative. Detect and clip. 
@@ -233,5 +243,5 @@ inline void EventBase::subtractInternalTimeInterval(const State *pState, double 
 	setNeedEventTimeCalculation();
 }
 
-
 #endif // EVENTBASE_H
+

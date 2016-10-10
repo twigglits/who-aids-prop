@@ -7,6 +7,7 @@
  */
 
 #include "populationdistribution.h"
+#include "booltype.h"
 
 class DiscreteDistribution;
 
@@ -27,7 +28,7 @@ public:
 	 * 	"Start of age bin", "Number of men in bin", "Number of women in bin"
 	 *	..., ..., ...
 	 */
-	bool load(const std::string &csvFile);
+	bool_t load(const std::string &csvFile);
 
 	/** Clears the previously loaded data. */
 	void clear();

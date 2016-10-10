@@ -21,7 +21,7 @@ string EventAIDSMortality::getDescription(double tNow) const
 	return strprintf("AIDS death of %s (current age %g, in treatment: %d)", pPerson->getName().c_str(), pPerson->getAgeAt(tNow), (int)pPerson->hasLoweredViralLoad());
 }
 
-void EventAIDSMortality::writeLogs(const Population &pop, double tNow) const
+void EventAIDSMortality::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	Person *pPerson = getPerson(0);
 	writeEventLogStart(false, "aidsmortality", tNow, pPerson, 0);
@@ -73,8 +73,7 @@ void EventAIDSMortality::checkFireTime(double t0)
 		m_eventHelper.setFireTime(expectedTimeOfDeath);
 }
 
-#ifndef NDEBUG
-void EventAIDSMortality::fire(State *pState, double t)
+void EventAIDSMortality::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	// In debug mode we do some additional checks
 	Person *pPerson = getPerson(0);
@@ -91,22 +90,26 @@ void EventAIDSMortality::fire(State *pState, double t)
 
 	// Note that we need to call this after the previous check, otherwise the person will
 	// already have been marked as deceased
-	EventMortalityBase::fire(pState, t);
+	EventMortalityBase::fire(pAlgorithm, pState, t);
+	pPerson->markAIDSDeath(); // The person already needs to be marked as deceased
 }
-#endif // !NDEBUG
 
 void EventAIDSMortality::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
-	if (!config.getKeyValue("mortality.aids.survtime.C", m_C, 0) ||
-	    !config.getKeyValue("mortality.aids.survtime.k", m_k))
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.getKeyValue("mortality.aids.survtime.C", m_C, 0)) ||
+	    !(r = config.getKeyValue("mortality.aids.survtime.k", m_k)))
+		abortWithMessage(r.getErrorString());
 }
 
 void EventAIDSMortality::obtainConfig(ConfigWriter &config)
 {
-	if (!config.addKey("mortality.aids.survtime.C", m_C) ||
-	    !config.addKey("mortality.aids.survtime.k", m_k) )
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.addKey("mortality.aids.survtime.C", m_C)) ||
+	    !(r = config.addKey("mortality.aids.survtime.k", m_k)) )
+		abortWithMessage(r.getErrorString());
 }
 
 ConfigFunctions aidsMortalityConfigFunctions(EventAIDSMortality::processConfig, EventAIDSMortality::obtainConfig, "EventAIDSMortality");

@@ -29,7 +29,7 @@ string EventMonitoring::getDescription(double tNow)
 	return strprintf("Monitoring event for %s", getPerson(0)->getName().c_str());
 }
 
-void EventMonitoring::writeLogs(const Population &pop, double tNow) const
+void EventMonitoring::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	Person *pPerson = getPerson(0);
 	writeEventLogStart(false, "monitoring", tNow, pPerson, 0);
@@ -150,7 +150,7 @@ bool EventMonitoring::isWillingToStartTreatment(double t, GslRandomNumberGenerat
 	return false;
 }
 
-void EventMonitoring::fire(State *pState, double t)
+void EventMonitoring::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	MaxARTPopulation &population = MAXARTPOPULATION(pState);
 	GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
@@ -211,22 +211,24 @@ PieceWiseLinearFunction *EventMonitoring::s_pRecheckInterval = 0;
 
 void EventMonitoring::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
-	if (!config.getKeyValue("monitoring.cd4.threshold.prestudy", s_cd4ThresholdPreStudy, 0) ||
-		!config.getKeyValue("monitoring.cd4.threshold.poststudy", s_cd4ThresholdPostStudy, 0) ||
-		!config.getKeyValue("monitoring.cd4.threshold.instudy.controlstage", s_cd4ThresholdInStudyControlStage, 0) ||
-		!config.getKeyValue("monitoring.cd4.threshold.instudy.transitionstage", s_cd4ThresholdInStudyTransitionStage, 0) ||
-		!config.getKeyValue("monitoring.cd4.threshold.instudy.interventionstage", s_cd4ThresholdInStudyInterventionStage, 0) ||
-	    !config.getKeyValue("monitoring.fraction.log_viralload", s_treatmentVLLogFrac, 0, 1))
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.getKeyValue("monitoring.cd4.threshold.prestudy", s_cd4ThresholdPreStudy, 0)) ||
+		!(r = config.getKeyValue("monitoring.cd4.threshold.poststudy", s_cd4ThresholdPostStudy, 0)) ||
+		!(r = config.getKeyValue("monitoring.cd4.threshold.instudy.controlstage", s_cd4ThresholdInStudyControlStage, 0)) ||
+		!(r = config.getKeyValue("monitoring.cd4.threshold.instudy.transitionstage", s_cd4ThresholdInStudyTransitionStage, 0)) ||
+		!(r = config.getKeyValue("monitoring.cd4.threshold.instudy.interventionstage", s_cd4ThresholdInStudyInterventionStage, 0)) ||
+	    !(r = config.getKeyValue("monitoring.fraction.log_viralload", s_treatmentVLLogFrac, 0, 1)))
+		abortWithMessage(r.getErrorString());
 
 	vector<double> intervalX, intervalY;
 	double leftValue, rightValue;
 
-	if (!config.getKeyValue("monitoring.interval.piecewise.cd4s", intervalX) ||
-	    !config.getKeyValue("monitoring.interval.piecewise.times", intervalY) ||
-	    !config.getKeyValue("monitoring.interval.piecewise.left", leftValue) ||
-	    !config.getKeyValue("monitoring.interval.piecewise.right", rightValue))
-		abortWithMessage(config.getErrorString());
+	if (!(r = config.getKeyValue("monitoring.interval.piecewise.cd4s", intervalX)) ||
+	    !(r = config.getKeyValue("monitoring.interval.piecewise.times", intervalY)) ||
+	    !(r = config.getKeyValue("monitoring.interval.piecewise.left", leftValue)) ||
+	    !(r = config.getKeyValue("monitoring.interval.piecewise.right", rightValue)))
+		abortWithMessage(r.getErrorString());
 
 	for (size_t i = 0 ; i < intervalX.size()-1 ; i++)
 	{
@@ -262,17 +264,19 @@ void EventMonitoring::obtainConfig(ConfigWriter &config)
 		intervalY.push_back(points[i].y);
 	}
 
-	if (!config.addKey("monitoring.cd4.threshold.prestudy", s_cd4ThresholdPreStudy) ||
-		!config.addKey("monitoring.cd4.threshold.poststudy", s_cd4ThresholdPostStudy) ||
-		!config.addKey("monitoring.cd4.threshold.instudy.controlstage", s_cd4ThresholdInStudyControlStage) ||
-		!config.addKey("monitoring.cd4.threshold.instudy.transitionstage", s_cd4ThresholdInStudyTransitionStage) ||
-		!config.addKey("monitoring.cd4.threshold.instudy.interventionstage", s_cd4ThresholdInStudyInterventionStage) ||
-	    !config.addKey("monitoring.fraction.log_viralload", s_treatmentVLLogFrac) ||
-	    !config.addKey("monitoring.interval.piecewise.cd4s", intervalX) ||
-	    !config.addKey("monitoring.interval.piecewise.times", intervalY) ||
-	    !config.addKey("monitoring.interval.piecewise.left", s_pRecheckInterval->getLeftValue()) ||
-	    !config.addKey("monitoring.interval.piecewise.right", s_pRecheckInterval->getRightValue()) )
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+	
+	if (!(r = config.addKey("monitoring.cd4.threshold.prestudy", s_cd4ThresholdPreStudy)) ||
+		!(r = config.addKey("monitoring.cd4.threshold.poststudy", s_cd4ThresholdPostStudy)) ||
+		!(r = config.addKey("monitoring.cd4.threshold.instudy.controlstage", s_cd4ThresholdInStudyControlStage)) ||
+		!(r = config.addKey("monitoring.cd4.threshold.instudy.transitionstage", s_cd4ThresholdInStudyTransitionStage)) ||
+		!(r = config.addKey("monitoring.cd4.threshold.instudy.interventionstage", s_cd4ThresholdInStudyInterventionStage)) ||
+	    !(r = config.addKey("monitoring.fraction.log_viralload", s_treatmentVLLogFrac)) ||
+	    !(r = config.addKey("monitoring.interval.piecewise.cd4s", intervalX)) ||
+	    !(r = config.addKey("monitoring.interval.piecewise.times", intervalY)) ||
+	    !(r = config.addKey("monitoring.interval.piecewise.left", s_pRecheckInterval->getLeftValue())) ||
+	    !(r = config.addKey("monitoring.interval.piecewise.right", s_pRecheckInterval->getRightValue())) )
+		abortWithMessage(r.getErrorString());
 }
 
 ConfigFunctions monitoringConfigFunctions(EventMonitoring::processConfig, EventMonitoring::obtainConfig, "EventMonitoring");

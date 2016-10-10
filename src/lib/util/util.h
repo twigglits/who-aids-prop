@@ -48,7 +48,11 @@ inline std::string strprintf_cstr(const char *format, ...)
 	va_list ap;
 
 	va_start(ap, format);
+#ifndef WIN32
 	vsnprintf(buf, MAXBUFLEN, format, ap);
+#else
+	vsnprintf_s(buf, MAXBUFLEN, _TRUNCATE, format, ap);
+#endif // WIN32
 	va_end(ap);
 
 	buf[MAXBUFLEN] = 0;

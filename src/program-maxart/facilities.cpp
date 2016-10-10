@@ -141,13 +141,14 @@ void Facilities::processConfig(ConfigSettings &config, GslRandomNumberGenerator 
 {
 	vector<string> allowedValues { "top", "bottom" };
 	string coordsFile, randFile;
+	bool_t r;
 
-	if (!config.getKeyValue("facilities.geo.start.longitude", s_startLongitude) ||
-	    !config.getKeyValue("facilities.geo.start.lattitude", s_startLattitude) ||
-		!config.getKeyValue("facilities.geo.start.corner", s_corner, allowedValues) ||
-		!config.getKeyValue("facilities.geo.coords", coordsFile) ||
-		!config.getKeyValue("facilities.randomization", randFile) )
-		abortWithMessage(config.getErrorString());
+	if (!(r = config.getKeyValue("facilities.geo.start.longitude", s_startLongitude)) ||
+	    !(r = config.getKeyValue("facilities.geo.start.lattitude", s_startLattitude)) ||
+		!(r = config.getKeyValue("facilities.geo.start.corner", s_corner, allowedValues)) ||
+		!(r = config.getKeyValue("facilities.geo.coords", coordsFile)) ||
+		!(r = config.getKeyValue("facilities.randomization", randFile)) )
+		abortWithMessage(r.getErrorString());
 
 	//cout << "startLong: " << s_startLongitude << endl;
 	//cout << "startLatt: " << s_startLattitude << endl;
@@ -319,12 +320,14 @@ void Facilities::processConfig(ConfigSettings &config, GslRandomNumberGenerator 
 
 void Facilities::obtainConfig(ConfigWriter &config)
 {
-	if (!config.addKey("facilities.geo.start.longitude", s_startLongitude) ||
-	    !config.addKey("facilities.geo.start.lattitude", s_startLattitude) ||
-		!config.addKey("facilities.geo.start.corner", s_corner) ||
-		!config.addKey("facilities.geo.coords", "IGNORE") ||
-		!config.addKey("facilities.randomization", "IGNORE") )
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.addKey("facilities.geo.start.longitude", s_startLongitude)) ||
+	    !(r = config.addKey("facilities.geo.start.lattitude", s_startLattitude)) ||
+		!(r = config.addKey("facilities.geo.start.corner", s_corner)) ||
+		!(r = config.addKey("facilities.geo.coords", "IGNORE")) ||
+		!(r = config.addKey("facilities.randomization", "IGNORE")) )
+		abortWithMessage(r.getErrorString());
 }
 
 ConfigFunctions facilitiesConfigFunctions(Facilities::processConfig, Facilities::obtainConfig, "Facilities");

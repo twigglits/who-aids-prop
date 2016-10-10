@@ -1,6 +1,6 @@
 #include "gslrandomnumbergenerator.h"
 #include "populationdistributioncsv.h"
-#include "state.h"
+#include "populationinterfaces.h"
 #include "person.h"
 #include "simpactpopulation.h"
 #include <assert.h>
@@ -35,18 +35,20 @@ private:
 
 void usage(const std::string &progName)
 {
-	std::cerr << "Usage: " << progName << " numMen numWomen parallel(0/1)" << std::endl;
+	std::cerr << "Usage: " << progName << " numMen numWomen parallel(0/1) algo(simple/opt)" << std::endl;
 	exit(-1);
 }
 
 int main(int argc, char *argv[])
 {
-	if (argc != 4)
+	if (argc != 5)
 		usage(argv[0]);
 
 	int numMen = atoi(argv[1]);
 	int numWomen = atoi(argv[2]);
 	int intParallel = atoi(argv[3]);
+	bool parallel = (intParallel == 1);
+	std::string algo(argv[4]);
 	double tMax = 1e200; // we're just going to run this until everyone is dead
 
 	GslRandomNumberGenerator rng;
@@ -58,24 +60,36 @@ int main(int argc, char *argv[])
 	config.setInitialMen(numMen);
 	config.setInitialWomen(numWomen);
 
-	bool parallel = (intParallel == 1);
-	SimpactPopulation pop(parallel, &rng);
+	PopulationAlgorithmInterface *pAlgo = 0;
+	PopulationStateInterface *pState = 0;
 	
-	if (!pop.init(config, ageDist))
+	bool_t r = selectAlgorithmAndState(algo, rng, parallel, &pAlgo, &pState);
+	if (!r)
 	{
-		std::cerr << pop.getErrorString() << std::endl;
+		std::cerr << "Couldn't create requested algorithm:" << r.getErrorString() << std::endl;
+		return -1;
+	}
+
+	SimpactPopulation pop(*pAlgo, *pState);
+	
+	if (!(r = pop.init(config, ageDist)))
+	{
+		std::cerr << r.getErrorString() << std::endl;
 		return -1;
 	}
 
 	int64_t maxEvents = -1; // don't specify a maximum
 
-	if (!pop.run(tMax, maxEvents))
+	if (!(r = pAlgo->run(tMax, maxEvents)))
 	{
-		std::cerr << "# Error running simulation: " << pop.getErrorString() << std::endl;
-		std::cerr << "# Current simulation time is " << pop.getTime() << std::endl;
+		std::cerr << "# Error running simulation: " << r.getErrorString() << std::endl;
+		std::cerr << "# Current simulation time is " << pAlgo->getTime() << std::endl;
 	}
 
 	std::cerr << "# Number of events executed is " << maxEvents << std::endl;
+
+	delete pState;
+	delete pAlgo;
 
 	return 0;
 }

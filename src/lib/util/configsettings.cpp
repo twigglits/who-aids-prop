@@ -16,15 +16,13 @@ ConfigSettings::~ConfigSettings()
 {
 }
 
-bool ConfigSettings::load(const std::string &fileName)
+bool_t ConfigSettings::load(const std::string &fileName)
 {
 	ConfigReader reader;
+	bool_t r = reader.read(fileName);
 
-	if (!reader.read(fileName))
-	{
-		setErrorString("Unable to load file: " + reader.getErrorString());
-		return false;
-	}
+	if (!r)
+		return "Unable to load file: " + r.getErrorString();
 
 	clear();
 	
@@ -36,10 +34,7 @@ bool ConfigSettings::load(const std::string &fileName)
 		string value;
 
 		if (!reader.getKeyValue(keys[i], value))
-		{
-			cerr << "ConfigSettings: internal error: lost value for key " << keys[i] << endl;
-			abort();
-		}
+			abortWithMessage("ConfigSettings: internal error: lost value for key " + keys[i]);
 
 		m_keyValues[keys[i]] = pair<string,bool>(value, false);
 	}
@@ -64,32 +59,26 @@ void ConfigSettings::getKeys(std::vector<std::string> &keys) const
 	}
 }
 
-bool ConfigSettings::getStringKeyValue(const string &key, string &value, bool &used) const
+bool_t ConfigSettings::getStringKeyValue(const string &key, string &value, bool &used) const
 {
 	map<string,pair<string,bool> >::const_iterator it;
 
 	it = m_keyValues.find(key);
 	if (it == m_keyValues.end())
-	{
-		setErrorString("Key '" + key + "' not found");
-		return false;
-	}
+		return "Key '" + key + "' not found";
 
 	value = it->second.first;
 	used = it->second.second;
 	return true;
 }
 
-bool ConfigSettings::getKeyValue(const std::string &key, std::string &value, const vector<string> &allowedValues)
+bool_t ConfigSettings::getKeyValue(const std::string &key, std::string &value, const vector<string> &allowedValues)
 {
 	map<string,pair<string,bool> >::iterator it;
 
 	it = m_keyValues.find(key);
 	if (it == m_keyValues.end())
-	{
-		setErrorString("Key '" + key + "' not found");
-		return false;
-	}
+		return "Key '" + key + "' not found";
 
 	value = it->second.first;
 
@@ -104,14 +93,10 @@ bool ConfigSettings::getKeyValue(const std::string &key, std::string &value, con
 		}
 
 		if (!found)
-		{
-			setErrorString("Specified value for key '" + key + "' is not an allowed value.");
-			return false;
-		}
+			return "Specified value for key '" + key + "' is not an allowed value.";
 	}
 
 	it->second.second = true; // mark the key as used
-
 	return true;
 }
 
@@ -128,77 +113,53 @@ void ConfigSettings::getUnusedKeys(std::vector<std::string> &keys) const
 	}
 }
 
-bool ConfigSettings::getKeyValue(const std::string &key, double &value, double minValue, double maxValue)
+bool_t ConfigSettings::getKeyValue(const std::string &key, double &value, double minValue, double maxValue)
 {
 	string valueStr;
+	bool_t r = getKeyValue(key, valueStr);
 
-	if (!getKeyValue(key, valueStr))
-		return false;
+	if (!r)
+		return r;
 
 	if (!parseAsDouble(valueStr, value))
-	{
-		setErrorString("Can't interpret value for key '" + key + "' as a floating point number");
-		return false;
-	}
+		return "Can't interpret value for key '" + key + "' as a floating point number";
 
 	if (value < minValue || value > maxValue)
-	{
-		char str[1024];
-
-		sprintf(str, "The value for '%s' must lie between %g and %g, but is %g", key.c_str(), minValue, maxValue, value);
-		setErrorString(str);
-		return false;
-	}
+		return strprintf("The value for '%s' must lie between %g and %g, but is %g", key.c_str(), minValue, maxValue, value);
 
 	return true;
 }
 
-bool ConfigSettings::getKeyValue(const std::string &key, int &value, int minValue, int maxValue)
+bool_t ConfigSettings::getKeyValue(const std::string &key, int &value, int minValue, int maxValue)
 {
 	string valueStr;
+	bool_t r = getKeyValue(key, valueStr);
 
-	if (!getKeyValue(key, valueStr))
-		return false;
+	if (!r)
+		return r;
 
 	if (!parseAsInt(valueStr, value))
-	{
-		setErrorString("Can't interpret value for key '" + key + "' as an integer number");
-		return false;
-	}
+		return "Can't interpret value for key '" + key + "' as an integer number";
 
 	if (value < minValue || value > maxValue)
-	{
-		char str[1024];
-
-		sprintf(str, "The value for '%s' must lie between %d and %d, but is %d", key.c_str(), minValue, maxValue, value);
-		setErrorString(str);
-		return false;
-	}
+		return strprintf("The value for '%s' must lie between %d and %d, but is %d", key.c_str(), minValue, maxValue, value);
 
 	return true;
 }
 
-bool ConfigSettings::getKeyValue(const std::string &key, int64_t &value, int64_t minValue, int64_t maxValue)
+bool_t ConfigSettings::getKeyValue(const std::string &key, int64_t &value, int64_t minValue, int64_t maxValue)
 {
 	string valueStr;
+	bool_t r = getKeyValue(key, valueStr);
 
-	if (!getKeyValue(key, valueStr))
-		return false;
+	if (!r)
+		return r;
 
 	if (!parseAsInt(valueStr, value))
-	{
-		setErrorString("Can't interpret value for key '" + key + "' as an integer number");
-		return false;
-	}
+		return "Can't interpret value for key '" + key + "' as an integer number";
 
 	if (value < minValue || value > maxValue)
-	{
-		char str[1024];
-
-		sprintf(str, "The value for '%s' must lie between %" PRId64 " and %" PRId64 ", but is %" PRId64 "", key.c_str(), minValue, maxValue, value);
-		setErrorString(str);
-		return false;
-	}
+		return strprintf("The value for '%s' must lie between %" PRId64 " and %" PRId64 ", but is %" PRId64 "", key.c_str(), minValue, maxValue, value);
 
 	return true;
 }
@@ -231,38 +192,30 @@ void ConfigSettings::merge(const ConfigSettings &src)
 	}
 }
 
-bool ConfigSettings::getKeyValue(const string &key, vector<double> &values, double minValue, double maxValue)
+bool_t ConfigSettings::getKeyValue(const string &key, vector<double> &values, double minValue, double maxValue)
 {
 	string valueStr;
+	bool_t r = getKeyValue(key, valueStr);
 
-	if (!getKeyValue(key, valueStr))
-		return false;
+	if (!r)
+		return r;
 
 	string badField;
 
 	if (!parseAsDoubleVector(valueStr, values, badField))
-	{
-		setErrorString("Can't interpret value for key '" + key + "' as a list of floating point numbers (field '" + badField + "' is bad)");
-		return false;
-	}
+		return "Can't interpret value for key '" + key + "' as a list of floating point numbers (field '" + badField + "' is bad)";
 
 	for (size_t i = 0 ; i < values.size() ; i++)
 	{
 		double value = values[i];
 		if (value < minValue || value > maxValue)
-		{
-			char str[1024];
-
-			sprintf(str, "Each value for '%s' must lie between %g and %g, but one is %g", key.c_str(), minValue, maxValue, value);
-			setErrorString(str);
-			return false;
-		}
+			return strprintf("Each value for '%s' must lie between %g and %g, but one is %g", key.c_str(), minValue, maxValue, value);
 	}
 
 	return true;
 }
 
-bool ConfigSettings::getKeyValue(const std::string &key, bool &value)
+bool_t ConfigSettings::getKeyValue(const std::string &key, bool &value)
 {
 	vector<string> yesNoOptions;
 	string yesNo;
@@ -270,8 +223,10 @@ bool ConfigSettings::getKeyValue(const std::string &key, bool &value)
 	yesNoOptions.push_back("yes");
 	yesNoOptions.push_back("no");
 
-	if (!getKeyValue(key, yesNo, yesNoOptions))
-		return false;
+	bool_t r = getKeyValue(key, yesNo, yesNoOptions);
+
+	if (!r)
+		return r;
 
 	if (yesNo == "yes")
 		value = true;

@@ -17,17 +17,14 @@ TIFFDensityFile::~TIFFDensityFile()
 {
 }
 
-bool TIFFDensityFile::init(const string &fileName, bool noNegativeValues, bool flipY)
+bool_t TIFFDensityFile::init(const string &fileName, bool noNegativeValues, bool flipY)
 {
 	if (m_values.size() > 0)
-	{
-		setErrorString("Already initialized");
-		return false;
-	}
+		return "Already initialized";
 
 	TIFFErrorHandler oldHandler = TIFFSetWarningHandler(NULL);
 
-	bool status = readTiffFile(fileName, noNegativeValues, flipY);
+	bool_t status = readTiffFile(fileName, noNegativeValues, flipY);
 
 	TIFFSetWarningHandler(oldHandler);
 
@@ -43,55 +40,53 @@ private:
 	TIFF *m_pFile;
 };
 
-#define TIFFDENSITYFILE_ERRRETURN(x) { setErrorString(x); return false; }
-
-bool TIFFDensityFile::readTiffFile(const string &fileName, bool noNeg, bool flipY)
+bool_t TIFFDensityFile::readTiffFile(const string &fileName, bool noNeg, bool flipY)
 {
 	TIFF *pTiff = TIFFOpen(fileName.c_str(), "r");
 	if (pTiff == 0)
-		TIFFDENSITYFILE_ERRRETURN("Unable to open file " + fileName);
+		return "Unable to open file " + fileName;
 
 	TIFFAutoClose autoClose(pTiff); // Automatically close the file when exiting this scope
 
 	uint16_t bps, compression, sampleFormat, sampPerPixel;
 
 	if (!TIFFGetField(pTiff, TIFFTAG_BITSPERSAMPLE, &bps))
-		TIFFDENSITYFILE_ERRRETURN("Can't read bits per sample");
+		return "Can't read bits per sample";
 
 	if (!TIFFGetField(pTiff, TIFFTAG_SAMPLEFORMAT, &sampleFormat))
-		TIFFDENSITYFILE_ERRRETURN("Can't read sample format");
+		return "Can't read sample format";
 
 	if (!TIFFGetField(pTiff, TIFFTAG_SAMPLESPERPIXEL, &sampPerPixel))
-		TIFFDENSITYFILE_ERRRETURN("Can't get number of samples per pixel");
+		return "Can't get number of samples per pixel";
 
 	if (!TIFFGetField(pTiff, TIFFTAG_COMPRESSION, &compression))
-		TIFFDENSITYFILE_ERRRETURN("Can't get the compression setting");
+		return "Can't get the compression setting";
 
 	if (!((bps == 32 || bps == 64) && sampleFormat == SAMPLEFORMAT_IEEEFP))
-		TIFFDENSITYFILE_ERRRETURN("Only 32 bit or 64 bit floating point samples are currently supported");
+		return "Only 32 bit or 64 bit floating point samples are currently supported";
 
 	if (sampPerPixel != 1)
-		TIFFDENSITYFILE_ERRRETURN("Only one value per pixel is supported");
+		return "Only one value per pixel is supported";
 
 	if (compression != COMPRESSION_NONE)
-		TIFFDENSITYFILE_ERRRETURN("Only uncompressed data is currently supported");
+		return "Only uncompressed data is currently supported";
 
 	uint32_t width, height, depth;
 
 	if (!TIFFGetField(pTiff, TIFFTAG_IMAGEWIDTH, &width))
-		TIFFDENSITYFILE_ERRRETURN("Can't read the image width");
+		return "Can't read the image width";
 
 	if (!TIFFGetField(pTiff, TIFFTAG_IMAGELENGTH, &height))
-		TIFFDENSITYFILE_ERRRETURN("Can't read the image height");
+		return "Can't read the image height";
 
 	if (width > 16384 || height > 16384)
-		TIFFDENSITYFILE_ERRRETURN("Image width or height exceeds 16384");
+		return "Image width or height exceeds 16384";
 
 	// Image depth should be absent or 1
 	if (TIFFGetField(pTiff, TIFFTAG_IMAGEDEPTH, &depth))
 	{
 		if (depth != 1)
-			TIFFDENSITYFILE_ERRRETURN("3D Images are not supported");
+			return "3D Images are not supported";
 	}
 
 	uint32_t tileWidth = 0;
@@ -104,16 +99,18 @@ bool TIFFDensityFile::readTiffFile(const string &fileName, bool noNeg, bool flip
 	{
 		if (bps == 32)
 		{
-			if (!readTilesFromTIFF<float>(pTiff, tileWidth, tileHeight, width, height, noNeg, fileName))
-				return false;
+			bool_t r = readTilesFromTIFF<float>(pTiff, tileWidth, tileHeight, width, height, noNeg, fileName);
+			if (!r)
+				return r;
 		}
 		else if (bps == 64)
 		{
-			if (!readTilesFromTIFF<double>(pTiff, tileWidth, tileHeight, width, height, noNeg, fileName))
-				return false;
+			bool_t r = readTilesFromTIFF<double>(pTiff, tileWidth, tileHeight, width, height, noNeg, fileName);
+			if (!r)
+				return r;
 		}
 		else
-			TIFFDENSITYFILE_ERRRETURN("Internal error: unexpected bits per sample");
+			return "Internal error: unexpected bits per sample";
 
 	}
 	else
@@ -127,7 +124,7 @@ bool TIFFDensityFile::readTiffFile(const string &fileName, bool noNeg, bool flip
 			for (int y = 0 ; y < height ; y++)
 			{
 				if(TIFFReadScanline(pTiff, &(m_values[width*y]), y, 0) < 0)
-					TIFFDENSITYFILE_ERRRETURN("Error reading scan line from file " + fileName);
+					return "Error reading scan line from file " + fileName;
 			}
 		}
 		else if (bps == 32)
@@ -138,7 +135,7 @@ bool TIFFDensityFile::readTiffFile(const string &fileName, bool noNeg, bool flip
 			for (int y = 0 ; y < height ; y++)
 			{
 				if(TIFFReadScanline(pTiff, &(tmpBuf[0]), y, 0) < 0)
-					TIFFDENSITYFILE_ERRRETURN("Error reading scan line from file " + fileName);
+					return "Error reading scan line from file " + fileName;
 
 				int offset = y*width;
 				for (int x = 0 ; x < width ; x++, offset++)
@@ -146,7 +143,7 @@ bool TIFFDensityFile::readTiffFile(const string &fileName, bool noNeg, bool flip
 			}
 		}
 		else
-			TIFFDENSITYFILE_ERRRETURN("Internal error: unexpected bits per sample");
+			return "Internal error: unexpected bits per sample";
 	}
 
 	m_width = (int)width;
@@ -175,7 +172,7 @@ bool TIFFDensityFile::readTiffFile(const string &fileName, bool noNeg, bool flip
 }
 
 template<class T>
-bool TIFFDensityFile::readTilesFromTIFF(void *pTiffVoid, int tileWidth, int tileHeight, int width, int height, bool noNeg,
+bool_t TIFFDensityFile::readTilesFromTIFF(void *pTiffVoid, int tileWidth, int tileHeight, int width, int height, bool noNeg,
 		                        const string &fileName)
 {
 	TIFF *pTiff = (TIFF *)pTiffVoid;
@@ -189,7 +186,8 @@ bool TIFFDensityFile::readTilesFromTIFF(void *pTiffVoid, int tileWidth, int tile
 	uint32_t *pNumTileBytes = 0;
 #endif
 	if (!TIFFGetField(pTiff, TIFFTAG_TILEBYTECOUNTS, &pNumTileBytes))
-		TIFFDENSITYFILE_ERRRETURN("Unable to get tile byte counts");
+		return "Unable to get tile byte counts";
+
 	vector<vector<Tile<T> > > tiles;
 
 	tiles.resize(numYTiles);
@@ -238,3 +236,4 @@ bool TIFFDensityFile::readTilesFromTIFF(void *pTiffVoid, int tileWidth, int tile
 
 	return true;
 }
+

@@ -15,16 +15,13 @@ ConfigReader::~ConfigReader()
 {
 }
 
-bool ConfigReader::read(const string &fileName)
+bool_t ConfigReader::read(const string &fileName)
 {
 	clear();
 
 	FILE *pFile = fopen(fileName.c_str(), "rt");
 	if (pFile == NULL)
-	{
-		setErrorString("Can't open file '" + fileName + "'");
-		return false;
-	}
+		return "Can't open file '" + fileName + "'";
 	
 	string line;
 
@@ -36,9 +33,8 @@ bool ConfigReader::read(const string &fileName)
 
 			if (s == string::npos)
 			{
-				setErrorString("Can't find '=' in line: " + line);
 				fclose(pFile);
-				return false;
+				return "Can't find '=' in line: " + line;
 			}
 
 			string key = line.substr(0, s);
@@ -51,9 +47,8 @@ bool ConfigReader::read(const string &fileName)
 
 			if (key.length() == 0)
 			{
-				setErrorString("Detected an empty key in line: " + line);
 				fclose(pFile);
-				return false;
+				return "Detected an empty key in line: " + line;
 			}
 
 			if (key[0] == '$')
@@ -62,9 +57,8 @@ bool ConfigReader::read(const string &fileName)
 
 				if (key.length() == 0)
 				{
-					setErrorString("Detected empty variable assignment in line: " + line);
 					fclose(pFile);
-					return false;
+					return "Detected empty variable assignment in line: " + line;
 				}
 
 				m_variables[key] = value;
@@ -73,9 +67,8 @@ bool ConfigReader::read(const string &fileName)
 			{
 				if (m_keyValues.find(key) != m_keyValues.end())
 				{
-					setErrorString("Key '" + key + "' was found more than once");
 					fclose(pFile);
-					return false;
+					return "Key '" + key + "' was found more than once";
 				}
 
 				m_keyValues[key] = value;
@@ -88,19 +81,15 @@ bool ConfigReader::read(const string &fileName)
 	return true;
 }
 
-bool ConfigReader::getKeyValue(const string &key, string &value) const
+bool_t ConfigReader::getKeyValue(const string &key, string &value) const
 {
 	map<string,string>::const_iterator it;
 
 	it = m_keyValues.find(key);
 	if (it == m_keyValues.end())
-	{
-		setErrorString("Key not found");
-		return false;
-	}
+		return "Key " + key + " not found";
 
 	value = it->second;
-
 	return true;
 }
 

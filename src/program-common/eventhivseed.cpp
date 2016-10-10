@@ -35,12 +35,12 @@ string EventHIVSeed::getDescription(double tNow) const
 	return "HIV seeding";
 }
 
-void EventHIVSeed::writeLogs(const Population &pop, double tNow) const
+void EventHIVSeed::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	writeEventLogStart(true, "HIV seeding", tNow, 0, 0);
 }
 
-void EventHIVSeed::fire(State *pState, double t)
+void EventHIVSeed::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	// Check that this event is only carried out once
 	if (m_seeded)
@@ -125,32 +125,33 @@ void EventHIVSeed::processConfig(ConfigSettings &config, GslRandomNumberGenerato
 {
 	vector<string> fractionOrAmountStrings;
 	string fractionOrAmount;
+	bool_t r;
 
 	fractionOrAmountStrings.push_back("fraction");
 	fractionOrAmountStrings.push_back("amount");
 
-	if (!config.getKeyValue("hivseed.time", m_seedTime) ||
-	    !config.getKeyValue("hivseed.type", fractionOrAmount, fractionOrAmountStrings) ||
-	    !config.getKeyValue("hivseed.age.min", m_seedMinAge, 0) ||
-	    !config.getKeyValue("hivseed.age.max", m_seedMaxAge, m_seedMinAge)
+	if (!(r = config.getKeyValue("hivseed.time", m_seedTime)) ||
+	    !(r = config.getKeyValue("hivseed.type", fractionOrAmount, fractionOrAmountStrings)) ||
+	    !(r = config.getKeyValue("hivseed.age.min", m_seedMinAge, 0)) ||
+	    !(r = config.getKeyValue("hivseed.age.max", m_seedMaxAge, m_seedMinAge))
 	    )
-		abortWithMessage(config.getErrorString());
+		abortWithMessage(r.getErrorString());
 
 	if (fractionOrAmount == "fraction")
 	{
 		m_useFraction = true;
 
-		if (!config.getKeyValue("hivseed.fraction", m_seedFraction, 0, 1))
-			abortWithMessage(config.getErrorString());
+		if (!(r = config.getKeyValue("hivseed.fraction", m_seedFraction, 0, 1)))
+			abortWithMessage(r.getErrorString());
 	}
 	else if (fractionOrAmount == "amount")
 	{
 		m_useFraction = false;
 
-		if (!config.getKeyValue("hivseed.amount", m_seedAmount, 0) ||
-		    !config.getKeyValue("hivseed.stop.short", m_stopOnShort)
+		if (!(r = config.getKeyValue("hivseed.amount", m_seedAmount, 0)) ||
+		    !(r = config.getKeyValue("hivseed.stop.short", m_stopOnShort))
 		    )
-			abortWithMessage(config.getErrorString());
+			abortWithMessage(r.getErrorString());
 	}
 	else
 		abortWithMessage("Internal error: unexpected 'hivseed.type'");
@@ -159,29 +160,30 @@ void EventHIVSeed::processConfig(ConfigSettings &config, GslRandomNumberGenerato
 void EventHIVSeed::obtainConfig(ConfigWriter &config)
 {
 	string seedType;
+	bool_t r;
 
 	if (m_useFraction)
 		seedType = "fraction";
 	else
 		seedType = "amount";
 
-	if (!config.addKey("hivseed.time", m_seedTime) ||
-	    !config.addKey("hivseed.type", seedType) ||
-	    !config.addKey("hivseed.age.min", m_seedMinAge) ||
-	    !config.addKey("hivseed.age.max", m_seedMaxAge)
+	if (!(r = config.addKey("hivseed.time", m_seedTime)) ||
+	    !(r = config.addKey("hivseed.type", seedType)) ||
+	    !(r = config.addKey("hivseed.age.min", m_seedMinAge)) ||
+	    !(r = config.addKey("hivseed.age.max", m_seedMaxAge))
 	    )
-		abortWithMessage(config.getErrorString());
+		abortWithMessage(r.getErrorString());
 
 	if (m_useFraction)
 	{
-		if (!config.addKey("hivseed.fraction", m_seedFraction))
-			abortWithMessage(config.getErrorString());
+		if (!(r = config.addKey("hivseed.fraction", m_seedFraction)))
+			abortWithMessage(r.getErrorString());
 	}
 	else
 	{
-		if (!config.addKey("hivseed.amount", m_seedAmount) ||
-		    !config.addKey("hivseed.stop.short", m_stopOnShort) )
-			abortWithMessage(config.getErrorString());
+		if (!(r = config.addKey("hivseed.amount", m_seedAmount)) ||
+		    !(r = config.addKey("hivseed.stop.short", m_stopOnShort)) )
+			abortWithMessage(r.getErrorString());
 	}
 }
 

@@ -21,7 +21,7 @@ public:
 	Person *getPerson(int idx) const							{ return static_cast<Person*>(PopulationEvent::getPerson(idx)); }
 
 	// This is called right before an event is fired (will fire at 'fireTime')
-	virtual void writeLogs(const Population &pop, double fireTime) const = 0;
+	virtual void writeLogs(const SimpactPopulation &pop, double fireTime) const = 0;
 
 	static void writeEventLogStart(bool noExtraInfo, const std::string &eventName, double t, 
 			               const Person *pPerson1, const Person *pPerson2);

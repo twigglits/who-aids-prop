@@ -26,13 +26,13 @@ string EventDropout::getDescription(double tNow)
 	return strprintf("Dropout event for %s", getPerson(0)->getName().c_str());
 }
 
-void EventDropout::writeLogs(const Population &pop, double tNow) const
+void EventDropout::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	Person *pPerson = getPerson(0);
 	writeEventLogStart(true, "dropout", tNow, pPerson, 0);
 }
 
-void EventDropout::fire(State *pState, double t)
+void EventDropout::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	Person *pPerson = getPerson(0);

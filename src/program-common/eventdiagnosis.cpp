@@ -24,13 +24,13 @@ string EventDiagnosis::getDescription(double tNow)
 	return strprintf("Diagnosis event for %s", getPerson(0)->getName().c_str());
 }
 
-void EventDiagnosis::writeLogs(const Population &pop, double tNow) const
+void EventDiagnosis::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	Person *pPerson = getPerson(0);
 	writeEventLogStart(true, "diagnosis", tNow, pPerson, 0);
 }
 
-void EventDiagnosis::markOtherAffectedPeople(const Population &population)
+void EventDiagnosis::markOtherAffectedPeople(const PopulationStateInterface &population)
 {
 	Person *pPerson = getPerson(0);
 
@@ -54,7 +54,7 @@ void EventDiagnosis::markOtherAffectedPeople(const Population &population)
 	assert(pPerson->getNextRelationshipPartner(tDummy) == 0);
 }
 
-void EventDiagnosis::fire(State *pState, double t)
+void EventDiagnosis::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	Person *pPerson = getPerson(0);
@@ -113,28 +113,32 @@ double EventDiagnosis::s_tMax = 0;
 
 void EventDiagnosis::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
-	if (!config.getKeyValue("diagnosis.baseline", s_baseline) ||
-	    !config.getKeyValue("diagnosis.agefactor", s_ageFactor) ||
-	    !config.getKeyValue("diagnosis.genderfactor", s_genderFactor) ||
-	    !config.getKeyValue("diagnosis.diagpartnersfactor", s_diagPartnersFactor) ||
-	    !config.getKeyValue("diagnosis.isdiagnosedfactor", s_isDiagnosedFactor) ||
-	    !config.getKeyValue("diagnosis.beta", s_beta) ||
-	    !config.getKeyValue("diagnosis.t_max", s_tMax)
+	bool_t r;
+
+	if (!(r = config.getKeyValue("diagnosis.baseline", s_baseline)) ||
+	    !(r = config.getKeyValue("diagnosis.agefactor", s_ageFactor)) ||
+	    !(r = config.getKeyValue("diagnosis.genderfactor", s_genderFactor)) ||
+	    !(r = config.getKeyValue("diagnosis.diagpartnersfactor", s_diagPartnersFactor)) ||
+	    !(r = config.getKeyValue("diagnosis.isdiagnosedfactor", s_isDiagnosedFactor)) ||
+	    !(r = config.getKeyValue("diagnosis.beta", s_beta)) ||
+		!(r = config.getKeyValue("diagnosis.t_max", s_tMax))
 	   )
-		abortWithMessage(config.getErrorString());
+		abortWithMessage(r.getErrorString());
 }
 
 void EventDiagnosis::obtainConfig(ConfigWriter &config)
 {
-	if (!config.addKey("diagnosis.baseline", s_baseline) ||
-	    !config.addKey("diagnosis.agefactor", s_ageFactor) ||
-	    !config.addKey("diagnosis.genderfactor", s_genderFactor) ||
-	    !config.addKey("diagnosis.diagpartnersfactor", s_diagPartnersFactor) ||
-	    !config.addKey("diagnosis.isdiagnosedfactor", s_isDiagnosedFactor) ||
-	    !config.addKey("diagnosis.beta", s_beta) ||
-	    !config.addKey("diagnosis.t_max", s_tMax)
+	bool_t r;
+
+	if (!(r = config.addKey("diagnosis.baseline", s_baseline)) ||
+	    !(r = config.addKey("diagnosis.agefactor", s_ageFactor)) ||
+	    !(r = config.addKey("diagnosis.genderfactor", s_genderFactor)) ||
+	    !(r = config.addKey("diagnosis.diagpartnersfactor", s_diagPartnersFactor)) ||
+	    !(r = config.addKey("diagnosis.isdiagnosedfactor", s_isDiagnosedFactor)) ||
+	    !(r = config.addKey("diagnosis.beta", s_beta)) ||
+	    !(r = config.addKey("diagnosis.t_max", s_tMax))
 	   )
-		abortWithMessage(config.getErrorString());
+		abortWithMessage(r.getErrorString());
 }
 
 // exp(baseline + ageFactor*(t-t_birth) + genderFactor*gender + diagPartnersFactor*numDiagnosedPartners

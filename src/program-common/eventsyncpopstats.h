@@ -11,9 +11,9 @@ public:
 	~EventSyncPopulationStatistics();
 
 	std::string getDescription(double tNow) const;
-	void writeLogs(const Population &pop, double tNow) const;
+	void writeLogs(const SimpactPopulation &pop, double tNow) const;
 
-	void fire(State *pState, double t);
+	void fire(Algorithm *pAlgorithm, State *pState, double t);
 
 	// Everything needs to be recalculated after this
 	bool isEveryoneAffected() const														{ return true; }

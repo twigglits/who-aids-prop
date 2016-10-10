@@ -74,6 +74,11 @@ Person::Person(double dateOfBirth, Gender g) : PersonBase(g, dateOfBirth)
 	m_location = m_pPopDist->pickPoint();
 	assert(m_location.x == m_location.x && m_location.y == m_location.y);
 
+	m_aidsDeath = false;
+
+	assert(m_pLogSurvTimeOffsetDistribution);
+	m_log10SurvTimeOffset = m_pLogSurvTimeOffsetDistribution->pickNumber();
+
 	m_pPersonImpl = new PersonImpl(*this);
 }
 
@@ -190,6 +195,8 @@ ProbabilityDistribution2D *Person::m_pPopDist = 0;
 double Person::m_popDistWidth = 0;
 double Person::m_popDistHeight = 0;
 
+ProbabilityDistribution *Person::m_pLogSurvTimeOffsetDistribution = 0;
+
 void Person::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	assert(pRndGen != 0);
@@ -200,12 +207,14 @@ void Person::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRn
 	supportedModels.push_back("logweibullwithnoise");
 	supportedModels.push_back("logdist2d");
 
-	if (!config.getKeyValue("person.vsp.model.type", VspModelName, supportedModels) ||
-	    !config.getKeyValue("person.vsp.toacute.x", m_acuteFromSetPointParamX, 0) ||
-	    !config.getKeyValue("person.vsp.toaids.x", m_aidsFromSetPointParamX, 0) ||
-	    !config.getKeyValue("person.vsp.tofinalaids.x", m_finalAidsFromSetPointParamX, m_aidsFromSetPointParamX) ||
-	    !config.getKeyValue("person.vsp.maxvalue", m_maxViralLoad, 0) )
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.getKeyValue("person.vsp.model.type", VspModelName, supportedModels)) ||
+	    !(r = config.getKeyValue("person.vsp.toacute.x", m_acuteFromSetPointParamX, 0)) ||
+	    !(r = config.getKeyValue("person.vsp.toaids.x", m_aidsFromSetPointParamX, 0)) ||
+	    !(r = config.getKeyValue("person.vsp.tofinalaids.x", m_finalAidsFromSetPointParamX, m_aidsFromSetPointParamX)) ||
+	    !(r = config.getKeyValue("person.vsp.maxvalue", m_maxViralLoad, 0)) )
+		abortWithMessage(r.getErrorString());
 
 	delete m_pVspModel;
 	m_pVspModel = 0;
@@ -219,11 +228,11 @@ void Person::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRn
 		supported.push_back("logweibull");
 		supported.push_back("noiseagain");
 
-		if (!config.getKeyValue("person.vsp.model.logweibullwithnoise.weibullscale", scale, 0) ||
-		    !config.getKeyValue("person.vsp.model.logweibullwithnoise.weibullshape", shape, 0) ||
-		    !config.getKeyValue("person.vsp.model.logweibullwithnoise.fracsigma", fracSigma, 0) ||
-		    !config.getKeyValue("person.vsp.model.logweibullwithnoise.onnegative", onNegative, supported))
-			abortWithMessage(config.getErrorString());
+		if (!(r = config.getKeyValue("person.vsp.model.logweibullwithnoise.weibullscale", scale, 0)) ||
+		    !(r = config.getKeyValue("person.vsp.model.logweibullwithnoise.weibullshape", shape, 0)) ||
+		    !(r = config.getKeyValue("person.vsp.model.logweibullwithnoise.fracsigma", fracSigma, 0)) ||
+		    !(r = config.getKeyValue("person.vsp.model.logweibullwithnoise.onnegative", onNegative, supported)))
+			abortWithMessage(r.getErrorString());
 
 		VspModelLogWeibullWithRandomNoise::BadInheritType t;
 
@@ -240,8 +249,8 @@ void Person::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRn
 	{
 		bool useAltSeedDist;
 
-		if (!config.getKeyValue("person.vsp.model.logdist2d.usealternativeseeddist", useAltSeedDist))
-			abortWithMessage(config.getErrorString());
+		if (!(r = config.getKeyValue("person.vsp.model.logdist2d.usealternativeseeddist", useAltSeedDist)))
+			abortWithMessage(r.getErrorString());
 
 		ProbabilityDistribution2D *pDist2D = 0;
 		ProbabilityDistribution *pAltSeedDist = 0;
@@ -274,6 +283,9 @@ void Person::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRn
 	delete m_pARTAcceptDistribution;
 	m_pARTAcceptDistribution = getDistributionFromConfig(config, pRndGen, "person.art.accept.threshold");
 
+	delete m_pLogSurvTimeOffsetDistribution;
+	m_pLogSurvTimeOffsetDistribution = getDistributionFromConfig(config, pRndGen, "person.survtime.logoffset");
+
 	// Population distribution
 	delete m_pPopDist;
 	m_pPopDist = getDistribution2DFromConfig(config, pRndGen, "person.geo");
@@ -284,11 +296,13 @@ void Person::obtainConfig(ConfigWriter &config)
 	assert(m_pPopDist);
 	addDistribution2DToConfig(m_pPopDist, config, "person.geo");
 
-	if (!config.addKey("person.vsp.toacute.x", m_acuteFromSetPointParamX) ||
-	    !config.addKey("person.vsp.toaids.x", m_aidsFromSetPointParamX) ||
-	    !config.addKey("person.vsp.tofinalaids.x", m_finalAidsFromSetPointParamX) ||
-	    !config.addKey("person.vsp.maxvalue", m_maxViralLoad) )
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.addKey("person.vsp.toacute.x", m_acuteFromSetPointParamX)) ||
+	    !(r = config.addKey("person.vsp.toaids.x", m_aidsFromSetPointParamX)) ||
+	    !(r = config.addKey("person.vsp.tofinalaids.x", m_finalAidsFromSetPointParamX)) ||
+	    !(r = config.addKey("person.vsp.maxvalue", m_maxViralLoad)) )
+		abortWithMessage(r.getErrorString());
 
 	addDistributionToConfig(m_pEagernessDistribution, config, "person.eagerness");
 	addDistributionToConfig(m_pMaleAgeGapDistribution, config, "person.agegap.man");
@@ -296,6 +310,7 @@ void Person::obtainConfig(ConfigWriter &config)
 	addDistributionToConfig(m_pCD4StartDistribution, config, "person.cd4.start");
 	addDistributionToConfig(m_pCD4EndDistribution, config, "person.cd4.end");
 	addDistributionToConfig(m_pARTAcceptDistribution, config, "person.art.accept.threshold");
+	addDistributionToConfig(m_pLogSurvTimeOffsetDistribution, config, "person.survtime.logoffset");
 
 	{
 		VspModelLogWeibullWithRandomNoise *pDist = 0;
@@ -308,11 +323,11 @@ void Person::obtainConfig(ConfigWriter &config)
 			else
 				badInher = "logweibull";
 
-			if (!config.addKey("person.vsp.model.type", "logweibullwithnoise") ||
-		    	    !config.addKey("person.vsp.model.logweibullwithnoise.weibullshape", pDist->getWeibullShape()) ||
-			    !config.addKey("person.vsp.model.logweibullwithnoise.weibullscale", pDist->getWeibullScale()) ||
-		            !config.addKey("person.vsp.model.logweibullwithnoise.fracsigma", pDist->getSigmaFraction()) )
-				abortWithMessage(config.getErrorString());
+			if (!(r = config.addKey("person.vsp.model.type", "logweibullwithnoise")) ||
+		    	!(r = config.addKey("person.vsp.model.logweibullwithnoise.weibullshape", pDist->getWeibullShape())) ||
+			    !(r = config.addKey("person.vsp.model.logweibullwithnoise.weibullscale", pDist->getWeibullScale())) ||
+		        !(r = config.addKey("person.vsp.model.logweibullwithnoise.fracsigma", pDist->getSigmaFraction())) )
+				abortWithMessage(r.getErrorString());
 			    
 			return;
 		}
@@ -324,9 +339,9 @@ void Person::obtainConfig(ConfigWriter &config)
 			ProbabilityDistribution *pAltSeedDist = pDist->getAltSeedDist();
 			ProbabilityDistribution2D *pDist2D = pDist->getUnderlyingDistribution();
 
-			if (!config.addKey("person.vsp.model.type", "logdist2d") ||
-			    !config.addKey("person.vsp.model.logdist2d.usealternativeseeddist", (pAltSeedDist != 0)))
-				abortWithMessage(config.getErrorString());
+			if (!(r = config.addKey("person.vsp.model.type", "logdist2d")) ||
+			    !(r = config.addKey("person.vsp.model.logdist2d.usealternativeseeddist", (pAltSeedDist != 0))))
+				abortWithMessage(r.getErrorString());
 
 			if (pAltSeedDist)
 				addDistributionToConfig(pAltSeedDist, config, "person.vsp.model.logdist2d.alternativeseed");
@@ -485,11 +500,18 @@ void Person::writeToPersonLog()
 	double log10SPVLoriginal = (isInfected()) ? std::log10(m_VspOriginal) : -infinity;
 	double treatmentTime = (isInfected() && hasLoweredViralLoad()) ? getLastTreatmentStartTime() : infinity;
 
-	LogPerson.print("%d,%d,%10.10f,%10.10f,%d,%d,%10.10f,%10.10f,%10.10f,%d,%d,%10.10f,%10.10f,%10.10f,%10.10f",
+	int aidsDeath = -1;
+	if (hasDied())
+	{
+		aidsDeath = 0;
+		if (m_aidsDeath)
+			aidsDeath = 1;
+	}
+	LogPerson.print("%d,%d,%10.10f,%10.10f,%d,%d,%10.10f,%10.10f,%10.10f,%d,%d,%10.10f,%10.10f,%10.10f,%10.10f,%d",
 		        id, gender, timeOfBirth, timeOfDeath, fatherID, motherID, debutTime,
 		        formationEagerness,
 		        infectionTime, origin, infectionType, log10SPVLoriginal, treatmentTime,
-			m_location.x, m_location.y);
+			m_location.x, m_location.y, aidsDeath);
 }
 
 void Person::writeToTreatmentLog(double dropoutTime, bool justDied)
@@ -782,6 +804,16 @@ JSONConfig personJSONConfig(R"JSON(
                 "there's little chance of accepting treatment; if the value is higher (close to",
                 "one), treatment will almost always be accepted."
             ]
-        })JSON");
+        },
+
+		"PersonSurvTimeLogOffset": {
+			"depends": null,
+			"params": [
+				[ "person.survtime.logoffset.dist", "distTypes" ]
+			],
+			"info": [
+				"TODO"
+			]
+		})JSON");
 
 

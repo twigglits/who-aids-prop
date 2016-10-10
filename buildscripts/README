@@ -1,0 +1,60 @@
+Build installation packages for different operating systems
+===========================================================
+
+OS X 
+----
+
+This uses the script `build-osx.py` to which a single argument must be 
+specified. This must be the path or URL to a file like 
+`simpact-cyan-0.19.6.tar.gz`. 
+
+To make sure that the `gcc`compiler is used instead of the `clang` compiler
+(which is the one provided by OS X), the Anaconda Python environment needs to 
+be installed, and the PATH environment variable must be set in such a way that
+the `conda` command can be executed.
+
+To create the final .dmg installer, the tool `packagesbuild` (available
+from http://s.sudre.free.fr/Software/Packages/about.html) is used, and
+therefore needs to be installed.
+
+MS-Windows build
+----------------
+
+To automate the creation of an installer on MS-Windows, some things will need
+to be available:
+
+ - The Visual Studio 2015 compiler needs to be installed to compile the 
+   Simpact binaries
+ - CMake needs to be installed
+ - NSIS (a tool to create an installer) needs to be available
+ - Some additional libraries (for GSL and TIFF libraries) from
+   http://research.edm.uhasselt.be/jori/simpact_vs2015_deps.rar need to
+   be extracted somewhere and the `32bit/bin` subdirectory needs to be
+   added to the PATH environment variable
+
+The script `build-windows.py` accepts either the path/URL to a filename like
+`simpact-cyan-0.19.6.tar.gz`, or a directory that points to the main 
+`CMakeLists.txt` file.
+
+Linux build
+-----------
+
+To create a .deb or .rpm file for a particular Ubuntu, Debian or Fedora, you
+can run the `build-debian.py` (for Debian and Ubuntu) or `build-windows.py`
+script. These scripts accept either the path/URL to a filename like
+`simpact-cyan-0.19.6.tar.gz`, or a directory that points to the main 
+`CMakeLists.txt` file.
+
+To create .deb and .rpm installers for many systems using a single command,
+the `build-linuxpacks-using-vagrant.py` script can be used. This uses
+the `vagrant` tool to start virtual machines with different Linux-based 
+operating systems, which in turn will launch the `build-debian.py` or
+`build-fedora.py` scripts automatically.
+
+The `build-linuxpacks-using-vagrant.py` script needs the path/URL to a file
+like `simpact-cyan-0.19.6.tar.gz` as a first parameter, and one or more 
+parameters that specify which installers should be created. Run the
+`build-linuxpacks-using-vagrant.py` script without parameters to see
+what's possible.
+
+

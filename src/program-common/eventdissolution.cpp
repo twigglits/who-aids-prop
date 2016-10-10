@@ -24,7 +24,7 @@ std::string EventDissolution::getDescription(double tNow) const
 		     getPerson(0)->getName().c_str(), getPerson(1)->getName().c_str(), m_formationTime, tNow-m_formationTime);
 }
 
-void EventDissolution::writeLogs(const Population &pop, double tNow) const
+void EventDissolution::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);
@@ -34,7 +34,7 @@ void EventDissolution::writeLogs(const Population &pop, double tNow) const
 	// it will also be handled when it's because someone dies
 }
 
-void EventDissolution::fire(State *pState, double t)
+void EventDissolution::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	Person *pPerson1 = getPerson(0);
@@ -113,30 +113,34 @@ double EventDissolution::tMaxDiff = 0;		// t_max
 
 void EventDissolution::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
-	if (!config.getKeyValue("dissolution.alpha_0", a0) ||
-	    !config.getKeyValue("dissolution.alpha_1", a1) ||
-	    !config.getKeyValue("dissolution.alpha_2", a2) ||
-	    !config.getKeyValue("dissolution.alpha_3", a3) ||
-	    !config.getKeyValue("dissolution.alpha_4", a4) ||
-	    !config.getKeyValue("dissolution.alpha_5", a5) ||
-	    !config.getKeyValue("dissolution.Dp", Dp) ||
-	    !config.getKeyValue("dissolution.beta", b) ||
-	    !config.getKeyValue("dissolution.t_max", tMaxDiff, 0) )
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.getKeyValue("dissolution.alpha_0", a0)) ||
+	    !(r = config.getKeyValue("dissolution.alpha_1", a1)) ||
+	    !(r = config.getKeyValue("dissolution.alpha_2", a2)) ||
+	    !(r = config.getKeyValue("dissolution.alpha_3", a3)) ||
+	    !(r = config.getKeyValue("dissolution.alpha_4", a4)) ||
+	    !(r = config.getKeyValue("dissolution.alpha_5", a5)) ||
+	    !(r = config.getKeyValue("dissolution.Dp", Dp)) ||
+	    !(r = config.getKeyValue("dissolution.beta", b)) ||
+	    !(r = config.getKeyValue("dissolution.t_max", tMaxDiff, 0)) )
+		abortWithMessage(r.getErrorString());
 }
 
 void EventDissolution::obtainConfig(ConfigWriter &config)
 {
-	if (!config.addKey("dissolution.alpha_0", a0) ||
-	    !config.addKey("dissolution.alpha_1", a1) ||
-	    !config.addKey("dissolution.alpha_2", a2) ||
-	    !config.addKey("dissolution.alpha_3", a3) ||
-	    !config.addKey("dissolution.alpha_4", a4) ||
-	    !config.addKey("dissolution.alpha_5", a5) ||
-	    !config.addKey("dissolution.Dp", Dp) ||
-	    !config.addKey("dissolution.beta", b) ||
-	    !config.addKey("dissolution.t_max", tMaxDiff) )
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.addKey("dissolution.alpha_0", a0)) ||
+	    !(r = config.addKey("dissolution.alpha_1", a1)) ||
+	    !(r = config.addKey("dissolution.alpha_2", a2)) ||
+	    !(r = config.addKey("dissolution.alpha_3", a3)) ||
+	    !(r = config.addKey("dissolution.alpha_4", a4)) ||
+	    !(r = config.addKey("dissolution.alpha_5", a5)) ||
+	    !(r = config.addKey("dissolution.Dp", Dp)) ||
+	    !(r = config.addKey("dissolution.beta", b)) ||
+	    !(r = config.addKey("dissolution.t_max", tMaxDiff)) )
+		abortWithMessage(r.getErrorString());
 }
 
 ConfigFunctions dissolutionConfigFunctions(EventDissolution::processConfig, EventDissolution::obtainConfig, "EventDissolution");
@@ -156,7 +160,7 @@ JSONConfig dissolutionJSONConfig(R"JSON(
                 ["dissolution.t_max", 200] ],
             "info": [ 
                 "These are the parameters for the hazard in the dissolution event.",
-                "see http://research.edm.uhasselt.be/~jori/simpact/documentation/simpactcyan.html",
+                "see http://research.edm.uhasselt.be/jori/simpact/",
                 "for more information."
             ]
         })JSON");

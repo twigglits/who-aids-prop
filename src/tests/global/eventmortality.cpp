@@ -48,7 +48,7 @@ std::string EventMortality::getDescription(double tNow) const
 
 }
 
-void EventMortality::fire(State *pState, double t)
+void EventMortality::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	Person *pPerson = getPerson(0);

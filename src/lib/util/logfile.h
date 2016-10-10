@@ -6,19 +6,19 @@
  * \file logfile.h
  */
 
-#include "errut/errorbase.h"
+#include "booltype.h"
 #include <stdio.h>
 #include <vector>
 
 /** Helper class to write to a log file. */
-class LogFile : public errut::ErrorBase
+class LogFile
 {
 public:
 	LogFile();
-	~LogFile();
+	virtual ~LogFile();
 
 	/** Opens the specified file for writing. */
-	bool open(const std::string &fileName);
+	bool_t open(const std::string &fileName);
 
 	/** Returns the filename from the 'open' call. */
 	std::string getFileName() const								{ return m_fileName; }

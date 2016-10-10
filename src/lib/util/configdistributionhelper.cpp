@@ -22,6 +22,7 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 {
 	vector<string> supportedDistributions;
 	string distName;
+	bool_t r;
 
 	supportedDistributions.push_back("fixed");
 	supportedDistributions.push_back("uniform");
@@ -31,16 +32,16 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	supportedDistributions.push_back("normal");
 	supportedDistributions.push_back("exponential");
 	
-	if (!config.getKeyValue(prefix + ".dist.type", distName, supportedDistributions))
-		abortWithMessage(config.getErrorString());
+	if (!(r = config.getKeyValue(prefix + ".dist.type", distName, supportedDistributions)))
+		abortWithMessage(r.getErrorString());
 
 	ProbabilityDistribution *pDist = 0;
 	if (distName == "fixed")
 	{
 		double value;
 
-		if (!config.getKeyValue(prefix + ".dist.fixed.value", value))
-			abortWithMessage(config.getErrorString());
+		if (!(r = config.getKeyValue(prefix + ".dist.fixed.value", value)))
+			abortWithMessage(r.getErrorString());
 
 		pDist = new FixedValueDistribution(value, pRndGen);
 	}
@@ -48,9 +49,9 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	{
 		double minValue, maxValue;
 
-		if (!config.getKeyValue(prefix + ".dist.uniform.min", minValue) ||
-		    !config.getKeyValue(prefix + ".dist.uniform.max", maxValue, minValue) )
-			abortWithMessage(config.getErrorString());
+		if (!(r = config.getKeyValue(prefix + ".dist.uniform.min", minValue)) ||
+		    !(r = config.getKeyValue(prefix + ".dist.uniform.max", maxValue, minValue)) )
+			abortWithMessage(r.getErrorString());
 
 		pDist = new UniformDistribution(minValue, maxValue, pRndGen);
 	}
@@ -58,11 +59,11 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	{
 		double a, b, minVal, maxVal;
 
-		if (!config.getKeyValue(prefix + ".dist.beta.a", a) ||
-		    !config.getKeyValue(prefix + ".dist.beta.b", b) ||
-		    !config.getKeyValue(prefix + ".dist.beta.min", minVal) ||
-		    !config.getKeyValue(prefix + ".dist.beta.max", maxVal, minVal) )
-			abortWithMessage(config.getErrorString());
+		if (!(r = config.getKeyValue(prefix + ".dist.beta.a", a)) ||
+		    !(r = config.getKeyValue(prefix + ".dist.beta.b", b)) ||
+		    !(r = config.getKeyValue(prefix + ".dist.beta.min", minVal)) ||
+		    !(r = config.getKeyValue(prefix + ".dist.beta.max", maxVal, minVal)) )
+			abortWithMessage(r.getErrorString());
 
 		pDist = new BetaDistribution(a, b, minVal, maxVal, pRndGen);
 	}
@@ -70,9 +71,9 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	{
 		double a, b;
 
-		if (!config.getKeyValue(prefix + ".dist.gamma.a", a) ||
-		    !config.getKeyValue(prefix + ".dist.gamma.b", b) )
-			abortWithMessage(config.getErrorString());
+		if (!(r = config.getKeyValue(prefix + ".dist.gamma.a", a)) ||
+		    !(r = config.getKeyValue(prefix + ".dist.gamma.b", b)) )
+			abortWithMessage(r.getErrorString());
 
 		pDist = new GammaDistribution(a, b, pRndGen);
 	}
@@ -80,9 +81,9 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	{
 		double zeta, sigma;
 
-		if (!config.getKeyValue(prefix + ".dist.lognormal.zeta", zeta) ||
-		    !config.getKeyValue(prefix + ".dist.lognormal.sigma", sigma, 0) )
-			abortWithMessage(config.getErrorString());
+		if (!(r = config.getKeyValue(prefix + ".dist.lognormal.zeta", zeta)) ||
+		    !(r = config.getKeyValue(prefix + ".dist.lognormal.sigma", sigma, 0)) )
+			abortWithMessage(r.getErrorString());
 
 		pDist = new LogNormalDistribution(zeta, sigma, pRndGen);
 	}
@@ -90,12 +91,12 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	{
 		double mu, sigma, minValue, maxValue;
 
-		if (!config.getKeyValue(prefix + ".dist.normal.mu", mu) ||
-		    !config.getKeyValue(prefix + ".dist.normal.sigma", sigma, 0) ||
-		    !config.getKeyValue(prefix + ".dist.normal.min", minValue) ||
-		    !config.getKeyValue(prefix + ".dist.normal.max", maxValue, minValue)
+		if (!(r = config.getKeyValue(prefix + ".dist.normal.mu", mu)) ||
+		    !(r = config.getKeyValue(prefix + ".dist.normal.sigma", sigma, 0)) ||
+		    !(r = config.getKeyValue(prefix + ".dist.normal.min", minValue)) ||
+		    !(r = config.getKeyValue(prefix + ".dist.normal.max", maxValue, minValue))
 		    )
-			abortWithMessage(config.getErrorString());
+			abortWithMessage(r.getErrorString());
 
 		pDist = new NormalDistribution(mu, sigma, pRndGen, minValue, maxValue);
 	}
@@ -103,8 +104,8 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 	{
 		double lambda;
 
-		if (!config.getKeyValue(prefix + ".dist.exponential.lambda", lambda, 0))
-			abortWithMessage(config.getErrorString());
+		if (!(r = config.getKeyValue(prefix + ".dist.exponential.lambda", lambda, 0)))
+			abortWithMessage(r.getErrorString());
 
 		pDist = new ExponentialDistribution(lambda, pRndGen);
 	}
@@ -117,10 +118,12 @@ ProbabilityDistribution *getDistributionFromConfig(ConfigSettings &config, GslRa
 
 void addDistributionToConfig(ProbabilityDistribution *pSrcDist, ConfigWriter &config, const std::string &prefix)
 {
+	bool_t r;
+
 	if (pSrcDist == 0)
 	{
-		if (!config.addKey(prefix + ".dist.type", "NULL"))
-			abortWithMessage(config.getErrorString());
+		if (!(r = config.addKey(prefix + ".dist.type", "NULL")))
+			abortWithMessage(r.getErrorString());
 		return;
 	}
 
@@ -129,9 +132,9 @@ void addDistributionToConfig(ProbabilityDistribution *pSrcDist, ConfigWriter &co
 		FixedValueDistribution *pDist = 0;
 		if ((pDist = dynamic_cast<FixedValueDistribution *>(pSrcDist)) != 0)
 		{
-			if (!config.addKey(prefix + ".dist.type", "fixed") ||
-			    !config.addKey(prefix + ".dist.fixed.value", pDist->getValue()))
-				abortWithMessage(config.getErrorString());
+			if (!(r = config.addKey(prefix + ".dist.type", "fixed")) ||
+			    !(r = config.addKey(prefix + ".dist.fixed.value", pDist->getValue())))
+				abortWithMessage(r.getErrorString());
 
 			return;
 		}
@@ -142,10 +145,10 @@ void addDistributionToConfig(ProbabilityDistribution *pSrcDist, ConfigWriter &co
 		UniformDistribution *pDist = 0;
 		if ((pDist = dynamic_cast<UniformDistribution *>(pSrcDist)) != 0)
 		{
-			if (!config.addKey(prefix + ".dist.type", "uniform") ||
-			    !config.addKey(prefix + ".dist.uniform.min", pDist->getMin()) ||
-			    !config.addKey(prefix + ".dist.uniform.max", pDist->getMin() + pDist->getRange()) )
-				abortWithMessage(config.getErrorString());
+			if (!(r = config.addKey(prefix + ".dist.type", "uniform")) ||
+			    !(r = config.addKey(prefix + ".dist.uniform.min", pDist->getMin())) ||
+			    !(r = config.addKey(prefix + ".dist.uniform.max", pDist->getMin() + pDist->getRange())) )
+				abortWithMessage(r.getErrorString());
 
 			return;
 		}
@@ -156,12 +159,12 @@ void addDistributionToConfig(ProbabilityDistribution *pSrcDist, ConfigWriter &co
 		BetaDistribution *pDist = 0;
 		if ((pDist = dynamic_cast<BetaDistribution *>(pSrcDist)) != 0)
 		{
-			if (!config.addKey(prefix + ".dist.type", "beta") ||
-			    !config.addKey(prefix + ".dist.beta.a", pDist->getA()) ||
-			    !config.addKey(prefix + ".dist.beta.b", pDist->getB()) ||
-			    !config.addKey(prefix + ".dist.beta.min", pDist->getMin()) ||
-			    !config.addKey(prefix + ".dist.beta.max", pDist->getMin() + pDist->getScale()) )
-				abortWithMessage(config.getErrorString());
+			if (!(r = config.addKey(prefix + ".dist.type", "beta")) ||
+			    !(r = config.addKey(prefix + ".dist.beta.a", pDist->getA())) ||
+			    !(r = config.addKey(prefix + ".dist.beta.b", pDist->getB())) ||
+			    !(r = config.addKey(prefix + ".dist.beta.min", pDist->getMin())) ||
+			    !(r = config.addKey(prefix + ".dist.beta.max", pDist->getMin() + pDist->getScale())) )
+				abortWithMessage(r.getErrorString());
 
 			return;
 		}
@@ -172,10 +175,10 @@ void addDistributionToConfig(ProbabilityDistribution *pSrcDist, ConfigWriter &co
 		GammaDistribution *pDist = 0;
 		if ((pDist = dynamic_cast<GammaDistribution *>(pSrcDist)) != 0)
 		{
-			if (!config.addKey(prefix + ".dist.type", "gamma") ||
-			    !config.addKey(prefix + ".dist.gamma.a", pDist->getA()) ||
-			    !config.addKey(prefix + ".dist.gamma.b", pDist->getB()) )
-				abortWithMessage(config.getErrorString());
+			if (!(r = config.addKey(prefix + ".dist.type", "gamma")) ||
+			    !(r = config.addKey(prefix + ".dist.gamma.a", pDist->getA())) ||
+			    !(r = config.addKey(prefix + ".dist.gamma.b", pDist->getB())) )
+				abortWithMessage(r.getErrorString());
 
 			return;
 		}
@@ -186,10 +189,10 @@ void addDistributionToConfig(ProbabilityDistribution *pSrcDist, ConfigWriter &co
 		LogNormalDistribution *pDist = 0;
 		if ((pDist = dynamic_cast<LogNormalDistribution *>(pSrcDist)) != 0)
 		{
-			if (!config.addKey(prefix + ".dist.type", "lognormal") ||
-			    !config.addKey(prefix + ".dist.lognormal.zeta", pDist->getZeta()) ||
-			    !config.addKey(prefix + ".dist.lognormal.sigma", pDist->getSigma()))
-				abortWithMessage(config.getErrorString());
+			if (!(r = config.addKey(prefix + ".dist.type", "lognormal")) ||
+			    !(r = config.addKey(prefix + ".dist.lognormal.zeta", pDist->getZeta())) ||
+			    !(r = config.addKey(prefix + ".dist.lognormal.sigma", pDist->getSigma())))
+				abortWithMessage(r.getErrorString());
 
 			return;
 		}
@@ -200,13 +203,13 @@ void addDistributionToConfig(ProbabilityDistribution *pSrcDist, ConfigWriter &co
 		NormalDistribution *pDist = 0;
 		if ((pDist = dynamic_cast<NormalDistribution *>(pSrcDist)) != 0)
 		{
-			if (!config.addKey(prefix + ".dist.type", "normal") ||
-			    !config.addKey(prefix + ".dist.normal.mu", pDist->getMu()) ||
-			    !config.addKey(prefix + ".dist.normal.sigma", pDist->getSigma()) ||
-			    !config.addKey(prefix + ".dist.normal.min", pDist->getMin()) ||
-			    !config.addKey(prefix + ".dist.normal.max", pDist->getMax())
+			if (!(r = config.addKey(prefix + ".dist.type", "normal")) ||
+			    !(r = config.addKey(prefix + ".dist.normal.mu", pDist->getMu())) ||
+			    !(r = config.addKey(prefix + ".dist.normal.sigma", pDist->getSigma())) ||
+			    !(r = config.addKey(prefix + ".dist.normal.min", pDist->getMin())) ||
+			    !(r = config.addKey(prefix + ".dist.normal.max", pDist->getMax()))
 			    )
-				abortWithMessage(config.getErrorString());
+				abortWithMessage(r.getErrorString());
 
 			return;
 		}
@@ -217,9 +220,9 @@ void addDistributionToConfig(ProbabilityDistribution *pSrcDist, ConfigWriter &co
 		ExponentialDistribution *pDist = 0;
 		if ((pDist = dynamic_cast<ExponentialDistribution *>(pSrcDist)) != 0)
 		{
-			if (!config.addKey(prefix + ".dist.type", "exponential") ||
-			    !config.addKey(prefix + ".dist.exponential.lambda", pDist->getA()) )
-				abortWithMessage(config.getErrorString());
+			if (!(r = config.addKey(prefix + ".dist.type", "exponential")) ||
+			    !(r = config.addKey(prefix + ".dist.exponential.lambda", pDist->getA())) )
+				abortWithMessage(r.getErrorString());
 
 			return;
 		}
@@ -233,6 +236,7 @@ ProbabilityDistribution2D *getDistribution2DFromConfig(ConfigSettings &config, G
 {
 	vector<string> supportedDistributions;
 	string distName;
+	bool_t r;
 
 	supportedDistributions.push_back("fixed");
 	supportedDistributions.push_back("uniform");
@@ -240,17 +244,17 @@ ProbabilityDistribution2D *getDistribution2DFromConfig(ConfigSettings &config, G
 	supportedDistributions.push_back("binormalsymm");
 	supportedDistributions.push_back("discrete");
 	
-	if (!config.getKeyValue(prefix + ".dist2d.type", distName, supportedDistributions))
-		abortWithMessage(config.getErrorString());
+	if (!(r = config.getKeyValue(prefix + ".dist2d.type", distName, supportedDistributions)))
+		abortWithMessage(r.getErrorString());
 
 	ProbabilityDistribution2D *pDist = 0;
 	if (distName == "fixed")
 	{
 		double xvalue, yvalue;
 
-		if (!config.getKeyValue(prefix + ".dist2d.fixed.xvalue", xvalue) ||
-		    !config.getKeyValue(prefix + ".dist2d.fixed.yvalue", yvalue) )
-			abortWithMessage(config.getErrorString());
+		if (!(r = config.getKeyValue(prefix + ".dist2d.fixed.xvalue", xvalue)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.fixed.yvalue", yvalue)) )
+			abortWithMessage(r.getErrorString());
 
 		pDist = new FixedValueDistribution2D(xvalue, yvalue, pRndGen);
 	}
@@ -259,11 +263,11 @@ ProbabilityDistribution2D *getDistribution2DFromConfig(ConfigSettings &config, G
 		double minXValue, maxXValue;
 		double minYValue, maxYValue;
 
-		if (!config.getKeyValue(prefix + ".dist2d.uniform.xmin", minXValue) ||
-		    !config.getKeyValue(prefix + ".dist2d.uniform.xmax", maxXValue, minXValue) ||
-		    !config.getKeyValue(prefix + ".dist2d.uniform.ymin", minYValue) ||
-		    !config.getKeyValue(prefix + ".dist2d.uniform.ymax", maxYValue, minYValue) )
-			abortWithMessage(config.getErrorString());
+		if (!(r = config.getKeyValue(prefix + ".dist2d.uniform.xmin", minXValue)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.uniform.xmax", maxXValue, minXValue)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.uniform.ymin", minYValue)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.uniform.ymax", maxYValue, minYValue)) )
+			abortWithMessage(r.getErrorString());
 
 		pDist = new UniformDistribution2D(minXValue, maxXValue, minYValue, maxYValue, pRndGen);
 	}
@@ -273,17 +277,17 @@ ProbabilityDistribution2D *getDistribution2DFromConfig(ConfigSettings &config, G
 		double yMean, ySigma, yMin, yMax;
 		double rho;
 
-		if (!config.getKeyValue(prefix + ".dist2d.binormal.meanx", xMean) ||
-		    !config.getKeyValue(prefix + ".dist2d.binormal.meany", yMean) ||
-		    !config.getKeyValue(prefix + ".dist2d.binormal.sigmax", xSigma) ||
-		    !config.getKeyValue(prefix + ".dist2d.binormal.sigmay", ySigma) ||
-		    !config.getKeyValue(prefix + ".dist2d.binormal.rho", rho, -1, 1) ||
-		    !config.getKeyValue(prefix + ".dist2d.binormal.minx", xMin) ||
-		    !config.getKeyValue(prefix + ".dist2d.binormal.maxx", xMax, xMin) ||
-		    !config.getKeyValue(prefix + ".dist2d.binormal.miny", yMin) ||
-		    !config.getKeyValue(prefix + ".dist2d.binormal.maxy", yMax, yMin)
+		if (!(r = config.getKeyValue(prefix + ".dist2d.binormal.meanx", xMean)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.binormal.meany", yMean)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.binormal.sigmax", xSigma)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.binormal.sigmay", ySigma)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.binormal.rho", rho, -1, 1)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.binormal.minx", xMin)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.binormal.maxx", xMax, xMin)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.binormal.miny", yMin)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.binormal.maxy", yMax, yMin))
 		    )
-			abortWithMessage(config.getErrorString());
+			abortWithMessage(r.getErrorString());
 
 		pDist = new BinormalDistribution(xMean, yMean, xSigma, ySigma, rho, pRndGen, xMin, xMax, yMin, yMax);
 	}
@@ -292,13 +296,13 @@ ProbabilityDistribution2D *getDistribution2DFromConfig(ConfigSettings &config, G
 		double xMean, xSigma, xMin, xMax;
 		double rho;
 
-		if (!config.getKeyValue(prefix + ".dist2d.binormalsymm.mean", xMean) ||
-		    !config.getKeyValue(prefix + ".dist2d.binormalsymm.sigma", xSigma) ||
-		    !config.getKeyValue(prefix + ".dist2d.binormalsymm.rho", rho, -1, 1) ||
-		    !config.getKeyValue(prefix + ".dist2d.binormalsymm.min", xMin) ||
-		    !config.getKeyValue(prefix + ".dist2d.binormalsymm.max", xMax, xMin) 
+		if (!(r = config.getKeyValue(prefix + ".dist2d.binormalsymm.mean", xMean)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.binormalsymm.sigma", xSigma)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.binormalsymm.rho", rho, -1, 1)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.binormalsymm.min", xMin)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.binormalsymm.max", xMax, xMin)) 
 		    )
-			abortWithMessage(config.getErrorString());
+			abortWithMessage(r.getErrorString());
 
 		pDist = new BinormalDistribution(xMean, xSigma, rho, pRndGen, xMin, xMax);
 	}
@@ -308,27 +312,27 @@ ProbabilityDistribution2D *getDistribution2DFromConfig(ConfigSettings &config, G
 		double xOffset, yOffset, width, height;
 		bool flipy;
 
-		if (!config.getKeyValue(prefix + ".dist2d.discrete.densfile", tiffFileName) ||
-		    !config.getKeyValue(prefix + ".dist2d.discrete.maskfile", maskFileName) ||
-		    !config.getKeyValue(prefix + ".dist2d.discrete.xoffset", xOffset) ||
-		    !config.getKeyValue(prefix + ".dist2d.discrete.yoffset", yOffset) ||
-		    !config.getKeyValue(prefix + ".dist2d.discrete.width", width) ||
-		    !config.getKeyValue(prefix + ".dist2d.discrete.height", height) ||
-		    !config.getKeyValue(prefix + ".dist2d.discrete.flipy", flipy)
+		if (!(r = config.getKeyValue(prefix + ".dist2d.discrete.densfile", tiffFileName)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.discrete.maskfile", maskFileName)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.discrete.xoffset", xOffset)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.discrete.yoffset", yOffset)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.discrete.width", width)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.discrete.height", height)) ||
+		    !(r = config.getKeyValue(prefix + ".dist2d.discrete.flipy", flipy))
 		   )
-			abortWithMessage(config.getErrorString());
+			abortWithMessage(r.getErrorString());
 
 		TIFFDensityFile tiffFile;
 
-		if (!tiffFile.init(tiffFileName, true, flipy))
-			abortWithMessage("Unable to read specified TIFF density file: " + tiffFile.getErrorString());
+		if (!(r = tiffFile.init(tiffFileName, true, flipy)))
+			abortWithMessage("Unable to read specified TIFF density file: " + r.getErrorString());
 
 		if (maskFileName.length() > 0) // A mask file was specified
 		{
 			TIFFDensityFile maskFile;
 
-			if (!maskFile.init(maskFileName, false, flipy))
-				abortWithMessage("Unable to read specified TIFF mask file: " + maskFile.getErrorString());
+			if (!(r = maskFile.init(maskFileName, false, flipy)))
+				abortWithMessage("Unable to read specified TIFF mask file: " + r.getErrorString());
 
 			int w = tiffFile.getWidth();
 			int h = tiffFile.getHeight();
@@ -358,10 +362,12 @@ ProbabilityDistribution2D *getDistribution2DFromConfig(ConfigSettings &config, G
 
 void addDistribution2DToConfig(ProbabilityDistribution2D *pSrcDist, ConfigWriter &config, const std::string &prefix)
 {
+	bool_t r;
+
 	if (pSrcDist == 0)
 	{
-		if (!config.addKey(prefix + ".dist2d.type", "NULL"))
-			abortWithMessage(config.getErrorString());
+		if (!(r = config.addKey(prefix + ".dist2d.type", "NULL")))
+			abortWithMessage(r.getErrorString());
 		return;
 	}
 
@@ -370,11 +376,11 @@ void addDistribution2DToConfig(ProbabilityDistribution2D *pSrcDist, ConfigWriter
 		FixedValueDistribution2D *pDist = 0;
 		if ((pDist = dynamic_cast<FixedValueDistribution2D *>(pSrcDist)) != 0)
 		{
-			if (!config.addKey(prefix + ".dist2d.type", "fixed") ||
-			    !config.addKey(prefix + ".dist2d.fixed.xvalue", pDist->getXValue()) ||
-			    !config.addKey(prefix + ".dist2d.fixed.yvalue", pDist->getYValue()) 
+			if (!(r = config.addKey(prefix + ".dist2d.type", "fixed")) ||
+			    !(r = config.addKey(prefix + ".dist2d.fixed.xvalue", pDist->getXValue())) ||
+			    !(r = config.addKey(prefix + ".dist2d.fixed.yvalue", pDist->getYValue())) 
 			   )
-				abortWithMessage(config.getErrorString());
+				abortWithMessage(r.getErrorString());
 
 			return;
 		}
@@ -385,12 +391,12 @@ void addDistribution2DToConfig(ProbabilityDistribution2D *pSrcDist, ConfigWriter
 		UniformDistribution2D *pDist = 0;
 		if ((pDist = dynamic_cast<UniformDistribution2D *>(pSrcDist)) != 0)
 		{
-			if (!config.addKey(prefix + ".dist2d.type", "uniform") ||
-			    !config.addKey(prefix + ".dist2d.uniform.xmin", pDist->getXMin()) ||
-			    !config.addKey(prefix + ".dist2d.uniform.xmax", pDist->getXMax()) ||
-			    !config.addKey(prefix + ".dist2d.uniform.ymin", pDist->getYMin()) ||
-			    !config.addKey(prefix + ".dist2d.uniform.ymax", pDist->getYMax()) )
-				abortWithMessage(config.getErrorString());
+			if (!(r = config.addKey(prefix + ".dist2d.type", "uniform")) ||
+			    !(r = config.addKey(prefix + ".dist2d.uniform.xmin", pDist->getXMin())) ||
+			    !(r = config.addKey(prefix + ".dist2d.uniform.xmax", pDist->getXMax())) ||
+			    !(r = config.addKey(prefix + ".dist2d.uniform.ymin", pDist->getYMin())) ||
+			    !(r = config.addKey(prefix + ".dist2d.uniform.ymax", pDist->getYMax())) )
+				abortWithMessage(r.getErrorString());
 
 			return;
 		}
@@ -403,29 +409,29 @@ void addDistribution2DToConfig(ProbabilityDistribution2D *pSrcDist, ConfigWriter
 		{
 			if (pDist->isSymmetric())
 			{
-				if (!config.addKey(prefix + ".dist2d.type", "binormalsymm") ||
-				    !config.addKey(prefix + ".dist2d.binormalsymm.mean", pDist->getMeanX()) ||
-				    !config.addKey(prefix + ".dist2d.binormalsymm.sigma", pDist->getSigmaX()) ||
-				    !config.addKey(prefix + ".dist2d.binormalsymm.rho", pDist->getRho()) ||
-				    !config.addKey(prefix + ".dist2d.binormalsymm.min", pDist->getMinX()) ||
-				    !config.addKey(prefix + ".dist2d.binormalsymm.max", pDist->getMaxX()) )
-					abortWithMessage(config.getErrorString());
+				if (!(r = config.addKey(prefix + ".dist2d.type", "binormalsymm")) ||
+				    !(r = config.addKey(prefix + ".dist2d.binormalsymm.mean", pDist->getMeanX())) ||
+				    !(r = config.addKey(prefix + ".dist2d.binormalsymm.sigma", pDist->getSigmaX())) ||
+				    !(r = config.addKey(prefix + ".dist2d.binormalsymm.rho", pDist->getRho())) ||
+				    !(r = config.addKey(prefix + ".dist2d.binormalsymm.min", pDist->getMinX())) ||
+				    !(r = config.addKey(prefix + ".dist2d.binormalsymm.max", pDist->getMaxX())) )
+					abortWithMessage(r.getErrorString());
 
 				return;
 			}
 			else
 			{
-				if (!config.addKey(prefix + ".dist2d.type", "binormal") ||
-				    !config.addKey(prefix + ".dist2d.binormal.rho", pDist->getRho()) ||
-				    !config.addKey(prefix + ".dist2d.binormal.meanx", pDist->getMeanX()) ||
-				    !config.addKey(prefix + ".dist2d.binormal.sigmax", pDist->getSigmaX()) ||
-				    !config.addKey(prefix + ".dist2d.binormal.minx", pDist->getMinX()) ||
-				    !config.addKey(prefix + ".dist2d.binormal.maxx", pDist->getMaxX()) ||
-				    !config.addKey(prefix + ".dist2d.binormal.meany", pDist->getMeanY()) ||
-				    !config.addKey(prefix + ".dist2d.binormal.sigmay", pDist->getSigmaY()) ||
-				    !config.addKey(prefix + ".dist2d.binormal.miny", pDist->getMinY()) ||
-				    !config.addKey(prefix + ".dist2d.binormal.maxy", pDist->getMaxY()) )
-					abortWithMessage(config.getErrorString());
+				if (!(r = config.addKey(prefix + ".dist2d.type", "binormal")) ||
+				    !(r = config.addKey(prefix + ".dist2d.binormal.rho", pDist->getRho())) ||
+				    !(r = config.addKey(prefix + ".dist2d.binormal.meanx", pDist->getMeanX())) ||
+				    !(r = config.addKey(prefix + ".dist2d.binormal.sigmax", pDist->getSigmaX())) ||
+				    !(r = config.addKey(prefix + ".dist2d.binormal.minx", pDist->getMinX())) ||
+				    !(r = config.addKey(prefix + ".dist2d.binormal.maxx", pDist->getMaxX())) ||
+				    !(r = config.addKey(prefix + ".dist2d.binormal.meany", pDist->getMeanY())) ||
+				    !(r = config.addKey(prefix + ".dist2d.binormal.sigmay", pDist->getSigmaY())) ||
+				    !(r = config.addKey(prefix + ".dist2d.binormal.miny", pDist->getMinY())) ||
+				    !(r = config.addKey(prefix + ".dist2d.binormal.maxy", pDist->getMaxY())) )
+					abortWithMessage(r.getErrorString());
 
 				return;
 			}
@@ -437,15 +443,15 @@ void addDistribution2DToConfig(ProbabilityDistribution2D *pSrcDist, ConfigWriter
 		DiscreteDistribution2D *pDist = 0;
 		if ((pDist = dynamic_cast<DiscreteDistribution2D *>(pSrcDist)) != 0)
 		{
-			if (!config.addKey(prefix + ".dist2d.type", "discrete") ||
-			    !config.addKey(prefix + ".dist2d.discrete.densfile", "IGNORE") ||
-			    !config.addKey(prefix + ".dist2d.discrete.maskfile", "IGNORE") ||
-			    !config.addKey(prefix + ".dist2d.discrete.xoffset", pDist->getXOffset()) ||
-			    !config.addKey(prefix + ".dist2d.discrete.yoffset", pDist->getYOffset()) ||
-			    !config.addKey(prefix + ".dist2d.discrete.width", pDist->getXSize()) ||
-			    !config.addKey(prefix + ".dist2d.discrete.height", pDist->getYSize()) ||
-			    !config.addKey(prefix + ".dist2d.discrete.flipy", pDist->isYFlipped()) )
-				abortWithMessage(config.getErrorString());
+			if (!(r = config.addKey(prefix + ".dist2d.type", "discrete")) ||
+			    !(r = config.addKey(prefix + ".dist2d.discrete.densfile", "IGNORE")) ||
+			    !(r = config.addKey(prefix + ".dist2d.discrete.maskfile", "IGNORE")) ||
+			    !(r = config.addKey(prefix + ".dist2d.discrete.xoffset", pDist->getXOffset())) ||
+			    !(r = config.addKey(prefix + ".dist2d.discrete.yoffset", pDist->getYOffset())) ||
+			    !(r = config.addKey(prefix + ".dist2d.discrete.width", pDist->getXSize())) ||
+			    !(r = config.addKey(prefix + ".dist2d.discrete.height", pDist->getYSize())) ||
+			    !(r = config.addKey(prefix + ".dist2d.discrete.flipy", pDist->isYFlipped())) )
+				abortWithMessage(r.getErrorString());
 
 			return;
 		}
@@ -561,7 +567,7 @@ JSONConfig distribution2DJSONConfig("distTypes2D", R"JSON(
         "discrete": {
             "params": [
                 [ "densfile", null ],
-                [ "maskfile", null ],
+                [ "maskfile", "" ],
                 [ "xoffset", 0 ],
                 [ "yoffset", 0 ],
                 [ "width", 1 ],

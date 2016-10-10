@@ -13,10 +13,8 @@ public:
 	~EventAIDSMortality();
 
 	std::string getDescription(double tNow) const;
-	void writeLogs(const Population &pop, double tNow) const;
-#ifndef NDEBUG
-	void fire(State *pState, double t);
-#endif // !NDEBUG
+	void writeLogs(const SimpactPopulation &pop, double tNow) const;
+	void fire(Algorithm *pAlgorithm, State *pState, double t);
 
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
@@ -39,9 +37,10 @@ inline double EventAIDSMortality::getExpectedSurvivalTime(const Person *pPerson)
 {
 	assert(pPerson);
 	double Vsp = pPerson->getSetPointViralLoad();
+	double log10Offset = pPerson->getSurvivalTimeLog10Offset();
 	assert(Vsp > 0);
 
-	double tSurvival = m_C/std::pow(Vsp, -m_k);
+	double tSurvival = m_C/std::pow(Vsp, -m_k) * std::pow(10.0, log10Offset);
 	assert(tSurvival > 0);
 
 	return tSurvival;

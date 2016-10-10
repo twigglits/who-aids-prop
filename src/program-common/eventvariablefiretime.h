@@ -38,7 +38,7 @@ public:
 
 	void checkFireTime(double t) 									{ m_helper.checkFireTime(t); } 
 
-	void fire(State *pState, double t) 								{ m_helper.checkFireTime(t); } 
+	void fire(Algorithm *pAlgorithm, State *pState, double t) 								{ m_helper.checkFireTime(t); } 
 	void setFireTime(double tFire)									{ m_helper.setFireTime(tFire); }
 	double getFireTime() const									{ return m_helper.getFireTime(); }
 private:

@@ -27,14 +27,14 @@ string EventConception::getDescription(double tNow) const
 	return "Conception";
 }
 
-void EventConception::writeLogs(const Population &pop, double tNow) const
+void EventConception::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);
 	writeEventLogStart(true, "conception", tNow, pPerson1, pPerson2);
 }
 
-void EventConception::fire(State *pState, double t)
+void EventConception::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 
@@ -136,30 +136,34 @@ void EventConception::processConfig(ConfigSettings &config, GslRandomNumberGener
 		m_pWSFProbDist = 0;
 	}
 
-	if (!config.getKeyValue("conception.alpha_base", HazardFunctionConception::m_alphaBase) ||
-	    !config.getKeyValue("conception.alpha_ageman", HazardFunctionConception::m_alphaAgeMan) ||
-	    !config.getKeyValue("conception.alpha_agewoman", HazardFunctionConception::m_alphaAgeWoman) ||
-	    !config.getKeyValue("conception.alpha_wsf", HazardFunctionConception::m_alphaWSF) ||
-	    !config.getKeyValue("conception.beta", HazardFunctionConception::m_beta) ||
-	    !config.getKeyValue("conception.t_max", m_tMax, 0)
+	bool_t r;
+
+	if (!(r = config.getKeyValue("conception.alpha_base", HazardFunctionConception::m_alphaBase)) ||
+	    !(r = config.getKeyValue("conception.alpha_ageman", HazardFunctionConception::m_alphaAgeMan)) ||
+	    !(r = config.getKeyValue("conception.alpha_agewoman", HazardFunctionConception::m_alphaAgeWoman)) ||
+	    !(r = config.getKeyValue("conception.alpha_wsf", HazardFunctionConception::m_alphaWSF)) ||
+	    !(r = config.getKeyValue("conception.beta", HazardFunctionConception::m_beta)) ||
+	    !(r = config.getKeyValue("conception.t_max", m_tMax, 0))
 		)
-		abortWithMessage(config.getErrorString());
+		abortWithMessage(r.getErrorString());
 
 	m_pWSFProbDist = getDistributionFromConfig(config, pRndGen, "conception.wsf");
 }
 
 void EventConception::obtainConfig(ConfigWriter &config)
 {
+	bool_t r;
+
 	addDistributionToConfig(m_pWSFProbDist, config, "conception.wsf");
 
-	if (!config.addKey("conception.alpha_base", HazardFunctionConception::m_alphaBase) ||
-	    !config.addKey("conception.alpha_ageman", HazardFunctionConception::m_alphaAgeMan) ||
-	    !config.addKey("conception.alpha_agewoman", HazardFunctionConception::m_alphaAgeWoman) ||
-	    !config.addKey("conception.alpha_wsf", HazardFunctionConception::m_alphaWSF) ||
-	    !config.addKey("conception.beta", HazardFunctionConception::m_beta) ||
-	    !config.addKey("conception.t_max", m_tMax)
+	if (!(r = config.addKey("conception.alpha_base", HazardFunctionConception::m_alphaBase)) ||
+	    !(r = config.addKey("conception.alpha_ageman", HazardFunctionConception::m_alphaAgeMan)) ||
+	    !(r = config.addKey("conception.alpha_agewoman", HazardFunctionConception::m_alphaAgeWoman)) ||
+	    !(r = config.addKey("conception.alpha_wsf", HazardFunctionConception::m_alphaWSF)) ||
+	    !(r = config.addKey("conception.beta", HazardFunctionConception::m_beta)) ||
+	    !(r = config.addKey("conception.t_max", m_tMax))
 		)
-		abortWithMessage(config.getErrorString());
+		abortWithMessage(r.getErrorString());
 }
 
 EventConception::HazardFunctionConception::HazardFunctionConception(const Person *pMan, const Person *pWoman, 

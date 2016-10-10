@@ -3,15 +3,8 @@
 
 using namespace std;
 
-SimpactPopulation *createSimpactPopulation(const SimpactPopulationConfig &popConfig, const PopulationDistribution &popDist,
-		                                   bool parallel, GslRandomNumberGenerator *pRng)
+SimpactPopulation *createSimpactPopulation(PopulationAlgorithmInterface &alg, PopulationStateInterface &state)
 {
-	SimpactPopulation *pPop = new SimpactPopulation(parallel, pRng);
-	if (!pPop->init(popConfig, popDist))
-	{
-		cerr << "Unable to initialize population: " << pPop->getErrorString() << endl;
-		delete pPop;
-		return 0;
-	}
-	return pPop;
+	return new SimpactPopulation(alg, state);
 }
+

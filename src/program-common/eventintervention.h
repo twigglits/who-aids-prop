@@ -13,9 +13,9 @@ public:
 	~EventIntervention();
 
 	std::string getDescription(double tNow) const;
-	void writeLogs(const Population &pop, double tNow) const;
+	void writeLogs(const SimpactPopulation &pop, double tNow) const;
 
-	void fire(State *pState, double t);
+	void fire(Algorithm *pAlgorithm, State *pState, double t);
 	
 	// We don't know which parameters are going to change in a very general
 	// intervention event, so everyone must be assumed to be (possibly) affected

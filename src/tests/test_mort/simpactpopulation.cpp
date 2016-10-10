@@ -2,6 +2,13 @@
 #include "eventmortality.h"
 #include "populationdistribution.h"
 #include "person.h"
+#include "populationalgorithmadvanced.h"
+#include "populationalgorithmsimple.h"
+#include "populationstatesimple.h"
+#include "populationstateadvanced.h"
+#include <iostream>
+
+using namespace std;
 
 SimpactPopulationConfig::SimpactPopulationConfig()
 {
@@ -13,31 +20,28 @@ SimpactPopulationConfig::~SimpactPopulationConfig()
 {
 }
 
-SimpactPopulation::SimpactPopulation(bool parallel, GslRandomNumberGenerator *pRndGen) : Population(parallel, pRndGen)
+SimpactPopulation::SimpactPopulation(PopulationAlgorithmInterface &alg, PopulationStateInterface &state) 
+	: PopulationStateExtra(), m_state(state), m_alg(alg)
 {
 	m_init = false;
+	state.setExtraStateInfo(this);
+	alg.setAboutToFireAction(this);
 }
 
 SimpactPopulation::~SimpactPopulation()
 {
 }
 
-bool SimpactPopulation::init(const SimpactPopulationConfig &config, const PopulationDistribution &popDist)
+bool_t SimpactPopulation::init(const SimpactPopulationConfig &config, const PopulationDistribution &popDist)
 {
 	if (m_init)
-	{
-		setErrorString("Population is already initialized");
-		return false;
-	}
+		return "Population is already initialized";
 
 	int numMen = config.getInitialMen();
 	int numWomen = config.getInitialWomen();
 
 	if (numMen < 0 || numWomen < 0)
-	{
-		setErrorString("The number of men and women must be at least zero");
-		return false;
-	}
+		return "The number of men and women must be at least zero";
 
 	// Time zero is at the start of the simulation, so the birth dates are negative
 
@@ -57,7 +61,7 @@ bool SimpactPopulation::init(const SimpactPopulationConfig &config, const Popula
 		addNewPerson(pPerson);
 	}
 
-	// Start with the events
+	// Start with the event
 	onScheduleInitialEvents();
 
 	m_init = true;
@@ -73,15 +77,42 @@ void SimpactPopulation::onScheduleInitialEvents()
 	for (int i = 0 ; i < numPeople ; i++)
 	{
 		EventMortality *pEvt = new EventMortality(ppPeople[i]);
-		onNewEvent(pEvt);
+		m_alg.onNewEvent(pEvt);
 	}
 }
 
-void SimpactPopulation::onAboutToFire(EventBase *pEvt)
+void SimpactPopulation::onAboutToFire(PopulationEvent *pEvent)
 {
-	PopulationEvent *pEvent = static_cast<PopulationEvent *>(pEvt);
-
 	double t = getTime();
-	std::cout << t << "\t" << pEvent->getDescription(t) << std::endl;
+	cout << t << "\t" << pEvent->getDescription(t) << endl;
+}
+
+bool_t selectAlgorithmAndState(const string &algo, GslRandomNumberGenerator &rng, bool parallel,
+		                     PopulationAlgorithmInterface **ppAlgo, PopulationStateInterface **ppState)
+{
+	if (algo == "opt")
+	{
+		PopulationStateAdvanced *pPopState = new PopulationStateAdvanced();
+		*ppState = pPopState;
+		*ppAlgo = new PopulationAlgorithmAdvanced(*pPopState, rng, parallel);
+	}
+	else if (algo == "simple")
+	{
+		PopulationStateSimple *pPopState = new PopulationStateSimple();
+		*ppState = pPopState;
+		*ppAlgo = new PopulationAlgorithmSimple(*pPopState, rng, parallel);
+	}
+	else
+		return "Invalid algorithm: " + algo;
+
+	bool_t r = (*ppAlgo)->init();
+	if (!r)
+	{
+		delete *ppState;
+		delete *ppAlgo;
+		return r;
+	}
+
+	return true;
 }
 

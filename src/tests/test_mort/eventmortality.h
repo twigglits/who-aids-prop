@@ -12,7 +12,7 @@ public:
 	~EventMortality();
 
 	std::string getDescription(double tNow) const;
-	void fire(State *pState, double t);
+	void fire(Algorithm *pAlgorithm, State *pState, double t);
 private:
 	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
 };

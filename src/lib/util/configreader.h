@@ -6,7 +6,7 @@
  * \file configreader.h
  */
 
-#include "errut/errorbase.h"
+#include "booltype.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -30,21 +30,21 @@ key = value
  * This class just stores the key/value pairs as strings, it does not attempt
  * to interpret values in any way.
  */
-class ConfigReader : public errut::ErrorBase
+class ConfigReader
 {
 public:
 	ConfigReader();
-	~ConfigReader();
+	virtual ~ConfigReader();
 
 	/** Reads the config file specified by \c fileName. */
-	bool read(const std::string &fileName);
+	bool_t read(const std::string &fileName);
 
 	/** Stores all keys found in the config file in \c keys. */
 	void getKeys(std::vector<std::string> &keys) const;
 
 	/** For the key specified by the \c key parameter, the corresponding value
 	 *  will be stored in \c value. */
-	bool getKeyValue(const std::string &key, std::string &value) const;
+	bool_t getKeyValue(const std::string &key, std::string &value) const;
 
 	/** Prints all key/value pairs to the standard output. */
 	void printAll() const;

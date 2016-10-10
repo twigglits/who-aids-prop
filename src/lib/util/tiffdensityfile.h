@@ -2,28 +2,28 @@
 
 #define TIFFDENSITYFILE_H
 
-#include "errut/errorbase.h"
+#include "booltype.h"
 #include <assert.h>
 #include <vector>
 
-class TIFFDensityFile : public errut::ErrorBase
+class TIFFDensityFile
 {
 public:
 	TIFFDensityFile();
-	~TIFFDensityFile();
+	virtual ~TIFFDensityFile();
 
 	// Note: everything will be converted to doubles!
-	bool init(const std::string &fileName, bool noNegativeValues = true, bool flipY = false);
+	bool_t init(const std::string &fileName, bool noNegativeValues = true, bool flipY = false);
 	int getWidth() const									{ return m_width; }
 	int getHeight() const									{ return m_height; }
 	double getValue(int x, int y) const;
 	void setValue(int x, int y, double v);
 	bool isYFlipped() const									{ return m_yFlipped; }
 private:
-	bool readTiffFile(const std::string &fileName, bool noNeg, bool flipY);
+	bool_t readTiffFile(const std::string &fileName, bool noNeg, bool flipY);
 
 	template<class T>
-	bool readTilesFromTIFF(void *pTiffVoid, int tileWidth, int tileHeight, int width, int height, bool noNeg, const std::string &fileName);
+	bool_t readTilesFromTIFF(void *pTiffVoid, int tileWidth, int tileHeight, int width, int height, bool noNeg, const std::string &fileName);
 
 	int m_width, m_height;
 	std::vector<double> m_values;

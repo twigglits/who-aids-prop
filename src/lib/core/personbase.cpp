@@ -1,25 +1,23 @@
 #include "personbase.h"
-#include "population.h"
+#include "util.h"
 #include <stdlib.h>
 #include <stdio.h>
 
-PersonBase::PersonBase(Gender g, double dateOfBirth) : PersonalEventList(this)
+PersonBase::PersonBase(Gender g, double dateOfBirth)
 { 
+	m_pAlgInfo = 0;
 	m_personID = -1; // uninitialized
 
-	char str[256];
-
 	if (g == Male)
-		sprintf(str, "man_%d", (int)m_personID);
+		m_name = strprintf("man_%d", (int)m_personID);
 	else
-		sprintf(str, "woman_%d", (int)m_personID);
+		m_name = strprintf("woman_%d", (int)m_personID);
 
 	m_gender = g; 
 	m_dateOfBirth = dateOfBirth; 
-	m_name = std::string(str); 
 	m_timeOfDeath = -1; 
 
-	m_listIndex = -1;
+	//m_listIndex = -1;
 }
 
 void PersonBase::setPersonID(int64_t id)
@@ -29,17 +27,14 @@ void PersonBase::setPersonID(int64_t id)
 
 	m_personID = id; 
 
-	char str[256];
-
 	if (m_gender == Male)
-		sprintf(str, "man_%d", (int)m_personID);
+		m_name = strprintf("man_%d", (int)m_personID);
 	else
-		sprintf(str, "woman_%d", (int)m_personID);
-
-	m_name = std::string(str); 
+		m_name = strprintf("woman_%d", (int)m_personID);
 }
 
 PersonBase::~PersonBase()
 {
+	delete m_pAlgInfo;
 }
 

@@ -13,9 +13,9 @@ public:
 	~EventHIVSeed();
 
 	std::string getDescription(double tNow) const;
-	void writeLogs(const Population &pop, double tNow) const;
+	void writeLogs(const SimpactPopulation &pop, double tNow) const;
 
-	void fire(State *pState, double t);
+	void fire(Algorithm *pAlgorithm, State *pState, double t);
 	
 	// This can be made more fine grained, but for now this should suffice
 	bool isEveryoneAffected() const									{ return true; }

@@ -21,13 +21,11 @@ void runHazardTests(SimpactPopulation &pop);
 void logOnGoingRelationships(SimpactPopulation &pop);
 void logAllPersons(SimpactPopulation &pop);
 
-SimpactPopulation *createSimpactPopulation(const SimpactPopulationConfig &popConfig, const PopulationDistribution &popDist,
-		                                   bool parallel, GslRandomNumberGenerator *pRng);
+SimpactPopulation *createSimpactPopulation(PopulationAlgorithmInterface &alg, PopulationStateInterface &state);
 
 void usage(const string &progName)
 {
-	//cerr << "Usage: " << progName << " numMen numWomen parallel(0/1) tMax(years) initialInfectionFraction" << endl;
-	cerr << "Usage: " << progName << " configfile.txt parallel" << endl << endl;;
+	cerr << "Usage: " << progName << " configfile.txt parallel algo(opt/simple)" << endl << endl;;
 	cerr << "or" << endl;
 	cerr << "Usage: " << progName << " --showconfigoptions" << endl << endl;;
 	cerr << endl;
@@ -46,17 +44,20 @@ int real_main(int argc, char **argv)
 			return 0;
 		}
 	}
-	if (argc != 3)
+	if (argc != 4)
 		usage(argv[0]);
 
 	string confFileName(argv[1]);
 	int intParallel = atoi(argv[2]);
+	bool parallel = (intParallel == 1);
+	std::string algo(argv[3]);
 	ConfigSettings config;
+	bool_t r;
 
-	if (!config.load(confFileName))
+	if (!(r = config.load(confFileName)))
 	{
 		cerr << "Error loading configuration file " << confFileName << endl;
-		cerr << "  " << config.getErrorString() << endl;
+		cerr << "  " << r.getErrorString() << endl;
 		return -1;
 	}
 
@@ -67,15 +68,41 @@ int real_main(int argc, char **argv)
 	double tStart = 0;
 	int64_t maxEvents = -1;
 
-	if (!configure(config, populationConfig, ageDist, &rng, tMax, maxEvents))
+	if (!(r = configure(config, populationConfig, ageDist, &rng, tMax, maxEvents)))
+	{
+		cerr << r.getErrorString() << endl;
 		return -1;
+	}
 
-	bool parallel = (intParallel == 1);
+	PopulationAlgorithmInterface *pAlgo = 0;
+	PopulationStateInterface *pState = 0;
 
-	SimpactPopulation *pPop = createSimpactPopulation(populationConfig, ageDist, parallel, &rng);
+	if (!(r = selectAlgorithmAndState(algo, rng, parallel, &pAlgo, &pState)))
+	{
+		cerr << r.getErrorString() << endl;
+		delete pAlgo;
+		delete pState;
+		return -1;
+	}
+
+	SimpactPopulation *pPop = createSimpactPopulation(*pAlgo, *pState);
 	if (!pPop)
+	{
+		cerr << "Unexpected error: unable to allocate a SimpactPopulation derived class" << endl;
+		delete pAlgo;
+		delete pState;
 		return -1;
-	
+	}
+
+	if (!(r = pPop->init(populationConfig, ageDist)))
+	{
+		cerr << "Unable to initialize population: " << r.getErrorString() << endl;
+		delete pPop;
+		delete pAlgo;
+		delete pState;
+		return -1;
+	}
+
 	int numInitPeople = pPop->getNumberOfPeople();
 
 	// TODO: For hazard testing! Stops after the test
@@ -85,9 +112,9 @@ int real_main(int argc, char **argv)
 
 	cerr << "# Simpact version is: " << SIMPACT_CYAN_VERSION << endl;
 
-	if (!pPop->run(tMax, maxEvents))
+	if (!(r = pPop->run(tMax, maxEvents)))
 	{
-		cerr << "# Error running simulation: " << pPop->getErrorString() << endl;
+		cerr << "# Error running simulation: " << r.getErrorString() << endl;
 		cerr << "# Current simulation time is " << pPop->getTime() << endl;
 	}
 
@@ -103,6 +130,9 @@ int real_main(int argc, char **argv)
 	logAllPersons(*pPop);
 
 	delete pPop;
+	delete pAlgo;
+	delete pState;
+
 	return 0;
 }
 

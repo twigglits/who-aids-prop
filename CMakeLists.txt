@@ -6,7 +6,7 @@ else()
 endif()
 
 project(simpact-cyan)
-set(VERSION 0.18.0)
+set(VERSION 0.19.0)
 include(${PROJECT_SOURCE_DIR}/cmake/SimpactMacros.cmake)
 
 simpact_setup()
@@ -16,4 +16,4 @@ add_subdirectory(src)
 
 # Install everything from the data dir in e.g. /usr/local/share/simpact-cyan/
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/ DESTINATION ${CMAKE_INSTALL_PREFIX}/share/simpact-cyan/)
-
+install(FILES ${PROJECT_SOURCE_DIR}/python/pysimpactcyan.py DESTINATION ${CMAKE_INSTALL_PREFIX}/share/simpact-cyan/python/)

@@ -36,13 +36,13 @@ std::string EventDebut::getDescription(double tNow) const
 	return strprintf("Debut of %s", pPerson->getName().c_str());
 }
 
-void EventDebut::writeLogs(const Population &pop, double tNow) const
+void EventDebut::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	Person *pPerson = getPerson(0);
 	writeEventLogStart(true, "debut", tNow, pPerson, 0);
 }
 
-void EventDebut::fire(State *pState, double t)
+void EventDebut::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	assert(getNumberOfPersons() == 1);
@@ -61,14 +61,18 @@ double EventDebut::m_debutAge = -1;
 
 void EventDebut::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
-	if (!config.getKeyValue("debut.debutage", m_debutAge, 0, 100))
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.getKeyValue("debut.debutage", m_debutAge, 0, 100)))
+		abortWithMessage(r.getErrorString());
 }
 
 void EventDebut::obtainConfig(ConfigWriter &config)
 {
-	if (!config.addKey("debut.debutage", m_debutAge))
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.addKey("debut.debutage", m_debutAge)))
+		abortWithMessage(r.getErrorString());
 }
 
 ConfigFunctions debutConfigFunctions(EventDebut::processConfig, EventDebut::obtainConfig, "EventDebut");

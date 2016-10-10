@@ -1,9 +1,3 @@
-SIMPLEMNRM: in src/core/population.h
-
-	Selects between optimized and basic mNRM version, but this is
-	now set from the CMakeFile.txt, should not be set manually
-	anymore.
-
 SIMPACTEVENT_MAXPERSONS: src/core/simpactevent.h
 
 	The maximum number of Persons that can be stored in an event
@@ -26,13 +20,6 @@ STATE_SHOW_EVENTS: src/mnrm/state.h:
 	Will cause the events in the system to be listed each time
 	an event fires. Very useful to check at which point exactly
 	basic and optimized version start diverging.
-
-EVENTBASE_CHECK_INVERSE: src/mnrm/eventbase.h
-
-	If enabled, extra checks will be performed to make sure that the
-	calculateInternalTimeInterval and solveForRealTimeInterval functions
-	are balanced. Should not be set manually, is now set using the NDEBUG
-	define automatically in the release versions.
 
 RELATIONSHIPLIST_CHECK_CONSISTENCY: src/person.h
 

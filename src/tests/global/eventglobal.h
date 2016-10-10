@@ -12,7 +12,7 @@ public:
 	~EventGlobal();
 
 	std::string getDescription(double tNow) const;
-	void fire(State *pState, double t);
+	void fire(Algorithm *pAlgorithm, State *pState, double t);
 	bool isEveryoneAffected() const									{ return true; }
 protected:
 	double calculateInternalTimeInterval(const State *pState, double t0, double dt);

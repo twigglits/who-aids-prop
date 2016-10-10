@@ -28,7 +28,7 @@ using namespace std;
 void checkConfiguration(const ConfigSettings &loadedConfig, const SimpactPopulationConfig &populationConfig, double tMax,
 		        int64_t maxEvents);
 
-bool configure(ConfigSettings &config, SimpactPopulationConfig &populationConfig, PopulationDistributionCSV &ageDist,
+bool_t configure(ConfigSettings &config, SimpactPopulationConfig &populationConfig, PopulationDistributionCSV &ageDist,
 	       GslRandomNumberGenerator *pRndGen, double &tMax, int64_t &maxEvents)
 {
 	ConfigFunctions::processConfigurations(config, pRndGen);
@@ -38,22 +38,23 @@ bool configure(ConfigSettings &config, SimpactPopulationConfig &populationConfig
 	int numMen, numWomen;
 	double eyecapFraction;
 	string ageDistFile;
+	bool_t r;
 
-	if (!config.getKeyValue("population.nummen", numMen, 0) ||
-	    !config.getKeyValue("population.numwomen", numWomen, 0) ||
-	    !config.getKeyValue("population.agedistfile", ageDistFile) ||
-	    !config.getKeyValue("population.simtime", tMax) ||
-	    !config.getKeyValue("population.maxevents", maxEvents) ||
-	    !config.getKeyValue("population.eyecap.fraction", eyecapFraction, 0, 1) )
-		abortWithMessage(config.getErrorString());
+	if (!(r = config.getKeyValue("population.nummen", numMen, 0)) ||
+	    !(r = config.getKeyValue("population.numwomen", numWomen, 0)) ||
+	    !(r = config.getKeyValue("population.agedistfile", ageDistFile)) ||
+	    !(r = config.getKeyValue("population.simtime", tMax)) ||
+	    !(r = config.getKeyValue("population.maxevents", maxEvents)) ||
+	    !(r = config.getKeyValue("population.eyecap.fraction", eyecapFraction, 0, 1)) )
+		abortWithMessage(r.getErrorString());
 
 	populationConfig.setInitialMen(numMen);
 	populationConfig.setInitialWomen(numWomen);
 	populationConfig.setEyeCapsFraction(eyecapFraction);
 
-	if (!ageDist.load(ageDistFile))
+	if (!(r = ageDist.load(ageDistFile)))
 	{
-		cerr << "Can't load age distribution data: " << ageDist.getErrorString() << endl;
+		cerr << "Can't load age distribution data: " << r.getErrorString() << endl;
 		return false;
 	}
 
@@ -159,18 +160,19 @@ void checkConfiguration(const ConfigSettings &loadedConfig, const SimpactPopulat
 		        int64_t maxEvents)
 {
 	ConfigWriter config;
+	bool_t r;
 
 	ConfigFunctions::obtainConfigurations(config);
 
 	// TODO: absorb these things into similar process/obtain functions?
 
-	if (!config.addKey("population.nummen", populationConfig.getInitialMen()) ||
-	    !config.addKey("population.numwomen", populationConfig.getInitialWomen()) ||
-	    !config.addKey("population.agedistfile", "IGNORE") || // not going to check file contents
-	    !config.addKey("population.simtime", tMax) ||
-	    !config.addKey("population.maxevents", maxEvents) ||
-	    !config.addKey("population.eyecap.fraction", populationConfig.getEyeCapsFraction()) )
-		abortWithMessage(config.getErrorString());
+	if (!(r = config.addKey("population.nummen", populationConfig.getInitialMen())) ||
+	    !(r = config.addKey("population.numwomen", populationConfig.getInitialWomen())) ||
+	    !(r = config.addKey("population.agedistfile", "IGNORE")) || // not going to check file contents
+	    !(r = config.addKey("population.simtime", tMax)) ||
+	    !(r = config.addKey("population.maxevents", maxEvents)) ||
+	    !(r = config.addKey("population.eyecap.fraction", populationConfig.getEyeCapsFraction())) )
+		abortWithMessage(r.getErrorString());
 
 	// We've built up the config from the values stored in the simulation, compare
 	// with the values from the read config file

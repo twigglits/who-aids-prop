@@ -7,7 +7,6 @@
  */
 
 #include "eventbase.h"
-#include "population.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string>
@@ -16,16 +15,17 @@
 #define POPULATIONEVENT_MAXPERSONS								2
 
 class PersonBase;
+class PopulationStateInterface;
 
-/** This is the base class for events in population-based simulations which
- *  use the Population class. Such an event should always specify at creation
+/** This is the base class for events in population-based simulations.
+ *  Such an event should always specify at creation
  *  time which people are always involved in the event. For example, one
  *  person is always involved in a 'mortality' event, and two persons will
  *  be involved in an event for the formation of a relationship. It's also
  *  possible to specify global events, for example to trigger the start of
- *  an infection by marking specific persons as infected. In this case, the
+ *  an infection by marking specific persons as infected. In this case,
  *  no persons will be specified in the constructor, but internally the
- *  event will be stored using a 'dummy' person for global events.
+ *  event will be stored as a global event.
  *
  *  Of course, it is also possible that some people are affected because of
  *  an event, but that these people were not yet known at the time the event
@@ -63,7 +63,7 @@ class PopulationEvent : public EventBase
 public:
 	/** Constructs a 'global' event. 
 	 *
-	 *  Note that while no people are specified here, internally the algorithm will store
+	 *  Note that while no people are specified here, internally the algorithm may store
 	 *  the event in the list of a 'dummy' person, which is neither labelled as a 'Man' nor
 	 *  as a 'Woman'.
 	 */
@@ -97,14 +97,16 @@ public:
 
 	/** If other people than the one(s) mentioned in the constructor are also affected
 	 *  by this event, it should be indicated in this function. */
-	virtual void markOtherAffectedPeople(const Population &population)			{ }
+	virtual void markOtherAffectedPeople(const PopulationStateInterface &population)			{ }
 
 	/** If global events (not referring to a particular person) are affected, this function
 	 *  can be overridden to indicate this. */
 	virtual bool areGlobalEventsAffected() const						{ return false; }
 
 	/** Returns a short description of the event, can be useful for logging/debugging
-	 *  purposes. */
+	 *  purposes. This does not need to be re-implemented if you're using another
+	 *  description for logging purposes, but this description may be helpful when
+	 *  debugging the algorithm used. */
 	virtual std::string getDescription(double tNow) const					{ return std::string("No description given"); }
 
 	// TODO: shield these from the user somehow? These functions are used internally

@@ -28,12 +28,12 @@ std::string EventStudyEnd::getDescription(double tNow) const
 	return "Study end";
 }
 
-void EventStudyEnd::writeLogs(const Population &pop, double tNow) const
+void EventStudyEnd::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	writeEventLogStart(true, "studyend", tNow, 0, 0);
 }
 
-void EventStudyEnd::fire(State *pState, double t)
+void EventStudyEnd::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	MaxARTPopulation &population = MAXARTPOPULATION(pState);
 

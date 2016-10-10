@@ -25,7 +25,7 @@ string EventAIDSStage::getDescription(double tNow) const
 	return strprintf("AIDS stage of %s", pPerson->getName().c_str());
 }
 
-void EventAIDSStage::writeLogs(const Population &pop, double tNow) const
+void EventAIDSStage::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	Person *pPerson = getPerson(0);
 	string name;
@@ -38,7 +38,7 @@ void EventAIDSStage::writeLogs(const Population &pop, double tNow) const
 	writeEventLogStart(true, name, tNow, pPerson, 0);
 }
 
-void EventAIDSStage::fire(State *pState, double t)
+void EventAIDSStage::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	Person *pPerson = getPerson(0);
@@ -122,16 +122,20 @@ double EventAIDSStage::m_relativeFinalTime = -1;
 
 void EventAIDSStage::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
-	if (!config.getKeyValue("aidsstage.final", m_relativeFinalTime, 0) ||
-	    !config.getKeyValue("aidsstage.start", m_relativeStartTime, m_relativeFinalTime) )
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.getKeyValue("aidsstage.final", m_relativeFinalTime, 0)) ||
+	    !(r = config.getKeyValue("aidsstage.start", m_relativeStartTime, m_relativeFinalTime)) )
+		abortWithMessage(r.getErrorString());
 }
 
 void EventAIDSStage::obtainConfig(ConfigWriter &config)
 {
-	if (!config.addKey("aidsstage.final", m_relativeFinalTime) ||
-	    !config.addKey("aidsstage.start", m_relativeStartTime) )
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.addKey("aidsstage.final", m_relativeFinalTime)) ||
+	    !(r = config.addKey("aidsstage.start", m_relativeStartTime)) )
+		abortWithMessage(r.getErrorString());
 }
 
 ConfigFunctions aidsStageConfigFunctions(EventAIDSStage::processConfig, EventAIDSStage::obtainConfig, "EventAIDSStage");

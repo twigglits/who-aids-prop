@@ -36,12 +36,12 @@ string EventIntervention::getDescription(double tNow) const
 	return "Intervention event";
 }
 
-void EventIntervention::writeLogs(const Population &pop, double tNow) const
+void EventIntervention::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	writeEventLogStart(true, "intervention", tNow, 0, 0);
 }
 
-void EventIntervention::fire(State *pState, double t)
+void EventIntervention::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	double interventionTime;
@@ -73,22 +73,23 @@ void EventIntervention::processConfig(ConfigSettings &config, GslRandomNumberGen
 	// check the config file
 	vector<string> yesNoOptions;
 	string yesNo;
+	bool_t r;
 
 	yesNoOptions.push_back("yes");
 	yesNoOptions.push_back("no");
 
-	if (!config.getKeyValue("intervention.enabled", yesNo, yesNoOptions))
-		abortWithMessage(config.getErrorString());
+	if (!(r = config.getKeyValue("intervention.enabled", yesNo, yesNoOptions)))
+		abortWithMessage(r.getErrorString());
 
 	if (yesNo == "no") // no interventions, nothing to do
 		return;
 
 	string baseConfigName, timeStr, fileIDs;
 
-	if (!config.getKeyValue("intervention.baseconfigname", baseConfigName) ||
-	    !config.getKeyValue("intervention.times", timeStr) ||
-	    !config.getKeyValue("intervention.fileids", fileIDs) )
-		abortWithMessage(config.getErrorString());
+	if (!(r = config.getKeyValue("intervention.baseconfigname", baseConfigName)) ||
+	    !(r = config.getKeyValue("intervention.times", timeStr)) ||
+	    !(r = config.getKeyValue("intervention.fileids", fileIDs)) )
+		abortWithMessage(r.getErrorString());
 	
 	baseConfigName = trim(baseConfigName);
 	if (baseConfigName.length() == 0)
@@ -133,8 +134,8 @@ void EventIntervention::processConfig(ConfigSettings &config, GslRandomNumberGen
 		string fileName = replace(baseConfigName, "%", fileIDParts[i]);
 		ConfigSettings interventionSettings;
 
-		if (!interventionSettings.load(fileName))
-			abortWithMessage("Can't configure intervention event: " + interventionSettings.getErrorString());
+		if (!(r = interventionSettings.load(fileName)))
+			abortWithMessage("Can't configure intervention event: " + r.getErrorString());
 
 		baseSettings.merge(interventionSettings);
 		baseSettings.clearUsageFlags();
@@ -158,19 +159,21 @@ void EventIntervention::processConfig(ConfigSettings &config, GslRandomNumberGen
 
 void EventIntervention::obtainConfig(ConfigWriter &config)
 {
+	bool_t r;
+
 	if (m_interventionTimes.size() == 0)
 	{
-		if (!config.addKey("intervention.enabled", "no"))
-			abortWithMessage(config.getErrorString());
+		if (!(r = config.addKey("intervention.enabled", "no")))
+			abortWithMessage(r.getErrorString());
 		return;
 	}
 
 	// Here, we will only store the intervention times, ignoring the files
 
-	if (!config.addKey("intervention.enabled", "yes") ||
-	    !config.addKey("intervention.baseconfigname", "IGNORE") ||
-	    !config.addKey("intervention.fileids", "IGNORE") )
-		abortWithMessage(config.getErrorString());
+	if (!(r = config.addKey("intervention.enabled", "yes")) ||
+	    !(r = config.addKey("intervention.baseconfigname", "IGNORE")) ||
+	    !(r = config.addKey("intervention.fileids", "IGNORE")) )
+		abortWithMessage(r.getErrorString());
 
 	list<double>::const_iterator it = m_interventionTimes.begin();
 	string timeStr = doubleToString(*it);
@@ -182,8 +185,8 @@ void EventIntervention::obtainConfig(ConfigWriter &config)
 		it++;
 	}
 
-	if (!config.addKey("intervention.times", timeStr))
-		abortWithMessage(config.getErrorString());
+	if (!(r = config.addKey("intervention.times", timeStr)))
+		abortWithMessage(r.getErrorString());
 }
 
 list<double> EventIntervention::m_interventionTimes;

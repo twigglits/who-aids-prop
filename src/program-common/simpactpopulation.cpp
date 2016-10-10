@@ -9,7 +9,12 @@
 #include "eventintervention.h"
 #include "eventperiodiclogging.h"
 #include "eventsyncpopstats.h"
+#include "eventsyncrefyear.h"
 #include "populationdistribution.h"
+#include "populationalgorithmadvanced.h"
+#include "populationalgorithmsimple.h"
+#include "populationstateadvanced.h"
+#include "populationstatesimple.h"
 #include "person.h"
 #include "gslrandomnumbergenerator.h"
 #include "util.h"
@@ -28,11 +33,16 @@ SimpactPopulationConfig::~SimpactPopulationConfig()
 {
 }
 
-SimpactPopulation::SimpactPopulation(bool parallel, GslRandomNumberGenerator *pRndGen) : Population(parallel, pRndGen)
+SimpactPopulation::SimpactPopulation(PopulationAlgorithmInterface &alg, PopulationStateInterface &state) 
+	: m_state(state), m_alg(alg)
 {
+	state.setExtraStateInfo(this);
+	alg.setAboutToFireAction(this);
+
 	//m_initialPopulationSize = -1;
 	m_lastKnownPopulationSize = -1;
 	m_lastKnownPopulationSizeTime = -1;
+	m_referenceYear = 0;
 	m_eyeCapsFraction = 1;
 	m_init = false;
 }
@@ -41,39 +51,34 @@ SimpactPopulation::~SimpactPopulation()
 {
 }
 
-bool SimpactPopulation::init(const SimpactPopulationConfig &config, const PopulationDistribution &popDist)
+bool_t SimpactPopulation::init(const SimpactPopulationConfig &config, const PopulationDistribution &popDist)
 {
 	if (m_init)
-	{
-		setErrorString("Population is already initialized");
-		return false;
-	}
+		return "Population is already initialized";
 
 	double eyeCapsFraction = config.getEyeCapsFraction();
 	assert(eyeCapsFraction >= 0 && eyeCapsFraction <= 1.0);
 
 	m_eyeCapsFraction = eyeCapsFraction;
 
-	if (!createInitialPopulation(config, popDist))
-		return false;
+	bool_t r;
+	if (!(r = createInitialPopulation(config, popDist)))
+		return r;
 
-	if (!scheduleInitialEvents())
-		return false;
+	if (!(r = scheduleInitialEvents()))
+		return r;
 
 	m_init = true;
 	return true;
 }
 
-bool SimpactPopulation::createInitialPopulation(const SimpactPopulationConfig &config, const PopulationDistribution &popDist)
+bool_t SimpactPopulation::createInitialPopulation(const SimpactPopulationConfig &config, const PopulationDistribution &popDist)
 {
 	int numMen = config.getInitialMen();
 	int numWomen = config.getInitialWomen();
 
 	if (numMen < 0 || numWomen < 0)
-	{
-		setErrorString("The number of men and women must be at least zero");
-		return false;
-	}
+		return "The number of men and women must be at least zero";
 
 	// Time zero is at the start of the simulation, so the birth dates are negative
 
@@ -106,7 +111,7 @@ bool SimpactPopulation::createInitialPopulation(const SimpactPopulationConfig &c
 	return true;
 }
 
-bool SimpactPopulation::scheduleInitialEvents()
+bool_t SimpactPopulation::scheduleInitialEvents()
 {
 	int numMen = getNumberOfMen();
 	int numWomen = getNumberOfWomen();
@@ -177,10 +182,16 @@ bool SimpactPopulation::scheduleInitialEvents()
 		onNewEvent(pEvt);
 	}
 
+	if (EventSyncReferenceYear::isEnabled())
+	{
+		EventSyncReferenceYear *pEvt = new EventSyncReferenceYear();
+		onNewEvent(pEvt);
+	}
+
 	return true;
 }
 
-void SimpactPopulation::onAboutToFire(EventBase *pEvt)
+void SimpactPopulation::onAboutToFire(PopulationEvent *pEvt)
 {
 	SimpactEvent *pEvent = static_cast<SimpactEvent *>(pEvt);
 	assert(pEvent != 0);
@@ -350,6 +361,38 @@ void SimpactPopulation::setLastKnownPopulationSize()
 
 	m_lastKnownPopulationSizeTime = t;
 	m_lastKnownPopulationSize = getNumberOfPeople();
+}
+
+bool_t selectAlgorithmAndState(const string &algo, GslRandomNumberGenerator &rng, bool parallel,
+		                       PopulationAlgorithmInterface **ppAlgo, PopulationStateInterface **ppState)
+{
+	if (algo == "opt")
+	{
+		// TODO: figure out how to get this to work better in this algorithm
+		//EventBase::setCheckInverse(true); // Only does something in release mode
+		PopulationStateAdvanced *pPopState = new PopulationStateAdvanced();
+		*ppState = pPopState;
+		*ppAlgo = new PopulationAlgorithmAdvanced(*pPopState, rng, parallel);
+	}
+	else if (algo == "simple")
+	{
+		EventBase::setCheckInverse(true); // Only does something in release mode
+		PopulationStateSimple *pPopState = new PopulationStateSimple();
+		*ppState = pPopState;
+		*ppAlgo = new PopulationAlgorithmSimple(*pPopState, rng, parallel);
+	}
+	else
+		return "Invalid algorithm: " + algo;
+
+	bool_t r = (*ppAlgo)->init();
+	if (!r)
+	{
+		delete *ppState;
+		delete *ppAlgo;
+		return r;
+	}
+
+	return true;
 }
 
 JSONConfig populationJSONConfig(R"JSON(

@@ -13,7 +13,7 @@ public:
 
 	bool areGlobalEventsAffected() const								{ return true; }
 	std::string getDescription(double tNow) const;
-	void fire(State *pState, double t);
+	void fire(Algorithm *pAlgorithm, State *pState, double t);
 private:
 	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
 	double calculateInternalTimeInterval(const State *pState, double t0, double dt);

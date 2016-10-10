@@ -1,5 +1,4 @@
 #include "populationevent.h"
-#include "population.h"
 #include "personbase.h"
 #include <stdlib.h>
 #include <assert.h>

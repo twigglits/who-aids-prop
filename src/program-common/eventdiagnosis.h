@@ -30,13 +30,13 @@ public:
 	~EventDiagnosis();
 
 	std::string getDescription(double tNow);
-	void writeLogs(const Population &pop, double tNow) const;
-	void fire(State *pState, double t);
+	void writeLogs(const SimpactPopulation &pop, double tNow) const;
+	void fire(Algorithm *pAlgorithm, State *pState, double t);
 
 	// Since the hazard depends on the number of diagnosed partners,
 	// every partner of this person who is infected (so diagnosis event
 	// is possible) needs to be marked as affected
-	void markOtherAffectedPeople(const Population &population);
+	void markOtherAffectedPeople(const PopulationStateInterface &population);
 
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);

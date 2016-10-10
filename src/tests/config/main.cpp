@@ -21,10 +21,11 @@ int main(int argc, char **argv)
 	string confFileName(argv[1]);
 	ConfigSettings config;
 
-	if (!config.load(confFileName))
+	bool_t r = config.load(confFileName);
+	if (!r)
 	{
 		cerr << "Error loading configuration file " << confFileName << endl;
-		cerr << "  " << config.getErrorString() << endl;
+		cerr << "  " << r.getErrorString() << endl;
 		return -1;
 	}
 

@@ -3,7 +3,14 @@
 #include "eventformation.h"
 #include "eventdebut.h"
 #include "populationdistribution.h"
+#include "populationalgorithmadvanced.h"
+#include "populationalgorithmsimple.h"
+#include "populationstateadvanced.h"
+#include "populationstatesimple.h"
 #include "person.h"
+#include <iostream>
+
+using namespace std;
 
 SimpactPopulationConfig::SimpactPopulationConfig()
 {
@@ -17,32 +24,30 @@ SimpactPopulationConfig::~SimpactPopulationConfig()
 {
 }
 
-SimpactPopulation::SimpactPopulation(bool parallel, GslRandomNumberGenerator *pRndGen) : Population(parallel, pRndGen)
+SimpactPopulation::SimpactPopulation(PopulationAlgorithmInterface &alg, PopulationStateInterface &state) 
+	: PopulationStateExtra(), m_state(state), m_alg(alg)
 {
-	m_initialPopulationSize = -1;
 	m_init = false;
+	m_initialPopulationSize = -1;
+
+	state.setExtraStateInfo(this);
+	alg.setAboutToFireAction(this);
 }
 
 SimpactPopulation::~SimpactPopulation()
 {
 }
 
-bool SimpactPopulation::init(const SimpactPopulationConfig &config, const PopulationDistribution &popDist)
+bool_t SimpactPopulation::init(const SimpactPopulationConfig &config, const PopulationDistribution &popDist)
 {
 	if (m_init)
-	{
-		setErrorString("Population is already initialized");
-		return false;
-	}
+		return "Population is already initialized";
 
 	int numMen = config.getInitialMen();
 	int numWomen = config.getInitialWomen();
 
 	if (numMen < 0 || numWomen < 0)
-	{
-		setErrorString("The number of men and women must be at least zero");
-		return false;
-	}
+		return "The number of men and women must be at least zero";
 
 	// Time zero is at the start of the simulation, so the birth dates are negative
 
@@ -93,7 +98,7 @@ void SimpactPopulation::onScheduleInitialEvents()
 	for (int i = 0 ; i < numPeople ; i++)
 	{
 		EventMortality *pEvt = new EventMortality(ppPeople[i]);
-		onNewEvent(pEvt);
+		m_alg.onNewEvent(pEvt);
 	}
 
 	// Relationship formation (every active man with every active woman)
@@ -113,7 +118,7 @@ void SimpactPopulation::onScheduleInitialEvents()
 				if (pMan->isSexuallyActive())
 				{
 					EventFormation *pEvt = new EventFormation(pMan, pWoman, -1);
-					onNewEvent(pEvt);
+					m_alg.onNewEvent(pEvt);
 				}
 			}
 		}
@@ -128,16 +133,44 @@ void SimpactPopulation::onScheduleInitialEvents()
 		if (!pPerson->isSexuallyActive())
 		{
 			EventDebut *pEvt = new EventDebut(pPerson);
-			onNewEvent(pEvt);
+			m_alg.onNewEvent(pEvt);
 		}
 	}
 }
 
-void SimpactPopulation::onAboutToFire(EventBase *pEvt)
+void SimpactPopulation::onAboutToFire(PopulationEvent *pEvt)
 {
-	PopulationEvent *pEvent = static_cast<PopulationEvent *>(pEvt);
-
 	double t = getTime();
-	std::cout << t << "\t" << pEvent->getDescription(t) << std::endl;
+	std::cout << t << "\t" << pEvt->getDescription(t) << std::endl;
 }
+
+bool_t selectAlgorithmAndState(const string &algo, GslRandomNumberGenerator &rng, bool parallel,
+		                     PopulationAlgorithmInterface **ppAlgo, PopulationStateInterface **ppState)
+{
+	if (algo == "opt")
+	{
+		PopulationStateAdvanced *pPopState = new PopulationStateAdvanced();
+		*ppState = pPopState;
+		*ppAlgo = new PopulationAlgorithmAdvanced(*pPopState, rng, parallel);
+	}
+	else if (algo == "simple")
+	{
+		PopulationStateSimple *pPopState = new PopulationStateSimple();
+		*ppState = pPopState;
+		*ppAlgo = new PopulationAlgorithmSimple(*pPopState, rng, parallel);
+	}
+	else
+		return "Invalid algorithm: " + algo;
+
+	bool_t r = (*ppAlgo)->init();
+	if (!r)
+	{
+		delete *ppState;
+		delete *ppAlgo;
+		return r;
+	}
+
+	return true;
+}
+	
 

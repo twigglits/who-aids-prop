@@ -17,12 +17,12 @@ string EventSyncPopulationStatistics::getDescription(double tNow) const
 	return "syncpopstats";
 }
 
-void EventSyncPopulationStatistics::writeLogs(const Population &pop, double tNow) const
+void EventSyncPopulationStatistics::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	writeEventLogStart(true, "syncpopstats", tNow, 0, 0);
 }
 
-void EventSyncPopulationStatistics::fire(State *pState, double t)
+void EventSyncPopulationStatistics::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	// Currently only the population size
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
@@ -51,14 +51,18 @@ double EventSyncPopulationStatistics::s_interval = -1.0;
 
 void EventSyncPopulationStatistics::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
-	if (!config.getKeyValue("syncpopstats.interval", s_interval))
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.getKeyValue("syncpopstats.interval", s_interval)))
+		abortWithMessage(r.getErrorString());
 }
 
 void EventSyncPopulationStatistics::obtainConfig(ConfigWriter &config)
 {
-	if (!config.addKey("syncpopstats.interval", s_interval))
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.addKey("syncpopstats.interval", s_interval)))
+		abortWithMessage(r.getErrorString());
 }
 
 ConfigFunctions eventSyncPopStatsConfigFunctions(EventSyncPopulationStatistics::processConfig,

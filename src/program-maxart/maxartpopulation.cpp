@@ -1,8 +1,8 @@
 #include "maxartpopulation.h"
 #include "eventstudystart.h"
 
-MaxARTPopulation::MaxARTPopulation(bool parallel, GslRandomNumberGenerator *pRngGen) 
-	: SimpactPopulation(parallel, pRngGen)
+MaxARTPopulation::MaxARTPopulation(PopulationAlgorithmInterface &alg, PopulationStateInterface &state)
+	: SimpactPopulation(alg, state)
 {
 	m_studyStage = PreStudy;
 }
@@ -11,10 +11,11 @@ MaxARTPopulation::~MaxARTPopulation()
 {
 }
 
-bool MaxARTPopulation::scheduleInitialEvents()
+bool_t MaxARTPopulation::scheduleInitialEvents()
 {
-	if (!SimpactPopulation::scheduleInitialEvents())
-		return false;
+	bool_t r;
+	if (!(r = SimpactPopulation::scheduleInitialEvents()))
+		return r;
 
 	if (EventStudyStart::isMaxARTStudyEnabled())
 	{

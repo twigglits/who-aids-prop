@@ -15,48 +15,39 @@ ConfigWriter::~ConfigWriter()
 {
 }
 
-bool ConfigWriter::addKey(const std::string &key, double value)
+bool_t ConfigWriter::addKey(const std::string &key, double value)
 {
 	return addKey(key, doubleToString(value));
 }
 
-bool ConfigWriter::addKey(const std::string &key, int value)
+bool_t ConfigWriter::addKey(const std::string &key, int value)
 {
-	char str[1024];
-
-	sprintf(str, "%d", value);
-	return addKey(key, str);
+	return addKey(key, strprintf("%d", value));
 }
 
-bool ConfigWriter::addKey(const std::string &key, int64_t value)
+bool_t ConfigWriter::addKey(const std::string &key, int64_t value)
 {
-	char str[1024];
-
-	sprintf(str, "%" PRId64, value);
-	return addKey(key, str);
+	return addKey(key, strprintf("%" PRId64, value));
 }
 
-bool ConfigWriter::addKey(const std::string &key, bool value)
+bool_t ConfigWriter::addKey(const std::string &key, bool value)
 {
 	if (value)
 		return addKey(key, "yes");
 	return addKey(key, "no");
 }
 
-bool ConfigWriter::addKey(const std::string &key, const char *pStr)
+bool_t ConfigWriter::addKey(const std::string &key, const char *pStr)
 {
 	return addKey(key,string(pStr));
 }
 
-bool ConfigWriter::addKey(const std::string &key, const std::string &value)
+bool_t ConfigWriter::addKey(const std::string &key, const std::string &value)
 {
 	map<string,string>::const_iterator it = m_keyValues.find(key);
 
 	if (it != m_keyValues.end())
-	{
-		setErrorString("ConfigWriter::addKey: Key '" + key + "' already exists");
-		return false;
-	}
+		return "ConfigWriter::addKey: Key '" + key + "' already exists";
 
 	m_keyValues[key] = value;
 	return true;
@@ -74,23 +65,20 @@ void ConfigWriter::getKeys(std::vector<std::string> &keys) const
 	}
 }
 
-bool ConfigWriter::getKeyValue(const std::string &key, std::string &value) const
+bool_t ConfigWriter::getKeyValue(const std::string &key, std::string &value) const
 {
 	map<string,string>::const_iterator it;
 
 	it = m_keyValues.find(key);
 	if (it == m_keyValues.end())
-	{
-		setErrorString("Key not found");
-		return false;
-	}
+		return "Key '" + key + "' not found";
 
 	value = it->second;
 
 	return true;
 }
 
-bool ConfigWriter::addKey(const std::string &key, const std::vector<double> &values)
+bool_t ConfigWriter::addKey(const std::string &key, const std::vector<double> &values)
 {
 	string str;
 

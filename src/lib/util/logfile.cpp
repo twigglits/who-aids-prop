@@ -29,29 +29,22 @@ LogFile::~LogFile()
 }
 
 
-bool LogFile::open(const std::string &fileName)
+bool_t LogFile::open(const std::string &fileName)
 {
 	if (m_pFile)
-	{
-		setErrorString("A log file with name '" + fileName + "' has already been opened");
-		return false;
-	}
+		return "A log file with name '" + m_fileName + "' has already been opened";
 
 	// Check if the file already exists
 	FILE *pFile = fopen(fileName.c_str(), "rt");
 	if (pFile != 0)
 	{
 		fclose(pFile);
-		setErrorString("Specified log file " + fileName + " already exists");
-		return false;
+		return "Specified log file " + fileName + " already exists";
 	}
 
 	pFile = fopen(fileName.c_str(), "wt");
 	if (pFile == 0)
-	{
-		setErrorString("Unable to open " + fileName + " for writing");
-		return false;
-	}
+		return "Unable to open " + fileName + " for writing";
 
 	m_pFile = pFile;
 	m_fileName = fileName;

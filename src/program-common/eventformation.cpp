@@ -6,6 +6,7 @@
 #include "simpactevent.h"
 #include "evthazardformationsimple.h"
 #include "evthazardformationagegap.h"
+#include "evthazardformationagegaprefyear.h"
 #include "eventconception.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
@@ -43,7 +44,7 @@ string EventFormation::getDescription(double tNow) const
 	return strprintf("Formation between %s and %s", getPerson(0)->getName().c_str(), getPerson(1)->getName().c_str());
 }
 
-void EventFormation::writeLogs(const Population &pop, double tNow) const
+void EventFormation::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);
@@ -63,7 +64,7 @@ bool EventFormation::isUseless()
 	return false;
 }
 
-void EventFormation::fire(State *pState, double t)
+void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	Person *pPerson1 = getPerson(0);
@@ -134,9 +135,10 @@ EvtHazard *EventFormation::m_pHazard = 0;
 void EventFormation::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	string hazardType;
+	bool_t r;
 
-	if (!config.getKeyValue("formation.hazard.type", hazardType))
-		abortWithMessage(config.getErrorString());
+	if (!(r = config.getKeyValue("formation.hazard.type", hazardType)))
+		abortWithMessage(r.getErrorString());
 
 	if (m_pHazard)
 	{
@@ -148,6 +150,8 @@ void EventFormation::processConfig(ConfigSettings &config, GslRandomNumberGenera
 		m_pHazard = EvtHazardFormationSimple::processConfig(config);
 	else if (hazardType == "agegap")
 		m_pHazard = EvtHazardFormationAgeGap::processConfig(config);
+	else if (hazardType == "agegapry")
+		m_pHazard = EvtHazardFormationAgeGapRefYear::processConfig(config);
 	else
 		abortWithMessage("Unknown formation.hazard.type value: " + hazardType);
 }
@@ -165,7 +169,7 @@ ConfigFunctions formationConfigFunctions(EventFormation::processConfig, EventFor
 JSONConfig formationTypesJSONConfig(R"JSON(
         "EventFormationTypes": { 
             "depends": null,
-            "params": [ ["formation.hazard.type", "agegap", [ "simple", "agegap" ] ] ],
+            "params": [ ["formation.hazard.type", "agegap", [ "simple", "agegap", "agegapry" ] ] ],
             "info": null 
         })JSON");
 

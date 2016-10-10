@@ -14,9 +14,9 @@ public:
 	~EventMortalityBase();
 
 	// bool isEveryoneAffected() const							{ return true; }
-	void markOtherAffectedPeople(const Population &population);
+	void markOtherAffectedPeople(const PopulationStateInterface &population);
 
-	void fire(State *pState, double t);
+	void fire(Algorithm *pAlgorithm, State *pState, double t);
 };
 
 #endif // EVENTMORTALITYBASE_H

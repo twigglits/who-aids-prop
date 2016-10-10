@@ -132,38 +132,41 @@ double EvtHazardFormationSimple::getTr(const SimpactPopulation &population, Pers
 EvtHazard *EvtHazardFormationSimple::processConfig(ConfigSettings &config)
 {
 	double a0, a1, a2, a3, a4, a5, a6, a7, Dp, b, tMax;
+	bool_t r;
 
-	if (!config.getKeyValue("formation.hazard.simple.alpha_0", a0) ||
-	    !config.getKeyValue("formation.hazard.simple.alpha_1", a1) ||
-	    !config.getKeyValue("formation.hazard.simple.alpha_2", a2) ||
-	    !config.getKeyValue("formation.hazard.simple.alpha_3", a3) ||
-	    !config.getKeyValue("formation.hazard.simple.alpha_4", a4) ||
-	    !config.getKeyValue("formation.hazard.simple.alpha_5", a5) ||
-	    !config.getKeyValue("formation.hazard.simple.alpha_6", a6) ||
-	    !config.getKeyValue("formation.hazard.simple.alpha_7", a7) ||
-	    !config.getKeyValue("formation.hazard.simple.Dp", Dp) ||
-	    !config.getKeyValue("formation.hazard.simple.beta", b) ||
-	    !config.getKeyValue("formation.hazard.simple.t_max", tMax, 0) )
-		abortWithMessage(config.getErrorString());
+	if (!(r = config.getKeyValue("formation.hazard.simple.alpha_0", a0)) ||
+	    !(r = config.getKeyValue("formation.hazard.simple.alpha_1", a1)) ||
+	    !(r = config.getKeyValue("formation.hazard.simple.alpha_2", a2)) ||
+	    !(r = config.getKeyValue("formation.hazard.simple.alpha_3", a3)) ||
+	    !(r = config.getKeyValue("formation.hazard.simple.alpha_4", a4)) ||
+	    !(r = config.getKeyValue("formation.hazard.simple.alpha_5", a5)) ||
+	    !(r = config.getKeyValue("formation.hazard.simple.alpha_6", a6)) ||
+	    !(r = config.getKeyValue("formation.hazard.simple.alpha_7", a7)) ||
+	    !(r = config.getKeyValue("formation.hazard.simple.Dp", Dp)) ||
+	    !(r = config.getKeyValue("formation.hazard.simple.beta", b)) ||
+	    !(r = config.getKeyValue("formation.hazard.simple.t_max", tMax, 0)) )
+		abortWithMessage(r.getErrorString());
 	
 	return new EvtHazardFormationSimple(a0,a1,a2,a3,a4,a5,a6,a7,Dp,b,tMax);
 }
 
 void EvtHazardFormationSimple::obtainConfig(ConfigWriter &config)
 {
-	if (!config.addKey("formation.hazard.type", "simple") ||
-	    !config.addKey("formation.hazard.simple.alpha_0", m_a0) ||
-	    !config.addKey("formation.hazard.simple.alpha_1", m_a1) ||
-	    !config.addKey("formation.hazard.simple.alpha_2", m_a2) ||
-	    !config.addKey("formation.hazard.simple.alpha_3", m_a3) ||
-	    !config.addKey("formation.hazard.simple.alpha_4", m_a4) ||
-	    !config.addKey("formation.hazard.simple.alpha_5", m_a5) ||
-	    !config.addKey("formation.hazard.simple.alpha_6", m_a6) ||
-	    !config.addKey("formation.hazard.simple.alpha_7", m_a7) ||
-	    !config.addKey("formation.hazard.simple.Dp", m_Dp) ||
-	    !config.addKey("formation.hazard.simple.beta", m_b) ||
-	    !config.addKey("formation.hazard.simple.t_max", m_tMax) )
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.addKey("formation.hazard.type", "simple")) ||
+	    !(r = config.addKey("formation.hazard.simple.alpha_0", m_a0)) ||
+	    !(r = config.addKey("formation.hazard.simple.alpha_1", m_a1)) ||
+	    !(r = config.addKey("formation.hazard.simple.alpha_2", m_a2)) ||
+	    !(r = config.addKey("formation.hazard.simple.alpha_3", m_a3)) ||
+	    !(r = config.addKey("formation.hazard.simple.alpha_4", m_a4)) ||
+	    !(r = config.addKey("formation.hazard.simple.alpha_5", m_a5)) ||
+	    !(r = config.addKey("formation.hazard.simple.alpha_6", m_a6)) ||
+	    !(r = config.addKey("formation.hazard.simple.alpha_7", m_a7)) ||
+	    !(r = config.addKey("formation.hazard.simple.Dp", m_Dp)) ||
+	    !(r = config.addKey("formation.hazard.simple.beta", m_b)) ||
+	    !(r = config.addKey("formation.hazard.simple.t_max", m_tMax)) )
+		abortWithMessage(r.getErrorString());
 }
 
 JSONConfig simpleFormationJSONConfig(R"JSON(
@@ -183,7 +186,7 @@ JSONConfig simpleFormationJSONConfig(R"JSON(
                 ["formation.hazard.simple.t_max", 200] ],
             "info": [
                 "These are the parameters for the hazard in the simple formation event.",
-                "see http://research.edm.uhasselt.be/~jori/simpact/documentation/simpactcyan.html",
+                "see http://research.edm.uhasselt.be/jori/simpact/",
                 "for more information."
             ]
         })JSON");

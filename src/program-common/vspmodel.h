@@ -2,16 +2,15 @@
 
 #define VSPMODEL_H
 
-#include <errut/errorbase.h>
 #include <assert.h>
 
 class GslRandomNumberGenerator;
 
-class VspModel : public errut::ErrorBase
+class VspModel
 {
 public:
 	VspModel(GslRandomNumberGenerator *pRndGen) : m_pRndGen(pRndGen)	{ assert(pRndGen != 0); }
-	~VspModel()								{ }
+	virtual ~VspModel()							{ }
 
 	virtual double pickSetPointViralLoad() = 0;
 	virtual double inheritSetPointViralLoad(double VspInfector) = 0;

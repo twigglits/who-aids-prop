@@ -32,12 +32,12 @@ std::string EventStudyStart::getDescription(double tNow) const
 	return "Study start";
 }
 
-void EventStudyStart::writeLogs(const Population &pop, double tNow) const
+void EventStudyStart::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	writeEventLogStart(true, "studystart", tNow, 0, 0);
 }
 
-void EventStudyStart::fire(State *pState, double t)
+void EventStudyStart::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	MaxARTPopulation &population = MAXARTPOPULATION(pState);
 
@@ -58,14 +58,18 @@ double EventStudyStart::s_startTime = -1;
 
 void EventStudyStart::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
-	if (!config.getKeyValue("maxart.starttime", s_startTime, 0))
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.getKeyValue("maxart.starttime", s_startTime, 0)))
+		abortWithMessage(r.getErrorString());
 }
 
 void EventStudyStart::obtainConfig(ConfigWriter &config)
 {
-	if (!config.addKey("maxart.starttime", s_startTime))
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.addKey("maxart.starttime", s_startTime)))
+		abortWithMessage(r.getErrorString());
 }
 
 ConfigFunctions studyStartConfigFunctions(EventStudyStart::processConfig, EventStudyStart::obtainConfig, "EventStudyStart");

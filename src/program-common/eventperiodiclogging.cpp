@@ -25,12 +25,12 @@ string EventPeriodicLogging::getDescription(double tNow) const
 	return "Periodic logging";
 }
 
-void EventPeriodicLogging::writeLogs(const Population &pop, double tNow) const
+void EventPeriodicLogging::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	writeEventLogStart(true, "periodiclogging", tNow, 0, 0);
 }
 
-void EventPeriodicLogging::fire(State *pState, double t)
+void EventPeriodicLogging::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 
@@ -67,10 +67,11 @@ LogFile EventPeriodicLogging::s_logFile;
 void EventPeriodicLogging::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	string oldLogFileName = s_logFileName;
+	bool_t r;
 
-	if (!config.getKeyValue("periodiclogging.interval", s_loggingInterval) ||
-	    !config.getKeyValue("periodiclogging.outfile.logperiodic", s_logFileName) )
-		abortWithMessage(config.getErrorString());
+	if (!(r = config.getKeyValue("periodiclogging.interval", s_loggingInterval)) ||
+	    !(r = config.getKeyValue("periodiclogging.outfile.logperiodic", s_logFileName)) )
+		abortWithMessage(r.getErrorString());
 
 	if (s_loggingInterval > 0)
 	{
@@ -79,8 +80,8 @@ void EventPeriodicLogging::processConfig(ConfigSettings &config, GslRandomNumber
 			s_logFile.close();
 			if (s_logFileName.length() > 0) // try to open a file
 			{
-				if (!s_logFile.open(s_logFileName))
-					abortWithMessage(s_logFile.getErrorString());
+				if (!( r = s_logFile.open(s_logFileName)))
+					abortWithMessage(r.getErrorString());
 
 				s_logFile.print("Time,PopSize,InTreatment");
 			}
@@ -90,9 +91,11 @@ void EventPeriodicLogging::processConfig(ConfigSettings &config, GslRandomNumber
 
 void EventPeriodicLogging::obtainConfig(ConfigWriter &config)
 {
-	if (!config.addKey("periodiclogging.interval", s_loggingInterval) ||
-	    !config.addKey("periodiclogging.outfile.logperiodic", s_logFileName) )
-	    	abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.addKey("periodiclogging.interval", s_loggingInterval)) ||
+	    !(r = config.addKey("periodiclogging.outfile.logperiodic", s_logFileName)) )
+	    	abortWithMessage(r.getErrorString());
 }
 
 ConfigFunctions periodicLoggingConfigFunctions(EventPeriodicLogging::processConfig, EventPeriodicLogging::obtainConfig, 

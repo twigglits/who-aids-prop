@@ -22,13 +22,16 @@ set(SOURCES_SIMPACT
 	../program-common/eventdropout.cpp
 	../program-common/eventperiodiclogging.cpp
 	../program-common/eventsyncpopstats.cpp
+	../program-common/eventsyncrefyear.cpp
 	../program-common/vspmodellogweibullwithnoise.cpp
 	../program-common/vspmodellogdist.cpp
 	../program-common/simpactevent.cpp
 	../program-common/evthazardformationsimple.cpp
 	../program-common/evthazardformationagegap.cpp
+	../program-common/evthazardformationagegaprefyear.cpp
 	../program-common/hazardfunctionformationsimple.cpp
 	../program-common/hazardfunctionformationagegap.cpp
+	../program-common/hazardfunctionformationagegaprefyear.cpp
 	../program-common/main_hazardtest.cpp
 	../program-common/main.cpp
 	../program-common/signalhandlers.cpp

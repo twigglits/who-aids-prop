@@ -30,12 +30,12 @@ std::string EventStudyStep::getDescription(double tNow) const
 	return "Study step";
 }
 
-void EventStudyStep::writeLogs(const Population &pop, double tNow) const
+void EventStudyStep::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	writeEventLogStart(true, "studystep", tNow, 0, 0);
 }
 
-void EventStudyStep::fire(State *pState, double t)
+void EventStudyStep::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	MaxARTPopulation &population = MAXARTPOPULATION(pState);
 	assert(population.getStudyStage() == MaxARTPopulation::InStudy);
@@ -96,14 +96,18 @@ double EventStudyStep::s_stepInterval = -1;
 
 void EventStudyStep::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
-	if (!config.getKeyValue("maxart.stepinterval", s_stepInterval, 0))
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.getKeyValue("maxart.stepinterval", s_stepInterval, 0)))
+		abortWithMessage(r.getErrorString());
 }
 
 void EventStudyStep::obtainConfig(ConfigWriter &config)
 {
-	if (!config.addKey("maxart.stepinterval", s_stepInterval))
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.addKey("maxart.stepinterval", s_stepInterval)))
+		abortWithMessage(r.getErrorString());
 }
 
 ConfigFunctions studyStepConfigFunctions(EventStudyStep::processConfig, EventStudyStep::obtainConfig, "EventStudyStep");

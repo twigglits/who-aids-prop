@@ -131,42 +131,45 @@ double EvtHazardFormationAgeGap::getTr(const SimpactPopulation &population, Pers
 EvtHazard *EvtHazardFormationAgeGap::processConfig(ConfigSettings &config)
 {
 	double a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, b, tMax;
+	bool_t r;
 
-	if (!config.getKeyValue("formation.hazard.agegap.baseline", a0) ||
-	    !config.getKeyValue("formation.hazard.agegap.numrel_man", a1) ||
-	    !config.getKeyValue("formation.hazard.agegap.numrel_woman", a2) ||
-	    !config.getKeyValue("formation.hazard.agegap.numrel_diff", a3) ||
-	    !config.getKeyValue("formation.hazard.agegap.meanage", a4) ||
-	    !config.getKeyValue("formation.hazard.agegap.gap_factor_man", a5) ||
-	    !config.getKeyValue("formation.hazard.agegap.eagerness_sum", a6) ||
-	    !config.getKeyValue("formation.hazard.agegap.eagerness_diff", a7) ||
-	    !config.getKeyValue("formation.hazard.agegap.gap_agescale_man", a8) ||
-	    !config.getKeyValue("formation.hazard.agegap.gap_factor_woman", a9) ||
-	    !config.getKeyValue("formation.hazard.agegap.gap_agescale_woman", a10) ||
-	    !config.getKeyValue("formation.hazard.agegap.beta", b) ||
-	    !config.getKeyValue("formation.hazard.agegap.t_max", tMax, 0) )
-		abortWithMessage(config.getErrorString());
+	if (!(r = config.getKeyValue("formation.hazard.agegap.baseline", a0)) ||
+	    !(r = config.getKeyValue("formation.hazard.agegap.numrel_man", a1)) ||
+	    !(r = config.getKeyValue("formation.hazard.agegap.numrel_woman", a2)) ||
+	    !(r = config.getKeyValue("formation.hazard.agegap.numrel_diff", a3)) ||
+	    !(r = config.getKeyValue("formation.hazard.agegap.meanage", a4)) ||
+	    !(r = config.getKeyValue("formation.hazard.agegap.gap_factor_man", a5)) ||
+	    !(r = config.getKeyValue("formation.hazard.agegap.eagerness_sum", a6)) ||
+	    !(r = config.getKeyValue("formation.hazard.agegap.eagerness_diff", a7)) ||
+	    !(r = config.getKeyValue("formation.hazard.agegap.gap_agescale_man", a8)) ||
+	    !(r = config.getKeyValue("formation.hazard.agegap.gap_factor_woman", a9)) ||
+	    !(r = config.getKeyValue("formation.hazard.agegap.gap_agescale_woman", a10)) ||
+	    !(r = config.getKeyValue("formation.hazard.agegap.beta", b)) ||
+	    !(r = config.getKeyValue("formation.hazard.agegap.t_max", tMax, 0)) )
+		abortWithMessage(r.getErrorString());
 	
 	return new EvtHazardFormationAgeGap(a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,b,tMax);
 }
 
 void EvtHazardFormationAgeGap::obtainConfig(ConfigWriter &config)
 {
-	if (!config.addKey("formation.hazard.type", "agegap") ||
-	    !config.addKey("formation.hazard.agegap.baseline", m_a0) ||
-	    !config.addKey("formation.hazard.agegap.numrel_man", m_a1) ||
-	    !config.addKey("formation.hazard.agegap.numrel_woman", m_a2) ||
-	    !config.addKey("formation.hazard.agegap.numrel_diff", m_a3) ||
-	    !config.addKey("formation.hazard.agegap.meanage", m_a4) ||
-	    !config.addKey("formation.hazard.agegap.gap_factor_man", m_a5) ||
-	    !config.addKey("formation.hazard.agegap.eagerness_sum", m_a6) ||
-	    !config.addKey("formation.hazard.agegap.eagerness_diff", m_a7) ||
-	    !config.addKey("formation.hazard.agegap.gap_agescale_man", m_a8) ||
-	    !config.addKey("formation.hazard.agegap.gap_factor_woman", m_a9) ||
-	    !config.addKey("formation.hazard.agegap.gap_agescale_woman", m_a10) ||
-	    !config.addKey("formation.hazard.agegap.beta", m_b) ||
-	    !config.addKey("formation.hazard.agegap.t_max", m_tMax) )
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.addKey("formation.hazard.type", "agegap")) ||
+	    !(r = config.addKey("formation.hazard.agegap.baseline", m_a0)) ||
+	    !(r = config.addKey("formation.hazard.agegap.numrel_man", m_a1)) ||
+	    !(r = config.addKey("formation.hazard.agegap.numrel_woman", m_a2)) ||
+	    !(r = config.addKey("formation.hazard.agegap.numrel_diff", m_a3)) ||
+	    !(r = config.addKey("formation.hazard.agegap.meanage", m_a4)) ||
+	    !(r = config.addKey("formation.hazard.agegap.gap_factor_man", m_a5)) ||
+	    !(r = config.addKey("formation.hazard.agegap.eagerness_sum", m_a6)) ||
+	    !(r = config.addKey("formation.hazard.agegap.eagerness_diff", m_a7)) ||
+	    !(r = config.addKey("formation.hazard.agegap.gap_agescale_man", m_a8)) ||
+	    !(r = config.addKey("formation.hazard.agegap.gap_factor_woman", m_a9)) ||
+	    !(r = config.addKey("formation.hazard.agegap.gap_agescale_woman", m_a10)) ||
+	    !(r = config.addKey("formation.hazard.agegap.beta", m_b)) ||
+	    !(r = config.addKey("formation.hazard.agegap.t_max", m_tMax)) )
+		abortWithMessage(r.getErrorString());
 }
 
 JSONConfig agegapFormationJSONConfig(R"JSON(
@@ -188,7 +191,7 @@ JSONConfig agegapFormationJSONConfig(R"JSON(
                 ["formation.hazard.agegap.t_max", 200] ],
             "info": [ 
                 "These are the parameters for the hazard in the 'agegap' formation event.",
-                "see http://research.edm.uhasselt.be/~jori/simpact/documentation/simpactcyan.html",
+                "see http://research.edm.uhasselt.be/jori/simpact/",
                 "for more information."
             ]
         })JSON");

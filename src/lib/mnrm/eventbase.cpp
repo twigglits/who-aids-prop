@@ -3,6 +3,10 @@
 #include "debugwarning.h"
 #include <cmath>
 
+#ifndef NDEBUG
+bool EventBase::s_checkInverse = false;
+#endif // NDEBUG
+
 EventBase::EventBase()
 {
 	m_Tdiff = -10000000.0; // should trigger an assertion in debug mode
@@ -10,9 +14,10 @@ EventBase::EventBase()
 	m_tEvent = -2;
 	m_willBeRemoved = false;
 
-#ifdef EVENTBASE_CHECK_INVERSE
-	DEBUGWARNING("debug code to check solveForRealTimeInterval <-> calculateInternalTimeInterval compatibility is enabled")
-#endif // EVENTBASE_CHECK_INVERSE
+#ifndef NDEBUG
+	if (s_checkInverse)
+		DEBUGWARNING("debug code to check solveForRealTimeInterval <-> calculateInternalTimeInterval compatibility is enabled")
+#endif // !NDEBUG
 }
 
 EventBase::~EventBase()
@@ -49,7 +54,18 @@ double EventBase::solveForRealTimeInterval(const State *pState, double Tdiff, do
 	return Tdiff;
 }
 
-void EventBase::fire(State *pState, double t)
+void EventBase::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	// test implementation: nothing happens
 }
+
+bool_t EventBase::setCheckInverse(bool check)
+{
+#ifdef NDEBUG
+	return "Double checking the time interval mapping is not supported in release mode";
+#else
+	s_checkInverse = check;
+	return true;
+#endif // NDEBUG
+}
+

@@ -102,8 +102,8 @@ public:
 	void addPersonOfInterest(Person *pPerson);
 	void removePersonOfInterest(Person *pPerson);
 	void clearPersonsOfInterest()								{ m_personsOfInterest.clear(); }
-	int getNumberOfPersonsOfInterest() const						{ return m_personsOfInterest.size(); }
-	Person *getPersonOfInterest(int idx) const						{ assert(idx >= 0 && idx < m_personsOfInterest.size()); Person *pPerson = m_personsOfInterest[idx]; assert(pPerson); return pPerson; }
+	int getNumberOfPersonsOfInterest() const						{ return (int)m_personsOfInterest.size(); }
+	Person *getPersonOfInterest(int idx) const						{ assert(idx >= 0 && idx < (int)m_personsOfInterest.size()); Person *pPerson = m_personsOfInterest[idx]; assert(pPerson); return pPerson; }
 
 	double getCD4Count(double t) const;
 	double getARTAcceptanceThreshold() const						{ return m_artAcceptanceThreshold; }
@@ -116,6 +116,11 @@ public:
 	void writeToTreatmentLog(double dropoutTime, bool justDied);
 
 	Point2D getLocation() const															{ return m_location; }
+	void markAIDSDeath()									{ assert(hasDied()); m_aidsDeath = true; }
+	bool wasAIDSDeath() const								{ assert(hasDied()); return m_aidsDeath; }
+
+	// This is a per person value
+	double getSurvivalTimeLog10Offset() const						{ return m_log10SurvTimeOffset; }
 private:
 	double initializeEagerness();
 	double getViralLoadFromSetPointViralLoad(double x) const;
@@ -160,6 +165,8 @@ private:
 	InfectionType m_infectionType;
 	InfectionStage m_infectionStage;
 	int m_diagnoseCount;
+	bool m_aidsDeath;
+	double m_log10SurvTimeOffset;
 
 	double m_Vsp, m_VspOriginal;
 	bool m_VspLowered;
@@ -202,6 +209,7 @@ private:
 	static ProbabilityDistribution *m_pCD4StartDistribution;
 	static ProbabilityDistribution *m_pCD4EndDistribution;
 	static ProbabilityDistribution *m_pARTAcceptDistribution;
+	static ProbabilityDistribution *m_pLogSurvTimeOffsetDistribution;
 };
 
 inline double Person::getViralLoad() const
@@ -234,7 +242,7 @@ inline bool Person::hasChild(Person *pPerson) const
 {
 	assert(pPerson != 0);
 
-	for (int i = 0 ; i < m_children.size() ; i++)
+	for (size_t i = 0 ; i < m_children.size() ; i++)
 	{
 		assert(m_children[i] != 0);
 		
@@ -287,7 +295,7 @@ inline Woman *WOMAN(Person *pPerson)
 
 inline Person* Person::getChild(int idx)
 { 
-	assert(idx >= 0 && idx < m_children.size()); 
+	assert(idx >= 0 && idx < (int)m_children.size()); 
 	Person *pChild = m_children[idx]; 
 
 	assert(pChild != 0); 

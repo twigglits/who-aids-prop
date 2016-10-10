@@ -91,7 +91,7 @@ std::string EventMortality::getDescription(double tNow) const
 	return strprintf("Death of %s (current age %g)", pPerson->getName().c_str(), pPerson->getAgeAt(tNow));
 }
 
-void EventMortality::fire(State *pState, double t)
+void EventMortality::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	assert(getNumberOfPersons() == 1);

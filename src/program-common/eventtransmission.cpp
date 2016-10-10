@@ -33,7 +33,7 @@ string EventTransmission::getDescription(double tNow) const
 	return strprintf("Transmission event from %s to %s", getPerson(0)->getName().c_str(), getPerson(1)->getName().c_str());
 }
 
-void EventTransmission::writeLogs(const Population &pop, double tNow) const
+void EventTransmission::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);
@@ -126,7 +126,7 @@ void EventTransmission::infectPerson(SimpactPopulation &population, Person *pOri
 	assert(pTarget->getNextRelationshipPartner(tDummy) == 0);
 }
 
-void EventTransmission::fire(State *pState, double t)
+void EventTransmission::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	// Transmission from pPerson1 to pPerson2
@@ -183,24 +183,28 @@ double EventTransmission::calculateHazardFactor()
 
 void EventTransmission::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
-	if (!config.getKeyValue("transmission.param.a", m_a) ||
-	    !config.getKeyValue("transmission.param.b", m_b) ||
-	    !config.getKeyValue("transmission.param.c", m_c) ||
-	    !config.getKeyValue("transmission.param.d1", m_d1) ||
-	    !config.getKeyValue("transmission.param.d2", m_d2))
+	bool_t r;
+
+	if (!(r = config.getKeyValue("transmission.param.a", m_a)) ||
+	    !(r = config.getKeyValue("transmission.param.b", m_b)) ||
+	    !(r = config.getKeyValue("transmission.param.c", m_c)) ||
+	    !(r = config.getKeyValue("transmission.param.d1", m_d1)) ||
+	    !(r = config.getKeyValue("transmission.param.d2", m_d2)))
 		
-		abortWithMessage(config.getErrorString());
+		abortWithMessage(r.getErrorString());
 }
 
 void EventTransmission::obtainConfig(ConfigWriter &config)
 {
-	if (!config.addKey("transmission.param.a", m_a) ||
-	    !config.addKey("transmission.param.b", m_b) ||
-	    !config.addKey("transmission.param.c", m_c) ||
-	    !config.addKey("transmission.param.d1", m_d1) ||
-	    !config.addKey("transmission.param.d2", m_d2))
+	bool_t r;
+
+	if (!(r = config.addKey("transmission.param.a", m_a)) ||
+	    !(r = config.addKey("transmission.param.b", m_b)) ||
+	    !(r = config.addKey("transmission.param.c", m_c)) ||
+	    !(r = config.addKey("transmission.param.d1", m_d1)) ||
+	    !(r = config.addKey("transmission.param.d2", m_d2)))
 		
-		abortWithMessage(config.getErrorString());
+		abortWithMessage(r.getErrorString());
 }
 
 ConfigFunctions transmissionConfigFunctions(EventTransmission::processConfig, EventTransmission::obtainConfig, 

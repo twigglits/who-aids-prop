@@ -6,7 +6,7 @@
  * \file csvfile.h
  */
 
-#include "errut/errorbase.h"
+#include "booltype.h"
 #include <vector>
 
 /** This is a helper class for reading CSV files, which are assumed to hold numbers.
@@ -29,14 +29,14 @@
  *  If the first line does not contain double quotes and all entries are numerical values,
  *  the CSV file is assumed to not have a header, only containing data.
  */
-class CSVFile : public errut::ErrorBase
+class CSVFile
 {
 public:
 	CSVFile();
-	~CSVFile();
+	virtual ~CSVFile();
 
 	/** Try to load the specified file, setting the error string if failed. */
-	bool load(const std::string &fileName);
+	bool_t load(const std::string &fileName);
 
 	/** Returns the number of columns in the loaded file. */
 	int getNumberOfColumns();

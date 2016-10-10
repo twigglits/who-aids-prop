@@ -10,14 +10,14 @@ class MaxARTPopulation : public SimpactPopulation
 public:
 	enum StudyStage { PreStudy, InStudy, PostStudy };
 
-	MaxARTPopulation(bool parallel, GslRandomNumberGenerator *pRngGen);
+	MaxARTPopulation(PopulationAlgorithmInterface &alg, PopulationStateInterface &state);
 	~MaxARTPopulation();
 
 	StudyStage getStudyStage() const										{ return m_studyStage; }
 	void setInStudy()														{ assert(m_studyStage == PreStudy); m_studyStage = InStudy; }
 	void setStudyEnded()													{ assert(m_studyStage == InStudy) ; m_studyStage = PostStudy; }
 protected:
-	bool scheduleInitialEvents();
+	bool_t scheduleInitialEvents();
 
 	StudyStage m_studyStage;
 };
@@ -25,13 +25,17 @@ protected:
 inline MaxARTPopulation &MAXARTPOPULATION(State *pState)
 {
 	assert(pState != 0);
-	return static_cast<MaxARTPopulation &>(*pState);
+	PopulationStateInterface &state = static_cast<PopulationStateInterface &>(*pState);
+	assert(state.getExtraStateInfo() != 0);
+	return static_cast<MaxARTPopulation &>(*state.getExtraStateInfo());
 }
 
 inline const MaxARTPopulation &MAXARTPOPULATION(const State *pState)
 {
 	assert(pState != 0);
-	return static_cast<const MaxARTPopulation &>(*pState);
+	const PopulationStateInterface &state = static_cast<const PopulationStateInterface &>(*pState);
+	assert(state.getExtraStateInfo() != 0);
+	return static_cast<const MaxARTPopulation &>(*state.getExtraStateInfo());
 }
 
 #endif // MAXARTPOPULATION_H

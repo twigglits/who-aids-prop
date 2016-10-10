@@ -321,31 +321,6 @@ def _replaceVariables(value, variables):
 
     return newValue.strip()
 
-def _getSimpactPathBasedOnModule():
-    
-    possiblePaths = [ ]
-
-    moduleName = __name__
-    paths = sys.path
-    for p in paths:
-        if os.path.isdir(p):
-            full = os.path.join(p, moduleName + ".py")
-            if os.path.exists(full): # Ok, our simpact module exists in this directory
-                full = os.path.abspath(full)
-                dirName = os.path.dirname(full) 
-                baseName = os.path.basename(dirName) # should be 'python'
-                if baseName.lower() == "python":
-                    dirName = os.path.dirname(dirName)
-                    if not dirName.endswith(os.sep): # Make sure it ends with "/" or "\"
-                        dirName += os.sep
-
-                    possiblePaths.append(dirName)
-
-    #print("Possible paths:")
-    #print(possiblePaths)
-
-    return possiblePaths
-
 class PySimpactCyan(object):
     """ This class is used to run SimpactCyan based simulations."""
 
@@ -356,26 +331,22 @@ class PySimpactCyan(object):
 
     def setSimpactDirectory(self, dirName):
         """ Sets the directory in which the simpact binaries were installed to `dirName`"""
-        self._execDir = dirName
+        self._execDir = os.path.abspath(dirName)
 
     def setSimpactDataDirectory(self, dirName):
         self._dataDirectory = dirName
 
     def _findSimpactDataDirectory(self):
         paths = [ ]
+
+        if "SIMPACT_DATA_DIR" in os.environ:
+            paths += [ os.environ["SIMPACT_DATA_DIR"] ]
+
         if platform.system() == "Windows":
             paths += [ "C:\\Program Files (x86)\\SimpactCyan\\data\\", "C:\\Program Files\\SimpactCyan\\data\\" ]
         else:
             paths += [ "/usr/share/simpact-cyan/", "/usr/local/share/simpact-cyan/" ]
             paths += [ "/Applications/SimpactCyan.app/Contents/data/" ]
-
-        for p in _getSimpactPathBasedOnModule():
-            paths.append(p)
-            p2 = os.path.join(p, "data")
-            if not p2.endswith(os.sep):
-                p2 += os.sep
-
-            paths.append(p2)
 
         for p in paths:
             f = os.path.join(p, "sa_2003.csv")
@@ -383,7 +354,7 @@ class PySimpactCyan(object):
                 print("Setting data directory to", p)
                 return p
 
-        print("Warning: can't seem to find a way to run the simpact data directory")
+        print("Warning: can't seem to find the simpact data directory")
         return None
 
     def _findSimpactDirectory(self):
@@ -392,9 +363,7 @@ class PySimpactCyan(object):
             if platform.system() == "Windows":
                 paths += [ "C:\\Program Files (x86)\\SimpactCyan", "C:\\Program Files\\SimpactCyan" ]
 
-            paths += _getSimpactPathBasedOnModule()
-
-            exe = "simpact-cyan-opt" # This should always exist
+            exe = "simpact-cyan-release" # This should always exist
 
             # First see if we can run the executable without a full path
             try:
@@ -432,10 +401,7 @@ class PySimpactCyan(object):
 
         fullPath = testPrefix if testPrefix else self._execPrefix
         fullPath += "-"
-        fullPath += "opt" if opt else "basic"
-
-        if not release:
-            fullPath += "-debug"
+        fullPath += "release" if release else "debug"
 
         if self._execDir is not None:
             fullPath = os.path.join(self._execDir, fullPath)
@@ -445,6 +411,7 @@ class PySimpactCyan(object):
 
         fullPath = self._getExecPath(opt, release)
         parallelStr = "1" if parallel else "0"
+        algoStr = "opt" if opt else "simple"
 
         if destDir is None:
             destDir = os.path.abspath(os.path.dirname(configFile))
@@ -472,8 +439,16 @@ class PySimpactCyan(object):
             
             print("Results will be stored in directory '%s'" % os.getcwd())
             print("Running simpact executable...")
-            proc = subprocess.Popen([fullPath, configFile, parallelStr], stdout=f, stderr=f, cwd=os.getcwd(), env=newEnv)
-            proc.wait() # Wait for the process to finish
+            proc = subprocess.Popen([fullPath, configFile, parallelStr, algoStr], stdout=f, stderr=f, cwd=os.getcwd(), env=newEnv)
+            try:
+                proc.wait() # Wait for the process to finish
+            except:
+                try: 
+                    proc.kill()
+                except:
+                    pass
+                raise
+
             print("Done.")
             print()
 
@@ -522,7 +497,7 @@ class PySimpactCyan(object):
         if not config:
             config = { }
 
-        ignoreKeys = [ "population.agedistfile", "logsystem.filename.events", "logsystem.filename.persons", "logsystem.filename.relations" ]
+        ignoreKeys = [ "population.agedistfile" ]
 
         finalConfig, lines, sortedConfig = self._createConfigLines(config, False, ignoreKeys)
         lines.append('')

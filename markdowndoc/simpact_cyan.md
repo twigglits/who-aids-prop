@@ -1,6 +1,6 @@
 <img src="SimpactCyan_cropped.png" style="float:right;width:10%;">
 
-Simpact Cyan - 0.18.0
+Simpact Cyan - 0.19.0
 =====================
 
 This document is the reference documentation for the Simpact Cyan
@@ -16,7 +16,7 @@ Apart from this document, there exists some additional documentation
 as well:
 
  - Documentation of the program code itself can be found here: 
-   [code documentation](documentation).
+   [code documentation](documentation/index.html).
  - A tutorial for using the R bindings: [Age-mixing tutorial Bruges 2015](http://rpubs.com/wdelva/agemixing)
  
 <a name="programs"></a>
@@ -251,14 +251,17 @@ you can also specify others. At the end of this section we describe
 
 ### Running from command line ###
 
-The Simpact Cyan executable that you're likely to need is called `simpact-cyan-opt`.
-There are other versions as well; these perform exactly the same calculations, but
-either have more checks enabled or use the slow mNRM algorithm in which all event
-times are always recalculated. These other versions are mostly intended for development,
-but it may be a good idea to verify from time to time that they yield the same results
-(when using the same random number generator seed).
+The Simpact Cyan executable that you're likely to need is called `simpact-cyan-release`.
+There is a version with debugging information as well: this performs exactly the same calculations, but
+has more checks enabled. As a command line argument you can specify if the very basic
+mNRM (in which all event times are recalculated after triggering an event) is to be
+used, or the more advanced version (in which the program recalculates far less event
+fire times). While `simpact-cyan-release` with the advanced mNRM algorithm is the
+fastest, it may be a good idea to verify from time to time that the simple algorithm
+yields the same results (when using the same random number generator seed), as well
+as the debug versions.
 
-The program needs two additional arguments, the first of which is the path to the
+The program needs three additional arguments, the first of which is the path to the
 configuration file that specifies what should be simulated. The configuration file
 is just a text file containing a list of key/value pairs, a part of which could 
 look like this:
@@ -279,7 +282,7 @@ thereby severely limiting the number of options that must be specified. It will 
 options you specify with the defaults to produce a full configuration file that the
 command line program can use.
 
-The second argument that the `simpact-cyan-opt` program needs is either 0 or 1 and
+The second argument that the `simpact-cyan-release` program needs is either 0 or 1 and
 specifies whether the single core version should be used (corresponds to `0`), 
 or the version using multiple cores (corresponds to `1`). For the parallel version,
 i.e. the version using multiple cores, [OpenMP](https://en.wikipedia.org/wiki/OpenMP)
@@ -292,11 +295,18 @@ large population sizes. Especially if you need to do several runs of a simulatio
 several single-core versions at once will use your computer's power more efficiently
 than starting several parallel versions in a sequential way. 
 
+With the third and final argument you can specify which mNRM algorithm to use: if you
+specify 'simple', the basic mNRM is used in which all event fire times will be
+recalculated after an event was triggered. Since this is a slow algorithm, you'll
+probably want to specify 'opt' here, to use the more advanced algorithm. In this
+case, the procedure explained above is used, where each user stores a list of
+relevant events.
+
 So, assuming we've created a configuration file called `myconfig.txt` that resides in
-current directory, we could run the corresponding simulation with the following
+the current directory, we could run the corresponding simulation with the following
 command:
 
-    simpact-cyan-opt myconfig.txt 0
+    simpact-cyan-release myconfig.txt 0 opt
 
 This will produce some output on screen, such as which version of the program is
 being used and which random number generator seed was set. Since the random number
@@ -304,7 +314,7 @@ generator seed is in there, it may be a good idea to save this to a file in case
 you'd like to reproduce the exact simulation later. To save it to a file called
 `myoutput.txt`, you can run
 
-    simpact-cyan-opt myconfig.txt 0 2>myoutput.txt
+    simpact-cyan-release myconfig.txt 0 opt 2>myoutput.txt
 
 Note that it is not a redirection of the output using simply `>`, but using `2>`.
 This has to do with the fact that the information that you see on screen is actually
@@ -320,7 +330,7 @@ program that the specified seed is in fact the one being used:
  - for an MS-Windows system:
 
         set MNRM_DEBUG_SEED=12345
-        simpact-cyan-opt myconfig.txt 0
+        simpact-cyan-release myconfig.txt 0 opt
 
     Note that value of `MNRM_DEBUG_SEED` is still set, which is important when running
     additional simulations. To clear it, either exit the current command prompt, or
@@ -333,7 +343,7 @@ program that the specified seed is in fact the one being used:
  - for a Linux or OS X system:
 
         export MNRM_DEBUG_SEED=12345
-        simpact-cyan-opt myconfig.txt 0
+        simpact-cyan-release myconfig.txt 0 opt
 
     Note that value of `MNRM_DEBUG_SEED` is still set, which is important when running
     additional simulations. To clear it, either exit the current terminal window, or
@@ -344,7 +354,7 @@ program that the specified seed is in fact the one being used:
     On one of these operating systems, it is also possible to specify everything in
     one line:
 
-        MNRM_DEBUG_SEED=12345 simpact-cyan-opt myconfig.txt 0
+        MNRM_DEBUG_SEED=12345 simpact-cyan-release myconfig.txt 0 opt
 
     In this case, the value of `MNRM_DEBUG_SEED` will be visible to the program,
     but will no longer be set once the program finishes. It will therefore not
@@ -357,7 +367,7 @@ program that the specified seed is in fact the one being used:
 #### Getting started ####
 
 The R interface to Simpact Cyan will underneath still execute one of the
-Simpact Cyan programs, e.g. `simpact-cyan-opt`, so the [program](#programs)
+Simpact Cyan programs, e.g. `simpact-cyan-release`, so the [program](#programs)
 relevant to your operating system must be installed first. Note that if
 you're using MS-Windows, you'll also need to install the 
 [Visual Studio 2013 redistributable package](https://www.microsoft.com/en-us/download/details.aspx?id=40784).
@@ -557,7 +567,7 @@ Apart from `simpact.showconfig` and `simpact.run`, some other functions exist in
    The Simpact Cyan package is actually meant to support alternative simulations
    as well. To use such an alternative simulation, this function can be used.
    For example, if `maxart` is specified here, instead of running e.g.
-   `simpact-cyan-opt` as underlying program, `maxart-opt` would be executed
+   `simpact-cyan-release` as underlying program, `maxart-release` would be executed
    instead.
 
 <a name="startingfromPython"></a>
@@ -753,7 +763,7 @@ exist in this Python class as well:
    The Simpact Cyan package is actually meant to support alternative simulations
    as well. To use such an alternative simulation, this function can be used.
    For example, if `maxart` is specified here, instead of running e.g.
-   `simpact-cyan-opt` as underlying program, `maxart-opt` would be executed
+   `simpact-cyan-release` as underlying program, `maxart-release` would be executed
    instead.
 
 <a name="configfile"></a>
@@ -885,7 +895,7 @@ times. For example, assuming that our config file is called `myconfig.txt`,
 the simple [bash](https://en.wikipedia.org/wiki/Bash_(Unix_shell)) script
 
     for i in 1 2 3 4 5 ; do
-        SIMPACT_OUTPUT_PREFIX=newprefix_${i}- simpact-cyan-opt myconfig.txt 0
+        SIMPACT_OUTPUT_PREFIX=newprefix_${i}- simpact-cyan-release myconfig.txt 0 opt
     done
 
 would produce output files like `newprefix_1-eventlog.csv` and `newprefix_5-eventlog.csv`.
@@ -1329,7 +1339,7 @@ due to a ['normal' mortality event](#mortality).
 
 The person log file is a CSV file with entries for each person in the simulation,
 both for persons who are deceased and who are still alive when the simulation
-finished. At the moment, fifteen columns are defined:
+finished. At the moment, the following columns are defined:
 
   1. `ID`: The ID of the person that this line is about.
   2. `Gender`: The gender (0 for a man, 1 for a woman) of the person that this
@@ -1367,6 +1377,9 @@ finished. At the moment, fifteen columns are defined:
  15. `YCoord`: Each person is assigned [a geographic location](#geodist), of which this
      is the y-coordinate. Note that this is currently not used in the core Simpact Cyan
      simulation.
+ 16. `AIDSDeath`: Indicates what the cause of death for this person was. Is -1 in case
+     the person is still alive at the end of the simulation, 0 if the person died from
+     non-AIDS related causes, and +1 in case the person's death was caused by AIDS.
 
 ### Relationship log ###
 
@@ -1762,6 +1775,17 @@ and the default location is put to (0, 0) for everyone. Because the location is 
 to [the person log file](#personlog), it can be (ab)used to test two dimensional
 distributions, like we did in the example for the [discrete two dimensional distribution](#prob2ddiscrete).
 
+<a name="survdist"></a>
+
+By default, the survival time for a person after becoming HIV infected, is given
+by a simple relation based on the set-point viral load. Because an exact mapping
+from viral load to survival time is not that realistic, you can add some randomness
+to this relation using the distribution in `person.survtime.logoffset.dist.type`.
+When a person becomes infected, a random number is drawn from this distribution
+and will correspond to an offset in the survival time, as explained in the
+[AIDS mortality event](#aidsmortality). The following IPython notebook illustrates
+the effect: [survivaltimernd.ipynb](survivaltimernd.ipynb).
+
 Here is an overview of the relevant configuration options, their defaults (between
 parentheses), and their meaning:
 
@@ -1773,6 +1797,11 @@ parentheses), and their meaning:
    This [two dimensional distribution](#prob2d) is used to assign a geographic
    location to each person. In the main Simpact Cyan simulation, this is currently
    not used in any hazard.
+
+ - `person.survtime.logoffset.dist.type` ('fixed' with value 0):
+   This [one dimensional distribution](#prob1d) can be used to add some randomness
+   to the [survival time](#aidsmortality) until dying of AIDS related causes after 
+   becoming HIV infected.
 
 <!--
 	person.cpp
@@ -1805,11 +1834,14 @@ When a person gets infected with HIV, an HIV-based time of death is determined. 
 of death is determined as the time of infection plus the survival time, which is given by
 the following formula (based on [[Arnaout et al.]](#ref_arnaout)):
 $$
-    t_{\rm survival} = \frac{C}{V_{\rm sp}^{-k}}
+    t_{\rm survival} = \frac{C}{V_{\rm sp}^{-k}} \times 10^{\rm x}
 $$
 
 In this formula, $C$ and $k$ are parameters which can be configured using the settings
-`mortality.aids.survtime.C` and `mortality.aids.survtime.k` respectively. The value of
+`mortality.aids.survtime.C` and `mortality.aids.survtime.k` respectively. The $x$ parameter
+is [determined per person](#survdist) allowing some randomness in the formula: it
+determines an offset on a logarithmic scale. By default, this value is zero however, 
+causing a very strict relationship between $V_{\rm sp}$ and $t_{\rm survival}$. The value of
 $V_{\rm sp}$ is the set-point viral load, [first determined at the time of infection](#viralload) 
 and in general
 different per person. The value of the set-point viral load can change when treatment is involved: when a
@@ -2202,21 +2234,24 @@ will get scheduled if the woman in the relationship is not yet pregnant,
 and in case just one of the partners is infected with HIV, a
 [transmission event](#transmission) will be scheduled as well.
 
-The formation event is hazard based, and there are currently two hazard types
+The formation event is hazard based, and there are currently three hazard types
 that can be used by configuring `formation.hazard.type`. The first hazard type
 is called the [`simple`](#simplehazard) hazard, and is nearly equal to the hazard of the
 [dissolution event](#dissolution). 
 The second hazard type, called [`agegap`](#agegaphazard), is more advanced. Not only can the
 preferred age gap differ from one person to the next, but there's also an
-age dependent component in this preferred age gap. Both hazards will be discussed
-below.
+age dependent component in this preferred age gap. The third hazard, [`agegapry`](#agegapryhazard)
+allows for the weight of the agegap terms to be age dependent. To make this possible,
+the time dependency in the age gap part of the hazard is only approximate: times
+will refer to a reference year (hence the 'ry' in the hazard name) which can be
+set using the ['synchronize reference year'](#syncrefyear) event.
 
 Here is an overview of the relevant configuration options, their defaults (between
 parentheses), and their meaning:
 
  - `formation.hazard.type` (`agegap`):  
    This parameter specifies which formation hazard will be used. Allowed values
-   are `simple` and `agegap`.
+   are `simple`, `agegap` and `agegapry`.
 
 <a name="simplehazard"></a>
 
@@ -2380,6 +2415,9 @@ e.g. in the `simple` hazard. The reason is the time dependence that is now prese
 inside the terms with the absolute values. To see how the mapping is done in this
 case, you can look at the calculations in this document: [age gap hazard calculations](formationhazard_agegap.pdf)
 
+The following IPython notebook provides some simple examples of this `agegap`
+hazard: [agegap_hazard_examples.ipynb](agegap_hazard_examples.ipynb).
+
 Here is an overview of the relevant configuration options, their defaults (between
 parentheses), and their meaning:
 
@@ -2423,15 +2461,144 @@ parentheses), and their meaning:
    the section about ['time limited' hazards](#timelimited). This configuration
    value is a measure of this threshold.
 
+<a name="agegapryhazard"></a>
+
+##### The `agegapry` formation hazard #####
+
+While the [`agegap`](#agegaphazard) hazard already allows for a great deal of
+flexibility, it is not possible to vary the importance of the age gap terms as
+people get older. The following hazard is very similar to the `agegap` one,
+but this does allow the importance of the age gap to change over time:
+
+$$
+	\begin{array}{lll}
+		{\rm hazard} & = & F \times \exp\left( \alpha_{\rm baseline} + \alpha_{\rm numrel,man} P_{\rm man} + \alpha_{\rm numrel,woman} P_{\rm woman} \right. \\
+          & + & \alpha_{\rm numrel,diff}|P_{\rm man} - P_{\rm woman}| \\
+	      & + & \alpha_{\rm meanage} \left(\frac{A_{\rm man}(t)+A_{\rm woman}(t)}{2}\right)  \\
+          & + & \alpha_{\rm eagerness,sum}(E_{\rm man} + E_{\rm woman}) +
+                \alpha_{\rm eagerness,diff}|E_{\rm man} - E_{\rm woman}| \\
+		  &	+ & G_{\rm man}(t_{\rm ry}) + G_{\rm woman}(t_{\rm ry}) \\
+		  & + & \left. \beta (t-t_{\rm ref}) \right) 
+    \end{array}
+$$
+
+In this equation, the terms $G_{\rm man}$ and $G_{\rm woman}$ for the age gap
+between partners in a relationship is given by the following expressions:
+
+$$ 
+	\begin{array}{lll}
+        G_{\rm man}(t_{\rm ry}) & = & \left[\alpha_{\rm gap,factor,man,const} + 
+                                      \alpha_{\rm gap,factor,man,exp} 
+                                       \exp\left( \alpha_{\rm gap,factor,man,age} \left( A_{\rm man}(t_{\rm ry}) - A_{\rm debut} \right) \right) \right]\\ 
+                                & & \times 
+          |A_{\rm man}(t_{\rm ry})-A_{\rm woman}(t_{\rm ry})-D_{p,{\rm man}}-\alpha_{\rm gap,agescale,man} A_{\rm man}(t_{\rm ry})|  \\
+    \end{array}
+$$
+
+$$ 
+	\begin{array}{lll}
+        G_{\rm woman}(t_{\rm ry}) & = & \left[\alpha_{\rm gap,factor,woman,const} + 
+                                      \alpha_{\rm gap,factor,woman,exp} 
+                                       \exp\left( \alpha_{\rm gap,factor,woman,age} \left( A_{\rm woman}(t_{\rm ry}) - A_{\rm debut} \right) \right) \right]\\ 
+                                & & \times 
+          |A_{\rm man}(t_{\rm ry})-A_{\rm woman}(t_{\rm ry})-D_{p,{\rm woman}}-\alpha_{\rm gap,agescale,woman} A_{\rm woman}(t_{\rm ry})|  \\
+    \end{array}
+$$
+
+In these equations again the following notation is used:
+
+$$ A_{\rm man}(t) = t - t_{\rm birth,man} $$
+$$ A_{\rm woman}(t) = t - t_{\rm birth,woman} $$
+
+i.e., $A(t)$ represents the age of someone. 
+Looking at these age gap terms, you can see that they are similar to the ones from
+the `agegap` hazard, but the prefactor is no longer a simple configurable constant.
+By tuning several parameters, the importance of these age gap terms can now be made
+age-dependent.
+
+However, this age-dependence is in fact only approximate because $t_{\rm ry}$
+is used in these expressions instead of the simulation time $t$: to reduce the complexity
+of the hazard and keep the performance up, inside the age gap terms, strict time
+depencency on $t$ is replaced by approximate time dependency on a reference year
+$t_{\rm ry}$. By only changing this reference time at certain intervals (see
+the [reference year synchronization event](#syncrefyear)), the time dependency
+of the hazard becomes much more straightforward. Note that certain terms still
+have a dependency on the simulation time $t$, causing this hazard to be of the
+form $\exp(A + Bt)$.
+
+The meaning of the other quantities in the hazard is the same as in the [`agegap`](#agegaphazard)
+hazard. An IPython notebook that illustrates how a funnel-like distribution of the
+formed relationships can be generated using this `agegapry` hazard, can be found
+here: [agegapry_hazard_funnel.ipynb](agegapry_hazard_funnel.ipynb).
+
+Here is an overview of the relevant configuration options, their defaults (between
+parentheses), and their meaning:
+
+ - `formation.hazard.agegapry.baseline` (0.1):  
+   The value of $\alpha_{\rm baseline}$ in the expression for the hazard, allowing one to establish
+   a baseline value.
+ - `formation.hazard.agegapry.numrel_man` (0):  
+   The value of $\alpha_{\rm numrel,man}$ in the hazard formula, corresponding to a weight for the
+   number of relationships the man in the relationship has.
+ - `formation.hazard.agegapry.numrel_woman` (0):  
+   The value of $\alpha_{\rm numrel,woman}$ in the hazard formula, corresponding to a weight for the
+   number of relationships the woman in the relationship has.
+ - `formation.hazard.agegapry.numrel_diff` (0):  
+   The value of $\alpha_{\rm numrel,diff}$ in the hazard expression, by which the influence of the
+   difference in number of partners can be specified.
+ - `formation.hazard.agegapry.meanage` (0):  
+   The value of $\alpha_{\rm meanage}$ in the expression for the hazard, a weight for the average
+   age of the partners.
+ - `formation.hazard.agegapry.eagerness_sum` (0):  
+   Weight $\alpha_{\rm eagerness,sum}$ for the sum of the [eagerness](#eagerness) parameters of both partners.
+ - `formation.hazard.agegapry.eagerness_diff` (0):  
+   Weight $\alpha_{\rm eagerness,diff}$ for the difference of the [eagerness](#eagerness) parameters of both partners.
+ - `formation.hazard.agegapry.gap_factor_man_const` (0):  
+   The value of $\alpha_{\rm gap,factor,man,const}$ in the age gap term $G_{\rm man}(t_{\rm ry})$.
+ - `formation.hazard.agegapry.gap_factor_man_exp` (0):  
+   The value of $\alpha_{\rm gap,factor,man,exp}$ in the age gap term $G_{\rm man}(t_{\rm ry})$.
+ - `formation.hazard.agegapry.gap_factor_man_age` (0):  
+   The value of $\alpha_{\rm gap,factor,man,age}$ in the age gap term $G_{\rm man}(t_{\rm ry})$.
+ - `formation.hazard.agegapry.gap_agescale_man` (0):  
+   This controls $\alpha_{\rm gap,agescale,man}$, which allows you to vary the preferred age
+   gap with the age of the man in the relationship.
+ - `formation.hazard.agegapry.gap_factor_woman_const` (0):  
+   The value of $\alpha_{\rm gap,factor,woman,const}$ in the age gap term $G_{\rm woman}(t_{\rm ry})$.
+ - `formation.hazard.agegapry.gap_factor_woman_age` (0):  
+   The value of $\alpha_{\rm gap,factor,woman,age}$ in the age gap term $G_{\rm woman}(t_{\rm ry})$.
+ - `formation.hazard.agegapry.gap_factor_woman_exp` (0):  
+   The value of $\alpha_{\rm gap,factor,woman,exp}$ in the age gap term $G_{\rm woman}(t_{\rm ry})$.
+ - `formation.hazard.agegapry.gap_agescale_woman` (0):  
+   This controls $\alpha_{\rm gap,agescale,woman}$, which allows you to vary the preferred age
+   gap with the age of the woman in the relationship.
+ - `formation.hazard.agegapry.beta` (0):  
+   Corresponds to $\beta$ in the hazard expression and allows you to take the
+   time since the relationship became possible into account.
+ - `formation.hazard.agegapry.t_max` (200):  
+   As explained in the section about ['time limited' hazards](#timelimited), an
+   exponential function needs some kind of threshold value (after which it stays
+   constant) to be able to perform the necessary calculations. This configuration
+   value is a measure of this threshold.
+ - `formation.hazard.agegapry.maxageref.diff` (1):  
+   As explained above, the age gap terms do not use the real time dependency $t$, but
+   refer to a reference time $t_{\rm ry}$ that needs to be synchronized periodically
+   using the [synchronize reference year event](#syncrefyear). The program will abort
+   if it detects that the last reference time synchronization was more than this
+   amount of time ago, which by default is one year.
+
 <!--
 	eventformation.cpp
 	eventformation.h
 	evthazardformationagegap.cpp
 	evthazardformationagegap.h
+	evthazardformationagegaprefyear.cpp
+	evthazardformationagegaprefyear.h
 	evthazardformationsimple.cpp
 	evthazardformationsimple.h
 	hazardfunctionformationagegap.cpp
 	hazardfunctionformationagegap.h
+	hazardfunctionformationagegaprefyear.cpp
+	hazardfunctionformationagegaprefyear.h
 	hazardfunctionformationsimple.cpp
 	hazardfunctionformationsimple.h
 -->
@@ -2801,6 +2968,26 @@ parentheses), and their meaning:
 <!--
 	eventsyncpopstats.cpp
 	eventsyncpopstats.h
+-->
+
+<a name="syncrefyear"></a>
+
+#### Synchronize reference year ####
+
+With this event, a reference time can be saved in the simulation. This is used by
+the [`agegapry`](#agegapryhazard) formation hazard, to simplify the complexity of the hazard. 
+Scheduling of the event can be disabled by setting it to a negative value.
+
+Here is an overview of the relevant configuration options, their defaults (between
+parentheses), and their meaning:
+
+ - `syncrefyear.interval` (-1):  
+   Specifies the time interval with which a reference simulation time should be saved.
+   A negative value disables this.
+
+<!--
+    eventsyncrefyear.h
+    eventsyncrefyear.cpp
 -->
 
 <a name="transmission"></a>

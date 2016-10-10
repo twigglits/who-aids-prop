@@ -2,9 +2,9 @@
 
 #define PERSONALEVENTLIST_H
 
-#include "errut/errorbase.h"
+#include "booltype.h"
 #include "populationevent.h"
-#include "state.h"
+#include "populationinterfaces.h"
 #include <vector>
 #include <list>
 #include <set>
@@ -12,21 +12,27 @@
 //#define PERSONALEVENTLIST_EXTRA_DEBUGGING
 
 class PersonBase;
+class PopulationStateAdvanced;
+class PopulationAlgorithmAdvanced;
 
-class PersonalEventList : public errut::ErrorBase
+class PersonalEventList : public PersonAlgorithmInfo
 {
 public:
 	PersonalEventList(PersonBase *pPerson);
 	~PersonalEventList();
 
 	void registerPersonalEvent(PopulationEvent *pEvt);
-	void processUnsortedEvents(Population &pop, double t0);
-	void advanceEventTimes(const Population &pop, double t1);
+	void processUnsortedEvents(PopulationAlgorithmAdvanced &alg, PopulationStateAdvanced &pop, double t0);
+	void advanceEventTimes(PopulationAlgorithmAdvanced &alg, const PopulationStateAdvanced &pop, double t1);
 	void adjustingEvent(PopulationEvent *pEvt);
 	void removeTimedEvent(PopulationEvent *pEvt);
 
 	PopulationEvent *getEarliestEvent();
+	
+	void setListIndex(int i) 							{ m_listIndex = i; }
+	int getListIndex() const							{ return m_listIndex; }
 private:
+	static PersonalEventList *personalEventList(PersonBase *pPerson);
 #ifndef PERSONALEVENTLIST_EXTRA_DEBUGGING
 	void checkEarliestEvent() { }
 	void checkEvents() { }
@@ -41,8 +47,10 @@ private:
 	PopulationEvent *m_pEarliestEvent;
 	PersonBase *m_pPerson;
 
+	int m_listIndex;
+
 #ifdef STATE_SHOW_EVENTS
-	friend class Population;
+	friend class PopulationAlgorithmAdvanced;
 #endif // STATE_SHOW_EVENTS
 };
 

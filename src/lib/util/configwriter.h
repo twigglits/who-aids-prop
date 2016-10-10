@@ -2,28 +2,27 @@
 
 #define CONFIGWRITER_H
 
-#include "errut/errorbase.h"
+#include "booltype.h"
 #include <stdint.h>
 #include <vector>
 #include <map>
 
-// TODO: merge this with configreader?
-class ConfigWriter : public errut::ErrorBase
+class ConfigWriter
 {
 public:
 	ConfigWriter();
-	~ConfigWriter();
+	virtual ~ConfigWriter();
 
-	bool addKey(const std::string &key, double value);
-	bool addKey(const std::string &key, const std::vector<double> &values);
-	bool addKey(const std::string &key, int value);
-	bool addKey(const std::string &key, int64_t value);
-	bool addKey(const std::string &key, bool value);
-	bool addKey(const std::string &key, const char *pStr);
-	bool addKey(const std::string &key, const std::string &value);
+	bool_t addKey(const std::string &key, double value);
+	bool_t addKey(const std::string &key, const std::vector<double> &values);
+	bool_t addKey(const std::string &key, int value);
+	bool_t addKey(const std::string &key, int64_t value);
+	bool_t addKey(const std::string &key, bool value);
+	bool_t addKey(const std::string &key, const char *pStr);
+	bool_t addKey(const std::string &key, const std::string &value);
 
 	void getKeys(std::vector<std::string> &keys) const;
-	bool getKeyValue(const std::string &key, std::string &value) const;
+	bool_t getKeyValue(const std::string &key, std::string &value) const;
 private:
 	std::map<std::string,std::string> m_keyValues;
 };

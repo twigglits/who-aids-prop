@@ -113,11 +113,12 @@ int main4(int argc, char *argv[])
 	for (int i = 0 ; i < files.size() ; i++)
 	{
 		TIFFDensityFile td;
+		bool_t r;
 
 		cout << "Trying " << files[i] << "...";
-		if (!td.init(files[i], false, false))
+		if (!(r = td.init(files[i], false, false)))
 		{
-			cout << " Error: " << td.getErrorString() << endl;
+			cout << " Error: " << r.getErrorString() << endl;
 		}
 		else 
 		{
@@ -160,10 +161,12 @@ int main5(int argc, char *argv[])
 	for (int i = 0 ; i < files.size() ; i++)
 	{
 		TIFFDensityFile td;
+		bool_t r;
+
 		cerr << "Trying " << files[i] << "...";
 
-		if (!td.init(files[i], true, true))
-			cerr << " Error loading TIFF: " << td.getErrorString() << endl;
+		if (!(r = td.init(files[i], true, true)))
+			cerr << " Error loading TIFF: " << r.getErrorString() << endl;
 		else
 		{
 			DiscreteDistribution2D dist(0, 0, 1, 2, td, &rndGen);

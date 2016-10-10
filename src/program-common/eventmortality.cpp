@@ -59,7 +59,7 @@ string EventMortality::getDescription(double tNow) const
 	return strprintf("Death of %s (current age %g)", pPerson->getName().c_str(), pPerson->getAgeAt(tNow));
 }
 
-void EventMortality::writeLogs(const Population &pop, double tNow) const
+void EventMortality::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	Person *pPerson1 = getPerson(0);
 	writeEventLogStart(true, "normalmortality", tNow, pPerson1, 0);
@@ -67,18 +67,22 @@ void EventMortality::writeLogs(const Population &pop, double tNow) const
 
 void EventMortality::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
-	if (!config.getKeyValue("mortality.normal.weibull.shape", m_shape, 0) ||
-	    !config.getKeyValue("mortality.normal.weibull.scale", m_scale, 0) ||
-	    !config.getKeyValue("mortality.normal.weibull.genderdiff", m_genderDiff))
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.getKeyValue("mortality.normal.weibull.shape", m_shape, 0)) ||
+	    !(r = config.getKeyValue("mortality.normal.weibull.scale", m_scale, 0)) ||
+	    !(r = config.getKeyValue("mortality.normal.weibull.genderdiff", m_genderDiff)))
+		abortWithMessage(r.getErrorString());
 }
 
 void EventMortality::obtainConfig(ConfigWriter &config)
 {
-	if (!config.addKey("mortality.normal.weibull.shape", m_shape) ||
-	    !config.addKey("mortality.normal.weibull.scale", m_scale) ||
-	    !config.addKey("mortality.normal.weibull.genderdiff", m_genderDiff))
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.addKey("mortality.normal.weibull.shape", m_shape)) ||
+	    !(r = config.addKey("mortality.normal.weibull.scale", m_scale)) ||
+	    !(r = config.addKey("mortality.normal.weibull.genderdiff", m_genderDiff)))
+		abortWithMessage(r.getErrorString());
 }
 
 ConfigFunctions normalmortalityConfigFunctions(EventMortality::processConfig, EventMortality::obtainConfig, "EventMortality");

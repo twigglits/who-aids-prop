@@ -23,7 +23,7 @@ std::string EventFormation::getDescription(double tNow) const
 	return strprintf("Formation between %s and %s", getPerson(0)->getName().c_str(), getPerson(1)->getName().c_str());
 }
 
-void EventFormation::fire(State *pState, double t)
+void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	Person *pPerson1 = getPerson(0);

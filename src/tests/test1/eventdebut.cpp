@@ -34,7 +34,7 @@ std::string EventDebut::getDescription(double tNow) const
 	return strprintf("Debut of %s", pPerson->getName().c_str());
 }
 
-void EventDebut::fire(State *pState, double t)
+void EventDebut::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	assert(getNumberOfPersons() == 1);

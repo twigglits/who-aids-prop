@@ -23,7 +23,7 @@ std::string EventDissolution::getDescription(double tNow) const
 		     getPerson(0)->getName().c_str(), getPerson(1)->getName().c_str(), m_formationTime, tNow-m_formationTime);
 }
 
-void EventDissolution::fire(State *pState, double t)
+void EventDissolution::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	Person *pPerson1 = getPerson(0);

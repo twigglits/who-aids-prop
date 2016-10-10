@@ -13,9 +13,9 @@ public:
 	~EventChronicStage();
 
 	std::string getDescription(double tNow) const;
-	void writeLogs(const Population &pop, double tNow) const;
+	void writeLogs(const SimpactPopulation &pop, double tNow) const;
 
-	void fire(State *pState, double t);
+	void fire(Algorithm *pAlgorithm, State *pState, double t);
 
 	static double getAcuteStageTime() 							{ return m_acuteTime; }
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);

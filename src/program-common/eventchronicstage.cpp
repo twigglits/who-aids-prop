@@ -42,13 +42,13 @@ std::string EventChronicStage::getDescription(double tNow) const
 	return strprintf("Chronic infection stage for %s", pPerson->getName().c_str());
 }
 
-void EventChronicStage::writeLogs(const Population &pop, double tNow) const
+void EventChronicStage::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	Person *pPerson = getPerson(0);
 	writeEventLogStart(true, "chronicstage", tNow, pPerson, 0);
 }
 
-void EventChronicStage::fire(State *pState, double t)
+void EventChronicStage::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	assert(getNumberOfPersons() == 1);
@@ -67,14 +67,18 @@ double EventChronicStage::m_acuteTime = -1;
 
 void EventChronicStage::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
-	if (!config.getKeyValue("chronicstage.acutestagetime", m_acuteTime, 0))
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.getKeyValue("chronicstage.acutestagetime", m_acuteTime, 0)))
+		abortWithMessage(r.getErrorString());
 }
 
 void EventChronicStage::obtainConfig(ConfigWriter &config)
 {
-	if (!config.addKey("chronicstage.acutestagetime", m_acuteTime))
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+
+	if (!(r = config.addKey("chronicstage.acutestagetime", m_acuteTime)))
+		abortWithMessage(r.getErrorString());
 }
 
 ConfigFunctions chronicStageConfigFunctions(EventChronicStage::processConfig, EventChronicStage::obtainConfig, "EventChronicStage");

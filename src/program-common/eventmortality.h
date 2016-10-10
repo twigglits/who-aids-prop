@@ -14,7 +14,7 @@ public:
 	~EventMortality();
 
 	std::string getDescription(double tNow) const;
-	void writeLogs(const Population &pop, double tNow) const;
+	void writeLogs(const SimpactPopulation &pop, double tNow) const;
 
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);

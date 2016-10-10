@@ -202,7 +202,7 @@ _real time_.
   3. for each \f$k\f$, we must also know the time at which this calculation of
      \f$\Delta T\f$ took place. For now this is just \f$t = 0\f$, so we set \f$t^c_k = 0\f$ for
      all \f$k\f$.
-  4. for each \f$k\f$, map these internal Poisson intervals \f$\Delta T_k\f$ to event fire times
+  4. for each \f$k\f$, map these internal intervals \f$\Delta T_k\f$ to event fire times
      \f$t^f_k\f$ using the hazards: 
      \f[ \Delta T_k = \int_{t^c_k}^{t^f_k} h_k(X(t^c_k),s) ds \f]
 
@@ -273,8 +273,8 @@ not really a line anymore.
 
 ### Basic algorithm implementation ###
 
-The last algorithm presented above fits in the abstraction used by the State class, in the 
-State::evolve function:
+The last algorithm presented above fits in the abstraction used by the Algorithm class, in the 
+Algorithm::evolve function:
 @code
 initEventTimes();
 simTime = 0;
@@ -284,7 +284,7 @@ while (true)
 	// Ask for the next scheduled event and for the time until it takes place.
 	// This function should also calculate the correct event fire times for
 	// events which still need the mapping onto the real world event time.
-	// This perfoms steps 1 and 2 from the algorithm above.
+	// This perfoms steps 1 and 2 from the loop in the algorithm above.
 	EventBase *pNextScheduledEvent = getNextScheduledEvent(dtMin);
 			
 	if (pNextScheduledEvent == 0) 
@@ -304,20 +304,20 @@ while (true)
 	// Fire the event, which may adjust the 
 	// current state and generate a new internal time difference. This
 	// corresponds to step 5.
-	pNextScheduledEvent->fire(simulationState, simTime);
+	pNextScheduledEvent->fire(algorithm, simulationState, simTime);
 	pNextScheduledEvent->generateNewInternalTimeDifference(m_pRndGen, this);
 
 	onFiredEvent(pNextScheduledEvent);
 }
 @endcode
 
-A very straightforward implementation of the necessary functions can be found in the SimpleState
+A very straightforward implementation of the necessary functions can be found in the SimpleAlgorithm
 class. Like in the very basic mNRM algorithm, for each event executed, all other event times are
 always recalculated. This makes the procedure very slow of course, but it is a good reference to
 test a more advanced implementation against.
 
 To create a simulation with this version of the algorithm, you need to provide implementations for 
-the SimpleState::getCurrentEvents and SimpleState::onFiredEvent functions. The first function must 
+the SimpleAlgorithm::getCurrentEvents and SimpleAlgorithm::onFiredEvent functions. The first function must 
 return a list of all events in the system, the second one can modify the list of events, for example
 removing the event that just fired if no longer needed.
 
@@ -351,7 +351,9 @@ for (int i = 0 ; i < events.size() ; i++)
 Here, the key calculation is the \c solveForRealTimeInterval one, which
 solves for \f$ dt \f$ in the integral
 \f[ \Delta T = \int_{\rm curTime }^{{\rm curTime} + dt} h(X({\rm curTime}),s) ds \f]
-where \f$ \Delta T \f$ is the current (remaining) internal time interval for an event.
+where \f$ \Delta T \f$ is the current (remaining) internal time interval for an event
+(this internal time interval is stored inside \c events[i] and is therefore
+not explicitly visible in the code).
 
 Finally, the \c advanceEventTimes implementation is the following:
 @code
@@ -376,10 +378,10 @@ was last calculated.
 
 ### %Population based algorithm ###
 
-As was said before, the previous implementation from SimpleState is slow as in
+As was said before, the previous implementation from SimpleAlgorithm is slow as in
 general it will perform a large amount of unnecessary recalculations. For this reason, for the Simpact Cyan
 project, a population-based implementation of the mNRM was created as well. The
-core of this algorithm is provided by the Population class, which defines the
+core of this algorithm is provided by the PopulationAlgorithmAdvanced class, which defines the
 population as a set of people represented by a PersonBase class and which fires
 events derived from PopulationEvent.
 
@@ -396,9 +398,8 @@ of classes based on those:
    redefine constuctors and some access functions to work with the Person class
    instead of the PersonBase class (to reduce the amount of type casting in event
    code).
- - SimpactPopulation: this is a class derived from Population and is needed to
-   create the initial people in the population (with varying properties) and to
-   schedule an initial set of events.
+ - SimpactPopulation: this is a class that creates the initial people in the 
+   population (with varying properties) and that schedules an initial set of events.
 
 To know how to use this population based algorithm, it can be useful to understand
 the way it works. The figure below illustrates how everything is organized. In
@@ -407,7 +408,7 @@ of events that are relevant to him.
 
 ![](optalg.png)
 
-When you construct a new SimpactEvent based instance, you need to specify the
+When you construct a new PopulationEvent based instance, you need to specify the
 persons involved in this event, and the event gets stored in these persons' lists. As the figure
 shows, it is very well possible that a single event appears in the lists of
 different people: for example a relationship formation event would involve two
@@ -422,8 +423,8 @@ When an event fires, the algorithm assumes that the persons which have the event
 in their lists are affected and that their events will require a recalculation of
 the fire times. In case other people are affected as well (who you don't know
 beforehand), this can be specified using the functions PopulationEvent::isEveryoneAffected
-or PopulationEvent::markOtherAffectedPeople. If such additional people are specified 
-as well, those people's event fire times will be recalculated as well. Using PopulationEvent::areGlobalEventsAffected
+or PopulationEvent::markOtherAffectedPeople. If such additional people are specified,
+those people's event fire times will be recalculated as well. Using PopulationEvent::areGlobalEventsAffected
 you can indicate that the fire times of global events should be recalculated.
 
 Before recalculating an event fire time, it is checked if the event is still relevant.
@@ -443,7 +444,7 @@ check the first event times for all the people.
 Sometimes you have the choice between two approaches upon firing a certain event:
 
 1. Perform some action immediately, and if this involves other people than the ones
-   specified when the event was created, these people should be accessible using the
+   specified when the event was created, these people should be indicated using the
    PopulationEvent::markOtherAffectedPeople function.
 2. Alternatively, you can schedule events that should take place (nearly) immediately,
    each event affecting one of the other people and having the 'fire' code for that
@@ -492,17 +493,15 @@ things are relevant for building an application using the Simpact Cyan code:
     this subdirectory contains code for the mNRM, which is not specific for the Simpact
     Cyan case but could be reused for other simulations as well.
    - _mnrm_:<br>
-     this directory contains the basis of the mNRM algorithm: the State class and an 
-     EventBase class. The straightforward algorithm from SimpleState is also in this directory.
+     this directory contains the basis of the mNRM algorithm: the Algorithm, State and  
+     EventBase classes. The straightforward algorithm from SimpleAlgorithm is also in this directory.
    - _core_:<br>
-     contains the population-based implementation of the mNRM, providing the classes
-     Population, PersonBase and PopulationEvent.
+     contains the population-based implementation of the mNRM, using both a simple implementation
+	 (PopulationAlgorithmSimple) and an advanced implementation (PopulationAlgorithmAdvanced).
    - _util_:<br>
      some utilities to read from a CSV file, to create an abstraction of a population age
      distribution, ...
-   - _errut_:<br>
-     a small utility to store error messages in a class.
-  - _program_:<br>
+  - _program-common_ and _program_:<br>
      the code for the main simpact program, also containing a _CMakeLists.txt_ file which
      specifies the source (.cpp) and header (.h) files to use.
   - _tests_:<br>
@@ -568,33 +567,29 @@ add_simpact_executable(testmort ${SOURCES_TEST})
 The 'set' line just defines a variable named `SOURCES_TEST` to contain a number of filenames. The
 'include_directories' line makes sure that when building the program, the compiler will also look
 in this directory for header files. The last line, with 'add_simpact_executable' is where all the
-magic happens. This causes the build system to define four executables with different settings:
-both in 'debug' mode and in 'release' mode (different compiler settings), and both using the 
-very basic mNRM version (based on the
-SimpleState class) and the more optimized, population based version (based on the Population class).
-
-\anchor fourexes
+magic happens. This causes the build system to define two executables with different settings:
+'debug' mode and in 'release' mode (different compiler settings). Typically you can specify if
+you want to use the basic or population based algorithm using a command line parameter.
 
 When using a 'makefile' for building (in Linux for example), specifying the prefix 'testmort' 
-in `add_simpact_executable` will cause four executables to be created: 
+in `add_simpact_executable` will cause two executables to be created: 
 
- - _testmort-basic-debug_: uses the algorithm from SimpleState, compiled with debug information
- - _testmort-basic_: used the algorithm from SimpleState, but compiled with better compiler settings
- - _testmort-opt-debug_: uses the algorithm from Population, compiled with debug information
- - _testmort-opt_: uses the algorithm from Population, but compiled with better compiler settings
+ - _testmort-release_: everything is compiled in release mode, with optimized compiler settings
+ - _testmort-debug_: everything is compiled in debug mode, with lost of additional checks, suitable for
+   debugging a problem.
 
-Here, the 'testmort-opt' should have the best performance, but it is always good to check from time
-to time that (for the same seed of the random number generator) the four versions of the executables 
-generate exactly the same output.
-Different versions can use a different underlying algoritm and the debug versions perform lots of
-extra checks which do not occur in the other versions, but all should produce the same output for the
-same seed. Usually, you'll want a random seed to be chosen, but to check that all program versions are
+Here, the 'testmort-release' should have the best performance, but it is always good to check from time
+to time that (for the same seed of the random number generator) results match when using the debug version,
+and for both the simple algorithm and the population based algorithm. In this particular example, the
+last command line parameter of either executable can be 'simple' or 'opt'. In case 'simple' is specified,
+an algorithm is used that's based on SimpleAlgorithm; if 'opt' is specified, the more optimized population
+based algorithm described previously is used.
+Usually, you'll want a random seed to be chosen, but to check that different program versions are
 compatible, the random seed can be overridden by setting the environment variable MNRM\_DEBUG\_SEED to the
 value of the seed that you want to use.
 
 If CMake generates project files for Visual Studio, the executables will be placed in 'Debug' and 'Release'
-subdirectories and will just be named 'testmort-basic' en 'testmort-opt' in each directory. In this
-case, the 'testmort-opt' version from the 'Release' subdirectory should perform best.
+subdirectories.
 	      
 Specifying `${SOURCES_TEST}` in that last line just substitutes the contents of that variable. The
 file could also just look like this:
@@ -608,7 +603,7 @@ add_simpact_executable(testmort simpactpopulation.cpp
 
 So if you want to add another population-based simulation, you should create a directory for
 the source files below the `src` directory and add a line to the `CMakeLists.txt` file in
-that `src` directory. For example, if we were going to create a new program called 
+that new directory. For example, if we were going to create a new program called 
 'mynewprogram', we'd create a directory with this name and add a line to the `CMakeLists.txt`
 file to make it look as follows:
 
@@ -642,9 +637,9 @@ Let's continue with the 'mynewprogram' example. In the `CMakeLists.txt` file, we
 that a number of source files will need to be compiled, so we need to make sure that they exist.
 Apart from those files, we'll also be creating a number of header files.
 
-In the mNRM engine provided by the Population class, a very general PersonBase class is used,
-which doesn't provide much functionality. To be able to add our own functions without having
-to modify the engine from the Population class, a number of subclasses will be defined. They
+In the mNRM engine for population based simulations, a very general PersonBase class is used,
+which doesn't provide much functionality. To be able to add our own functions a number of subclasses 
+will be defined. They
 won't have much use for this simple example, but they are a good place to start for a more
 advanced implementation. In a header file called <strong>%person.h</strong>, the following code will be
 placed:
@@ -658,24 +653,23 @@ placed:
 
 class Person : public PersonBase
 {
-protected:
-	Person(double dateOfBirth, Gender g);
 public:
-	~Person();
+    Person(double dateOfBirth, Gender g);
+    ~Person();
 };
 
 class Man : public Person
 {
 public:
-	Man(double dateOfBirth);
-	~Man();
+    Man(double dateOfBirth);
+    ~Man();
 };
 
 class Woman : public Person
 {
 public:
-	Woman(double dateOfBirth);
-	~Woman();
+    Woman(double dateOfBirth);
+    ~Woman();
 };
 
 #endif // PERSON_H
@@ -685,7 +679,7 @@ In this file, we're defining our own class called Person which can contain opera
 needed for either gender. The constructor is 'protected' so that no Person instances
 will be created directly; instead, a derived class (Man or Woman) must be used. As you
 can see, neither of these classes contain meaningful functionality, but they can be
-a good place to start. The implementation of these classes is in **person.cpp** and
+a good starting point. The implementation of these classes is in **person.cpp** and
 looks as follows:
 
 @code
@@ -717,7 +711,7 @@ Woman::~Woman()
 @endcode
 
 The only thing that these implementations do, is make sure that the constructor
-of the base class is called correctly. The `dateOfBirth` parameters is always passed
+of the base class is called correctly. The `dateOfBirth` parameter is always passed
 on unmodified, while the classes Man and Woman pass the correct gender specification
 on to the base class.
 
@@ -742,11 +736,12 @@ code resides (i.e. there is no corresponding cpp file).
 class SimpactEvent : public PopulationEvent
 {
 public:
-	SimpactEvent(Person *pPerson) : PopulationEvent(pPerson) { }
-	SimpactEvent(Person *pPerson1, Person *pPerson2) : PopulationEvent(pPerson1, pPerson2) { }
-	~SimpactEvent()	{ }
+    SimpactEvent() : PopulationEvent() { }
+    SimpactEvent(Person *pPerson) : PopulationEvent(pPerson) { }
+    SimpactEvent(Person *pPerson1, Person *pPerson2) : PopulationEvent(pPerson1, pPerson2) { }
+    ~SimpactEvent() { }
 
-	Person *getPerson(int idx) const { return static_cast<Person*>(PopulationEvent::getPerson(idx)); }
+    Person *getPerson(int idx) const { return reinterpret_cast<Person*>(PopulationEvent::getPerson(idx)); }
 };
 
 #endif // SIMPACTEVENT_H
@@ -775,15 +770,15 @@ for the \c fire function (which won't contain any actual code though):
 class EventTest : public SimpactEvent
 {
 public:
-	EventTest(Person *pPerson);
-	~EventTest();
+    EventTest(Person *pPerson);
+    ~EventTest();
 
-	std::string getDescription(double tNow) const;
-	void fire(State *pState, double t);
-
-	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
-	double calculateInternalTimeInterval(const State *pState, double t0, double dt);
-	double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);
+    std::string getDescription(double tNow) const;
+    void fire(Algorithm *pAlgorithm, State *pState, double t);
+protected:
+    double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
+    double calculateInternalTimeInterval(const State *pState, double t0, double dt);
+    double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);
 };
 
 #endif // EVENTTEST_H
@@ -807,14 +802,13 @@ EventTest::~EventTest()
 
 std::string EventTest::getDescription(double tNow) const
 {
-	Person *pPerson = getPerson(0);
-
-	return std::string("Test event for ") + pPerson->getName();
+    Person *pPerson = getPerson(0);
+    return std::string("Test event for ") + pPerson->getName();
 }
 
-void EventTest::fire(State *pState, double t)
+void EventTest::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
-	// Let's not do anything in particular
+    // Let's not do anything in particular
 }
 
 // The following function needs to be modified if a distribution different
@@ -823,10 +817,10 @@ void EventTest::fire(State *pState, double t)
 // the exact same thing.
 double EventTest::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-	double r = pRndGen->pickRandomDouble(); // Pick a random uniform number from (0,1)
-	double dT = -std::log(r);               // This transforms it to a random number from 
-	                                        // an exponential distribution
-	return dT;
+    double r = pRndGen->pickRandomDouble(); // Pick a random uniform number from (0,1)
+    double dT = -std::log(r);               // This transforms it to a random number from 
+    										// an exponential distribution
+    return dT;
 }
 
 // The following functions must be implemented if a hazard different from h(s) = 1 
@@ -836,151 +830,218 @@ double EventTest::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen
 // them, since those implementations are exactly the same as the functions below.
 double EventTest::calculateInternalTimeInterval(const State *pState, double t0, double dt)
 {
-	// Here we must map the real world time interval dt onto an internal time 
-	// interval. We'll just set interval times equal to real world times,
-	// corresponding to a hazard h(s) = 1.
-	return dt;
+    // Here we must map the real world time interval dt onto an internal time 
+    // interval. We'll just set interval times equal to real world times,
+    // corresponding to a hazard h(s) = 1.
+    return dt;
 }
 
 double EventTest::solveForRealTimeInterval(const State *pState, double Tdiff, double t0)
 {
-	// This should do the inverse mapping, from internal time difference Tdiff onto
-	// a real world time interval. Again, here the hazard is h(s) = 1
-	return Tdiff;
+    // This should do the inverse mapping, from internal time difference Tdiff onto
+    // a real world time interval. Again, here the hazard is h(s) = 1
+    return Tdiff;
 }
-
 @endcode
 
-The Population class contains the implementation of the mNRM algorithm that we're
-going to use, but it does not contain any code to initialize the population, to 
-schedule initial events or to log what's happening. For these reasons we're defining
-our own %SimpactPopulation class, derived from Population, specified in <strong>%simpactpopulation.h</strong>:
+For population based simulations, we can choose between PopulationAlgorithmSimple and
+PopulationAlgorithmAdvanced as the mNRM algorithm. The former actually uses the
+SimpleAlgorithm implementation described earlier, in which every event time is recalculated
+each time another event has fired. The PopulationAlgorithmAdvanced algorithm on the
+other hand, uses the more optimized approach in which every person will have a list
+of relevant events.
+The algorithm from PopulationAlgorithmSimple needs a population state that's defined
+in PopulationStateSimple, while PopulationAlgorithmAdvanced needs a population state
+that's somewhat more complex, and is defined in PopulationStateAdvanced.
+
+To make it easier to experiment with different algorithms and different state
+implementations, both algorithm implementations implement the interface defined
+in PopulationAlgorithmInterface. The states on the other hand, both provide the
+functions defined in PopulationStateInterface. If your program only uses these
+two interfaces, it can automatically handle both versions of the algorithm, and
+if a more efficient algorithm becomes available in the future, you'll only need
+to instantiate the new algorithm and state classes to make your program work with
+the more efficient code.
+
+To be able to perform some custom action right before an event fires, you can
+implement the PopulationAlgorithmAboutToFireInterface and inform the algorithm
+about this using PopulationAlgorithmInterface::setAboutToFireAction. You'll typically
+need some more information in your simulation state than is provided through the
+PopulationStateInterface functions. For this reason, you can associate extra
+data in the form of a PopulationStateExtra derived class to the simulation state,
+using the PopulationStateInterface::setExtraStateInfo method.
+
+In the SimpactPopulation class, we'll do precisely these things: we derive from
+PopulationAlgorithmAboutToFireInterface to be able to write something to screen
+when an event fires, and we derive from PopulationStateExtra to be able to define
+additional population properties in this class if desired. The constructor
+needs one of the specified algorithms and the corresponding state, and an object
+of this SimpactPopulation class will remember these. For convenience, the class defines several
+member functions which simply call a function (with the same name) of the state
+or algorithm class. The \c SIMPACTPOPULATION function shows how you can retrieve
+this SimpactPopulation instance from a State instance (actually an object
+that implements PopulationStateInterface), which you get for example
+in the EventBase::fire or EventBase::getNewInternalTimeDifference functions.
+These \c SIMPACTPOPULATION functions will not be used in this example however. 
+
+The definition of the class is specified in <strong>%simpactpopulation.h</strong>:
 
 @code
 #ifndef SIMPACTPOPULATION_H
 
 #define SIMPACTPOPULATION_H
 
-#include "population.h"
+#include "populationinterfaces.h"
+#include "person.h"
+#include <assert.h>
 
-class Person;
-class Man;
-class Woman;
-
-class SimpactPopulation : public Population
+class SimpactPopulation : public PopulationStateExtra, public PopulationAlgorithmAboutToFireInterface
 {
 public:
-	SimpactPopulation(bool parallel, GslRandomNumberGenerator *pRng);
-	~SimpactPopulation();
+    SimpactPopulation(PopulationAlgorithmInterface &alg, PopulationStateInterface &state);
+    ~SimpactPopulation();
 
-	bool init(int numMen, int numWomen);
+    bool_t init(int numMen, int numWomen);
 
-	Person **getAllPeople()	{ return reinterpret_cast<Person**>(Population::getAllPeople()); }
-	Man **getMen()		{ return reinterpret_cast<Man**>(Population::getMen()); }
-	Woman **getWomen()	{ return reinterpret_cast<Woman**>(Population::getWomen()); }
+    Person **getAllPeople()                            { return reinterpret_cast<Person**>(m_state.getAllPeople()); }
+    Man **getMen()                                     { return reinterpret_cast<Man**>(m_state.getMen()); }
+    Woman **getWomen()                                 { return reinterpret_cast<Woman**>(m_state.getWomen()); }
+    Person **getDeceasedPeople()                       { return reinterpret_cast<Person**>(m_state.getDeceasedPeople()); }
+
+    int getNumberOfPeople() const                      { return m_state.getNumberOfPeople(); }
+    int getNumberOfMen() const                         { return m_state.getNumberOfMen(); }
+    int getNumberOfWomen() const                       { return m_state.getNumberOfWomen(); }
+    int getNumberOfDeceasedPeople() const              { return m_state.getNumberOfDeceasedPeople(); }
+
+    void addNewPerson(Person *pPerson)                 { m_state.addNewPerson(pPerson); }
+    void setPersonDied(Person *pPerson)                { m_state.setPersonDied(pPerson); }
+    void markAffectedPerson(Person *pPerson) const     { m_state.markAffectedPerson(pPerson); }
+
+    double getTime() const                             { return m_state.getTime(); }
 protected:
-	void scheduleInitialEvents();
+    void scheduleInitialEvents();
 private:
-	void onAboutToFire(EventBase *pEvt);
+    void onAboutToFire(PopulationEvent *pEvt);
+    void onNewEvent(PopulationEvent *pEvt)             { m_alg.onNewEvent(pEvt); }
 
-	bool m_init;
+    bool m_init;
+    PopulationStateInterface &m_state;
+    PopulationAlgorithmInterface &m_alg;
 };
+
+inline SimpactPopulation &SIMPACTPOPULATION(State *pState)
+{
+    assert(pState != 0);
+    PopulationStateInterface &state = static_cast<PopulationStateInterface &>(*pState);
+    assert(state.getExtraStateInfo() != 0);
+    return static_cast<SimpactPopulation &>(*state.getExtraStateInfo());
+}
+
+inline const SimpactPopulation &SIMPACTPOPULATION(const State *pState)
+{
+    assert(pState != 0);
+    const PopulationStateInterface &state = static_cast<const PopulationStateInterface &>(*pState);
+    assert(state.getExtraStateInfo() != 0);
+    return static_cast<const SimpactPopulation &>(*state.getExtraStateInfo());
+}
 
 #endif // SIMPACTPOPULATION_H
 @endcode
 
-This header file defines an \c init function which will create an initial number of men and women,
-and which will schedule an initial set of events. It also reimplements State::onAboutToFire, which
-is called right before an event gets executed using its \c fire function. In that function we'll 
-just log which event is taking place. We're also overriding the \c getAllPeople, \c getMen  and 
-\c getWomen functions, which just call the corresponding function from Population and tell the
-compiler it's safe to interpret them as an array of general \c Person instances, an array of \c Man 
-instances or an array of \c Woman instances. The implementation of this class will be stored in
+This header file also defines an \c init function which will create an initial number of men and women,
+and which will schedule an initial set of events. The implementation of this class will be stored in
 **simpactpopulation.cpp** and looks as follows:
 
 @code
 #include "simpactpopulation.h"
 #include "eventtest.h"
 #include "person.h"
+#include <iostream>
 
-SimpactPopulation::SimpactPopulation(bool parallel, GslRandomNumberGenerator *pRndGen) : Population(parallel, pRndGen)
+using namespace std;
+
+SimpactPopulation::SimpactPopulation(PopulationAlgorithmInterface &alg, PopulationStateInterface &state) 
+    : PopulationStateExtra(), m_state(state), m_alg(alg)
 {
-	m_init = false;
+    m_init = false;
+    state.setExtraStateInfo(this);
+    alg.setAboutToFireAction(this);
 }
 
 SimpactPopulation::~SimpactPopulation()
 {
 }
 
-bool SimpactPopulation::init(int numMen, int numWomen)
+bool_t SimpactPopulation::init(int numMen, int numWomen)
 {
-	if (m_init)
-	{
-		setErrorString("Population is already initialized");
-		return false;
-	}
+    if (m_init)
+        return "Population is already initialized";
 
-	if (numMen < 0 || numWomen < 0)
-	{
-		setErrorString("The number of men and women must be at least zero");
-		return false;
-	}
+    if (numMen < 0 || numWomen < 0)
+        return "The number of men and women must be at least zero";
 
-	// Time zero is at the start of the simulation, so the birth dates are negative
+    // Time zero is at the start of the simulation, so the birth dates are negative
 
-	for (int i = 0 ; i < numMen ; i++)
-	{
-		Person *pPerson = new Man(-10.0); // Ten years old at t = 0
-		addNewPerson(pPerson);
-	}
-	
-	for (int i = 0 ; i < numWomen ; i++)
-	{
-		Person *pPerson = new Woman(-10.0); // Ten years old ad t = 0
-		addNewPerson(pPerson);
-	}
+    for (int i = 0 ; i < numMen ; i++)
+    {
+        Person *pPerson = new Man(-10.0);
+        addNewPerson(pPerson);
+    }
+    
+    for (int i = 0 ; i < numWomen ; i++)
+    {
+        Person *pPerson = new Woman(-10.0);
+        addNewPerson(pPerson);
+    }
 
-	// Schedule initial events
-	scheduleInitialEvents();
+    // Schedule initial events
+    scheduleInitialEvents();
 
-	m_init = true;
-	return true;
+    m_init = true;
+    return true;
 }
 
 void SimpactPopulation::scheduleInitialEvents()
 {
-	int numPeople = getNumberOfPeople();
-	Person **ppPeople = getAllPeople();
+    int numPeople = getNumberOfPeople();
+    Person **ppPeople = getAllPeople();
 
-	// Initialize the event list with the mortality events
-	for (int i = 0 ; i < numPeople ; i++)
-	{
-		EventTest *pEvt = new EventTest(ppPeople[i]);
-		onNewEvent(pEvt);
-	}
+    // Initialize the event list with the test events
+    for (int i = 0 ; i < numPeople ; i++)
+    {
+        EventTest *pEvt = new EventTest(ppPeople[i]);
+        onNewEvent(pEvt);
+    }
 }
 
-void SimpactPopulation::onAboutToFire(EventBase *pEvt)
+void SimpactPopulation::onAboutToFire(PopulationEvent *pEvent)
 {
-	PopulationEvent *pEvent = static_cast<PopulationEvent *>(pEvt);
-
-	double t = getTime();
-	std::cout << t << "\t" << pEvent->getDescription(t) << std::endl;
+    double t = getTime();
+    cout << t << "\t" << pEvent->getDescription(t) << endl;
 }
-
-
 @endcode
 
-In the \c init function, we check if some criteria are met, returning \c false to
-indicate that something went wrong and storing an error description to let the caller
-of the function know what precisely is the matter. This \c setErrorString function
-is actually defined in errut::ErrorBase, which is a parent class of State. Then, a number of
-`Man` and `Woman` instances are created with age 10 at the start of the simulation (so their birth
-date is -10), and are introduced into the population using Population::addNewPerson.
+Note that in the constructor, we call PopulationAlgorithmInterface::setAboutToFireAction
+and PopulationStateInterface::setExtraStateInfo. The first call will make sure that
+our own \c onAboutToFire function is called, while the second makes sure that when
+an object implementing PopulationStateInterface is used somewhere, we can get this
+particular \c SimpactPopulation instance using the PopulationStateInterface::getExtraStateInfo
+function.
+
+In the \c init function, the return type is bool_t. This can be used to return \c true
+or \c false, and in case \c false is returned, an error description can be set as well.
+To make it even easier, if you just return a string, the program will automatically 
+know that \c false needs to be returned and that the error string should be set to what
+you specified. 
+
+The \c init function checks if some criteria are met, creates a number of
+`Man` and `Woman` instances with age 10 at the start of the simulation (so their birth
+date is -10), and introduces them into the population using \c addNewPerson (which
+in turn calls PopulationStateInterface::addNewPerson).
 In the \c scheduleInitialEvents member function, we'll just schedule a single test event
 for everyone in the population where each event is introduced into the mNRM algorithm by
-calling Population::onNewEvent. In the \c onAboutToFire function (re-implemented
-from State::onAboutToFire) we'll just print out the description of the event that's being
+calling \c onNewEvent (which then calls PopulationAlgorithmInterface::onNewEvent). 
+In the \c onAboutToFire function we'll just print out the description of the event that's being
 fired.
 
 To finish this small test program, we still need to implement a \c main function, the
@@ -988,96 +1049,148 @@ starting point of our application. In this example, the file containing this fun
 is called **main.cpp** and contains the following code:
 
 @code
-
 #include "gslrandomnumbergenerator.h"
+#include "populationalgorithmadvanced.h"
+#include "populationalgorithmsimple.h"
+#include "populationstatesimple.h"
+#include "populationstateadvanced.h"
 #include "simpactpopulation.h"
 #include <iostream>
 
 using namespace std;
 
+bool_t selectAlgorithmAndState(const string &algo, GslRandomNumberGenerator &rng, bool parallel,
+                               PopulationAlgorithmInterface **ppAlgo, PopulationStateInterface **ppState);
+
 int main(void)
 {
-	double tMax = 1e200; // we're just going to run this until we're out of events
-	bool parallel = true;
-	GslRandomNumberGenerator rng;
-	SimpactPopulation pop(parallel, &rng);
-	
-	if (!pop.init(1000, 1000))
-	{
-		cerr << pop.getErrorString() << endl;
-		return -1;
-	}
+    double tMax = 1e200; // we're just going to run this until everyone is dead
+    bool parallel = false;
+    string algo = "opt"; // change this to 'simple' for the slow algorithm
+    GslRandomNumberGenerator rng;
 
-	int64_t maxEvents = -1; // don't specify a maximum
+    PopulationAlgorithmInterface *pAlgo = 0;
+    PopulationStateInterface *pState = 0;
+    
+    bool_t r = selectAlgorithmAndState(algo, rng, parallel, &pAlgo, &pState);
+    if (!r)
+    {
+        cerr << "Couldn't create requested algorithm:" << r.getErrorString() << endl;
+        return -1;
+    }
 
-	if (!pop.run(tMax, maxEvents))
-	{
-		cerr << "# Error running simulation: " << pop.getErrorString() << endl;
-		cerr << "# Current simulation time is " << pop.getTime() << endl;
-		return -1;
-	}
+    SimpactPopulation pop(*pAlgo, *pState);
+    if (!(r = pop.init(1000, 1000))) // initialize with 1000 men and 1000 women
+    {
+        std::cerr << r.getErrorString() << std::endl;
+        return -1;
+    }
 
-	cerr << "# Number of events executed is " << maxEvents << endl;
+    int64_t maxEvents = -1; // don't specify a maximum
 
-	return 0;
+    if (!(r = pAlgo->run(tMax, maxEvents)))
+    {
+        cerr << "# Error running simulation: " << r.getErrorString() << std::endl;
+        cerr << "# Current simulation time is " << pAlgo->getTime() << std::endl;
+    }
+
+    std::cerr << "# Number of events executed is " << maxEvents << std::endl;
+
+    delete pState;
+    delete pAlgo;
+
+    return 0;
 }
 
+bool_t selectAlgorithmAndState(const string &algo, GslRandomNumberGenerator &rng, bool parallel,
+                               PopulationAlgorithmInterface **ppAlgo, PopulationStateInterface **ppState)
+{
+    if (algo == "opt")
+    {
+        PopulationStateAdvanced *pPopState = new PopulationStateAdvanced();
+        *ppState = pPopState;
+        *ppAlgo = new PopulationAlgorithmAdvanced(*pPopState, rng, parallel);
+    }
+    else if (algo == "simple")
+    {
+        PopulationStateSimple *pPopState = new PopulationStateSimple();
+        *ppState = pPopState;
+        *ppAlgo = new PopulationAlgorithmSimple(*pPopState, rng, parallel);
+    }
+    else
+        return "Invalid algorithm: " + algo;
+
+    bool_t r = (*ppAlgo)->init();
+    if (!r)
+    {
+        delete *ppState;
+        delete *ppAlgo;
+        return r;
+    }
+
+    return true;
+}
 @endcode
 
 In this \c main function, we specify the random number generator (of type GslRandomNumberGenerator) which
-is to be used in the entire simulation. This random number generator is passed on to the simulation
-algorithm using the %SimpactPopulation constructor, and must exist the entire time the simulation is being
-used. Next, the population's \c init function is called, specifying that 1000 men and women are to be
-introduced. The simulation is then run using the \c run member function, specifying a maximum simulation
-time that's so large that there's really no limit, and specifying a negative value for maxEvents to
-indicate that the number of events is not limited. When this function returns, the contents of \c tMax
+is to be used in the entire simulation. This random number generator must exist the entire time the
+simulation is being used. A helper function called \c selectAlgorithmAndState is used to allocate
+specific PopulationAlgorithmInterface and PopulationStateInterface instances. In the implementation
+of this function, you can see that if "opt" is specified, these will contain objects of types
+PopulationAlgorithmAdvanced and PopulationStateAdvanced, while if "simple" is specified, PopulationAlgorithmSimple
+and PopulationStateSimple will be used instead.
+
+Next, the population's \c init function is called, specifying that 1000 men and women are to be
+introduced. The simulation is then run using the PopulationAlgorithmInterface::run function, specifying 
+a maximum simulation time that's so large that there's really no limit, and specifying a negative value 
+for maxEvents to indicate that the number of events is not limited. When this function returns, the contents of \c tMax
 and of \c maxEvents will have been altered to contain the last simulation time and the number of events
 executed.
 
 ### Running the program ###
 
-After compiling everything (we're assuming a Linux build), you should find four executables:
+After compiling everything you should find two executables:
 
- - _mynewprogram-opt_
- - _mynewprogram-opt-debug_
- - _mynewprogram-basic_
- - _mynewprogram-basic-debug_ 
+ - _mynewprogram-release_
+ - _mynewprogram-debug_
  
-With a random seed, the output of _mynewprogram-opt_ could start with the following for example:
+With a random seed, the output of _mynewprogram-release_ could start with the following for example:
 
 ~~~~{.py}
 # read seed from /dev/urandom
-# Using seed 722336474
+# Using seed 660018445
 # mNRM: using advanced algorithm
 # Release version
-# Population: using parallel version with 8 threads
-6.03667e-05     Test event for man_671
-0.000477881     Test event for man_503
-0.000508688     Test event for man_565
-0.000934671     Test event for man_684
-0.00173943      Test event for man_748
-0.00191815      Test event for woman_1260
+0.000810901     Test event for woman_1903
+0.00238553      Test event for man_707
+0.00250673      Test event for woman_1909
+0.00275592      Test event for man_931
+0.00283972      Test event for man_564
+0.00318387      Test event for man_972
+0.00323689      Test event for man_476
+0.00372646      Test event for man_280
 ~~~~
 
 In which case it would end with these lines:
 
 ~~~~{.py}
-5.83733 Test event for man_95
-6.24888 Test event for man_449
-6.69908 Test event for woman_1708
-7.14433 Test event for man_178
-7.87667 Test event for woman_1523
+5.6062  Test event for woman_1266
+5.85834 Test event for man_236
+5.9053  Test event for man_535
+5.92222 Test event for woman_1165
+6.39194 Test event for woman_1231
+6.56429 Test event for woman_1240
+6.74629 Test event for woman_1036
 # Error running simulation: No next scheduled event found: No event found
-# Current simulation time is 7.87667
+# Current simulation time is 6.74629
+# Number of events executed is 2000
 ~~~~
 
 The lines starting with '#' at the beginning of the output are generated by the algorithm used
 and provide some information which could be useful later on, for example the seed used for the
-random number generator (could be useful to check if the same output is generated by one of the
-other three programs), if the 'advanced' or 'basic' version of the algorithm was used and
-if the 'Debug' or 'Release' version is used. As explained above, for a Linux build the '-opt' suffix
-means that the advanced algorithm is being used with better (release) compiler settings, and this
-is also reported in the output here.
+random number generator (could be useful to check if the same output is generated by the debug 
+version or using the other algorithm), if the 'advanced' or 'basic' version of the algorithm was used and
+if the 'debug' or 'release' version is used. 
 
 This simulation just runs until no more events are present in the system, which is reported as
 an error. If we were to make a histogram of the times events take place, we'd obtain the following
@@ -1091,11 +1204,12 @@ used for the internal event times: an exponential distribution.
 The Simpact Cyan program
 ------------------------
 
-The full Simpact Cyan program can be found in the _src/program_ subdirectory. This program contains
+The full Simpact Cyan program can be found in the _src/program_ and _src/program-common_ subdirectories. 
+This program contains
 several events that can take place, the Person class is more elaborate to keep track of relationships,
 number of children, HIV infection status etc, but the overall structure of the program is the same
-as the simple example explained above. Some documentation about _using_ the resulting program can be found
-\ref simpactcyan "here".
+as the simple example explained above. Documentation about _using_ the resulting program can be found
+here: <a href="http://research.edm.uhasselt.be/jori/simpact/">Simpact Cyan reference documentation</a>
 
 Since this program is still under development, finished documentation of all the classes and functions
 used is not available currently. Below you'll find some general information that may be helpful though.
@@ -1122,15 +1236,15 @@ pMother->setPregnant(false);
 @endcode
 
 When an event fires, your own re-implementation of EventBase::fire is called. Using an argument to this
-function, the state is passed as a State object. In our own implementation, we've derived a class called
-%SimpactPopulation from Population, which in turn derives from State. Similar to the \c MAN and \c WOMAN
-functions, there's a function called SIMPACTPOPULATION that you can use to reinterpret such a State _pointer_
-as a %SimpactPopulation _reference_. Make sure that if the source State object has a `const` specifier, the
+function, the algorithm and state are passed. In our own implementation, we've created a class called
+%SimpactPopulation in similar way as in the previous example, providing a function called \c SIMPACTPOPULATION 
+that you can use to obtain a %SimpactPopulation _reference_ from such a State _pointer_.
+Make sure that if the source State object has a `const` specifier, the
 destination reference also has one or the compiler will complain. For example, the \c fire code of the
 mortality event looks like this:
 
 @code
-void EventMortality::fire(State *pState, double t)
+void EventMortality::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 

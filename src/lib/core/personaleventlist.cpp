@@ -1,15 +1,26 @@
 #include "parallel.h"
 #include "personaleventlist.h"
 #include "personbase.h"
+#include "populationstateadvanced.h"
+#include "populationalgorithmadvanced.h"
 #include "debugwarning.h"
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
 
+inline PersonalEventList *PersonalEventList::personalEventList(PersonBase *pPerson)
+{
+	assert(pPerson);
+	PersonalEventList *pEvtList = static_cast<PersonalEventList *>(pPerson->getAlgorithmInfo());
+	assert(pEvtList);
+	return pEvtList;
+}
+
 PersonalEventList::PersonalEventList(PersonBase *pPerson)
 {
 	m_pPerson = pPerson;
 	m_pEarliestEvent = 0;
+	m_listIndex = -1;
 
 #ifdef PERSONALEVENTLIST_EXTRA_DEBUGGING
 	DEBUGWARNING("debug code to track earliest event is enabled")
@@ -32,7 +43,7 @@ void PersonalEventList::registerPersonalEvent(PopulationEvent *pEvt)
 	m_untimedEvents.push_back(pEvt);
 }
 
-void PersonalEventList::processUnsortedEvents(Population &pop, double t0)
+void PersonalEventList::processUnsortedEvents(PopulationAlgorithmAdvanced &alg, PopulationStateAdvanced &pop, double t0)
 {
 	checkEarliestEvent();
 	checkEvents();
@@ -51,7 +62,7 @@ void PersonalEventList::processUnsortedEvents(Population &pop, double t0)
 
 		assert(pEvt != 0);
 		
-		pop.lockEvent(pEvt);
+		alg.lockEvent(pEvt);
 
 		if (pEvt->isScheduledForRemoval()) // event was already examined and considered to be useless
 			m_untimedEvents[i] = 0; 
@@ -61,7 +72,7 @@ void PersonalEventList::processUnsortedEvents(Population &pop, double t0)
 			if (pEvt->isNoLongerUseful()) // for example if it refers to a dead person, of the maximum number of relationships has been reached
 			{
 	//			std::cout << "Detected useless event: " << pEvt << std::endl;
-				pop.scheduleForRemoval(pEvt);
+				alg.scheduleForRemoval(pEvt);
 				m_untimedEvents[i] = 0;
 			}
 			else
@@ -78,7 +89,7 @@ void PersonalEventList::processUnsortedEvents(Population &pop, double t0)
 			}
 		}
 
-		pop.unlockEvent(pEvt);
+		alg.unlockEvent(pEvt);
 	}
 
 	checkEarliestEvent();
@@ -154,7 +165,7 @@ void PersonalEventList::processUnsortedEvents(Population &pop, double t0)
 	checkEvents();
 }
 
-void PersonalEventList::advanceEventTimes(const Population &pop, double t1)
+void PersonalEventList::advanceEventTimes(PopulationAlgorithmAdvanced &alg, const PopulationStateAdvanced &pop, double t1)
 {
 	checkEarliestEvent();
 	checkEvents();
@@ -193,7 +204,7 @@ void PersonalEventList::advanceEventTimes(const Population &pop, double t1)
 	// calculate the times in the untimed event list
 	int num = m_untimedEvents.size();
 
-	if (!pop.isParallel())
+	if (!alg.isParallel())
 	{
 		for (int i = 0 ; i < num ; i++)
 		{
@@ -220,7 +231,7 @@ void PersonalEventList::advanceEventTimes(const Population &pop, double t1)
 					// we need to do this beforehand since we're going
 					// to adjust the event time, which is used as a sorting key
 					if (pOtherPerson != m_pPerson)
-						pOtherPerson->adjustingEvent(pEvt);
+						personalEventList(pOtherPerson)->adjustingEvent(pEvt);
 					else
 						foundOurselves = true;
 				}
@@ -246,7 +257,7 @@ void PersonalEventList::advanceEventTimes(const Population &pop, double t1)
 
 			assert(pEvt != 0);
 				
-			pop.lockEvent(pEvt);
+			alg.lockEvent(pEvt);
 
 			assert(pEvt->isInitialized());
 
@@ -270,7 +281,7 @@ void PersonalEventList::advanceEventTimes(const Population &pop, double t1)
 					if (pOtherPerson != m_pPerson)
 					{
 						pop.lockPerson(pOtherPerson); // can change the lists
-						pOtherPerson->adjustingEvent(pEvt);
+						personalEventList(pOtherPerson)->adjustingEvent(pEvt);
 						pop.unlockPerson(pOtherPerson);
 					}
 					else
@@ -286,7 +297,7 @@ void PersonalEventList::advanceEventTimes(const Population &pop, double t1)
 				pEvt->subtractInternalTimeInterval(&pop, t1);
 			}
 
-			pop.unlockEvent(pEvt);
+			alg.unlockEvent(pEvt);
 		}
 	}
 

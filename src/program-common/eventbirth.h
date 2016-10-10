@@ -11,13 +11,13 @@ public:
 	~EventBirth();
 
 	std::string getDescription(double tNow) const;
-	void writeLogs(const Population &pop, double tNow) const;
-	void fire(State *pState, double t);
+	void writeLogs(const SimpactPopulation &pop, double tNow) const;
+	void fire(Algorithm *pAlgorithm, State *pState, double t);
 
 	void setFather(Person *pFather);
 
 	// If the father is alive, we include him in the list of 'other affected people'
-	void markOtherAffectedPeople(const Population &population);
+	void markOtherAffectedPeople(const PopulationStateInterface &population);
 
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);

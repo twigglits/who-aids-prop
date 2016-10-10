@@ -2,20 +2,20 @@
 
 #define POLYGON2D_H
 
-#include "errut/errorbase.h"
+#include "booltype.h"
 #include <algorithm>
 #include <vector>
 
 /** This class can be used to represent a polygon. */
-class Polygon2D : public errut::ErrorBase
+class Polygon2D
 {
 public:
 	Polygon2D()										{ m_numCoords = 0; }
-	~Polygon2D()										{ }
+	virtual ~Polygon2D()									{ }
 
-	bool init(const std::vector<double> &xCoords, const std::vector<double> &yCoords);
-	bool init(const std::vector<std::pair<double, double> > &points);
-	bool init(const std::vector<Point2D> &points);
+	bool_t init(const std::vector<double> &xCoords, const std::vector<double> &yCoords);
+	bool_t init(const std::vector<std::pair<double, double> > &points);
+	bool_t init(const std::vector<Point2D> &points);
 	bool isInside(double x, double y) const;
 	int getNumberOfPoints() const								{ return m_numCoords; }
 private:
@@ -23,13 +23,10 @@ private:
 	int m_numCoords;
 };
 
-inline bool Polygon2D::init(const std::vector<double> &xCoords, const std::vector<double> &yCoords)
+inline bool_t Polygon2D::init(const std::vector<double> &xCoords, const std::vector<double> &yCoords)
 {
 	if (xCoords.size() != yCoords.size())
-	{
-		setErrorString("Number of X and Y coordinates is not the same");
-		return false;
-	}
+	    return "Number of X and Y coordinates is not the same";
 
 	std::vector<std::pair<double,double> > points(xCoords.size());
 
@@ -39,13 +36,10 @@ inline bool Polygon2D::init(const std::vector<double> &xCoords, const std::vecto
 	return init(points);
 }
 
-inline bool Polygon2D::init(const std::vector<std::pair<double, double> > &points)
+inline bool_t Polygon2D::init(const std::vector<std::pair<double, double> > &points)
 {
 	if (points.size() < 3)
-	{
-		setErrorString("Too few points to be a polygon");
-		return false;
-	}
+	    return "Too few points to be a polygon";
 
 	m_numCoords = points.size();
 	m_xyCoords.resize(m_numCoords+1);
@@ -58,13 +52,10 @@ inline bool Polygon2D::init(const std::vector<std::pair<double, double> > &point
 	return true;
 }
 
-inline bool Polygon2D::init(const std::vector<Point2D> &points)
+inline bool_t Polygon2D::init(const std::vector<Point2D> &points)
 {
 	if (points.size() < 3)
-	{
-		setErrorString("Too few points to be a polygon");
-		return false;
-	}
+	    return "Too few points to be a polygon";
 
 	m_numCoords = points.size();
 	m_xyCoords.resize(m_numCoords+1);

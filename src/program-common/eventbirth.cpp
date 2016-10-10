@@ -26,7 +26,7 @@ string EventBirth::getDescription(double tNow) const
 	return "birth";
 }
 
-void EventBirth::writeLogs(const Population &pop, double tNow) const
+void EventBirth::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	Person *pMother = getPerson(0);
 
@@ -42,7 +42,7 @@ double EventBirth::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGe
 	return dt;
 }
 
-void EventBirth::fire(State *pState, double t)
+void EventBirth::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 
@@ -110,7 +110,7 @@ void EventBirth::setFather(Person *pFather)
 	m_pFather = MAN(pFather);
 }
 
-void EventBirth::markOtherAffectedPeople(const Population &population)
+void EventBirth::markOtherAffectedPeople(const PopulationStateInterface &population)
 {
 	assert(m_pFather);
 
@@ -131,15 +131,18 @@ void EventBirth::processConfig(ConfigSettings &config, GslRandomNumberGenerator 
 
 	m_pPregDurationDist = getDistributionFromConfig(config, pRndGen, "birth.pregnancyduration");
 
-	if (!config.getKeyValue("birth.boygirlratio", m_boyGirlRatio, 0, 1))
-		abortWithMessage(config.getErrorString());
+	bool_t r;
+	if (!(r = config.getKeyValue("birth.boygirlratio", m_boyGirlRatio, 0, 1)))
+		abortWithMessage(r.getErrorString());
 }
 
 void EventBirth::obtainConfig(ConfigWriter &config)
 {
+	bool_t r;
+
 	addDistributionToConfig(m_pPregDurationDist, config, "birth.pregnancyduration");
-	if (!config.addKey("birth.boygirlratio", m_boyGirlRatio))
-		abortWithMessage(config.getErrorString());
+	if (!(r = config.addKey("birth.boygirlratio", m_boyGirlRatio)))
+		abortWithMessage(r.getErrorString());
 }
 
 ConfigFunctions birthConfigFunctions(EventBirth::processConfig, EventBirth::obtainConfig, "EventBirth");
