@@ -1,5 +1,6 @@
 #include "discretedistribution.h"
 #include "gslrandomnumbergenerator.h"
+#include "util.h"
 #include <iostream>
 #include <cmath>
 #include <stdlib.h>
@@ -14,10 +15,8 @@ DiscreteDistribution::DiscreteDistribution(std::vector<double> &binStarts,
 	double lastValue = histValues[m_histSums.size()-1];
 
 	if (std::abs(lastValue) > 1e-7) // last one should be about zero for everything to make sense
-	{
-		std::cerr << "DiscreteDistribution: ERROR: last value should be nearly zero, but is " << lastValue << std::endl;
-		abort();
-	}
+		abortWithMessage("DiscreteDistribution: last value should be nearly zero, but is " + doubleToString(lastValue));
+
 	double sum = 0;
 	for (int i = 0 ; i < histValues.size() ; i++)
 	{
@@ -33,10 +32,7 @@ DiscreteDistribution::DiscreteDistribution(std::vector<double> &binStarts,
 	{
 		// Check that the bin start values are ascending
 		if (!(m_binStarts[i+1] > m_binStarts[i]))
-		{
-			std::cerr << "DiscreteDistribution: ERROR: bin start values must be increasing!" << std::endl;
-			abort();
-		}
+			abortWithMessage("DiscreteDistribution: bin start values must be increasing!");
 	}
 
 //	std::cerr << "extra bin start: " << m_binStarts[lastPos+1] << std::endl;

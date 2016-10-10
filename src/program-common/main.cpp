@@ -113,10 +113,9 @@ int real_main(int argc, char **argv)
 	cerr << "# Simpact version is: " << SIMPACT_CYAN_VERSION << endl;
 
 	if (!(r = pPop->run(tMax, maxEvents)))
-	{
 		cerr << "# Error running simulation: " << r.getErrorString() << endl;
-		cerr << "# Current simulation time is " << pPop->getTime() << endl;
-	}
+	
+	cerr << "# Current simulation time is " << pPop->getTime() << endl;
 
 	int numEndPeople = pPop->getNumberOfPeople();
 

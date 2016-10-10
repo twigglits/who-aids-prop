@@ -460,10 +460,10 @@ class PySimpactCyan(object):
                 if os.path.exists(outputFile):
                     raise Exception("Want to write to output file '%s', but this already exists" % outputFile)
 
-                f = open(outputFile, "wt")
+                f = open(outputFile, "w+t")
                 closeOutput = True
             else:
-                f = sys.stdout
+                f = tempfile.TemporaryFile(mode='w+t')
 
             newEnv = copy.deepcopy(os.environ)
             if seed >= 0:
@@ -487,23 +487,36 @@ class PySimpactCyan(object):
             print("Done.")
             print()
 
+            # Show contents of output file or temporary file on screen
+            f.flush()
+            f.seek(0)
+            lines = f.readlines()
+            for l in lines:
+                sys.stdout.write(l)
+            sys.stdout.flush()
+
             if proc.returncode != 0:
-                raise Exception("Program exited with an error code (%d)" % proc.returncode)
-            
+                raise Exception(self._getProgramExitError(lines, proc.returncode))
+
         finally:
-            if closeOutput:
-                f.close()
-
-            if closeOutput: # If not in a file, it was already on screen
-                # Also show the output on screen
-                with open(outputFile, "rt") as f:
-                    line = f.readline()
-                    while line:
-                        sys.stdout.write(line)
-                        line = f.readline()
-                    f.close()
-
             os.chdir(origDir)
+
+    def _getProgramExitError(self, lines, code):
+        lines = [ l.strip() for l in lines if l.strip() ]
+
+        # Look for 'FATAL ERROR'
+        for i in range(len(lines)):
+            l = lines[i]
+            if l == "FATAL ERROR:" and i+1 < len(lines):
+                return lines[i+1]
+
+        # Look for last line before 'UNEXPECTED TERMINATION OF PROGRAM!'
+        for i in range(len(lines)):
+            l = lines[i]
+            if l == "UNEXPECTED TERMINATION OF PROGRAM!" and i > 0:
+                return lines[i-1]
+
+        return "Program exited with an error code ({})".format(code)
 
     def _createConfigLines(self, inputConfig, checkNone = True, ignoreKeys = []):
         executable = [ self._getExecPath(), "--showconfigoptions" ]
@@ -805,6 +818,22 @@ class PySimpactCyan(object):
             results["agedistfile"] = os.path.join(destDir, distFile)
         else:
             results["agedistfile"] = _replaceVariables(finalConfig["population.agedistfile"], replaceVars)
+
+        # Get simulation time and number of events from output file
+        try:
+            with open(results["outputfile"], "rt") as f:
+                lines = f.readlines()
+
+            simTimePrefix = "# Current simulation time is "
+            numEvtsPrefix = "# Number of events executed is "
+
+            for l in lines:
+                if l.startswith(simTimePrefix):
+                    results["simulationtime"] = float(l[len(simTimePrefix):])
+                if l.startswith(numEvtsPrefix):
+                    results["eventsexecuted"] = int(l[len(numEvtsPrefix):])
+        except Exception as e:
+            print("WARNING: can't get simulation time or number of events from output file {}: {}".format(results["outputfile"], e))
 
         return results
 

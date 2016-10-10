@@ -34,7 +34,12 @@ macro(simpact_setup)
 	#include_directories(${MEANWALKER_INCLUDE_DIR})
 
 	find_package(ZLIB)
-	include_directories(${ZLIB_INCLUDE_DIRS})
+	if (NOT ZLIB_FOUND)
+		set(ZLIB_INCLUDE_DIRS "")
+		set(ZLIB_LIBRARIES "")
+	else()
+		include_directories(${ZLIB_INCLUDE_DIRS})
+	endif()
 
 	set(GSL_MANUAL_SETTINGS FALSE CACHE BOOL "Set to TRUE if you want to specify the GSL libraries and include paths in the ADDITIONAL_XXX settings")
 	if (NOT GSL_MANUAL_SETTINGS)
