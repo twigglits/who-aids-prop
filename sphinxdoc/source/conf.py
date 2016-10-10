@@ -46,7 +46,7 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = 'test'
+master_doc = 'index'
 
 # General information about the project.
 project = 'Simpact Cyan'
@@ -130,7 +130,7 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #html_theme = 'alabaster'
-html_theme = "classic"
+html_theme = "classic-mod"
 html_theme_path = [ "." ]
 
 #html_theme_options = {
@@ -312,8 +312,19 @@ texinfo_documents = [
 
 import subprocess
 import os
-import shutil
 import glob
+import shutil
+
+# Create pdf files from tex files in _static
+curdir = os.getcwd()
+try:
+    os.chdir("_static")
+    for i in glob.glob("*.tex"):
+        # Run it a couple of times to get the references right
+        subprocess.call([ "pdflatex", i ])
+        subprocess.call([ "pdflatex", i ])
+finally:
+    os.chdir(curdir)
 
 curpath = os.getcwd()
 try:
@@ -324,18 +335,6 @@ try:
     
     dstdir = os.path.abspath(dstdir)
 
-    os.chdir("../../markdowndoc")
-    for i in glob.glob("*.tex"):
-        # Run it a couple of times to get the references right
-        subprocess.call([ "pdflatex", i ])
-        subprocess.call([ "pdflatex", i ])
-
-    subprocess.call("./markdown2.py simpact_cyan.md > index.html", shell=True)
-    subprocess.call("./markdown2.py maxart.md > maxart.html", shell=True)
-
-    subprocess.call("cp * {}".format(dstdir), shell=True)
-
-    os.chdir(curpath)
     os.chdir("../../")
     subprocess.call("doxygen", shell=True)
     docudir = os.path.join(dstdir, "documentation")
@@ -346,12 +345,3 @@ try:
 finally:
     os.chdir(curpath)
 
-with open("test.rst", "wb") as f:
-    f.write("Test output\n")
-    f.write("===========\n\n")
-    f.write(".. code-block:: none\n\n")
-    output = subprocess.check_output("which doxygen ; pwd ; set ; ls ; ls _build ; ls _build/html ; ls ../ ; ", shell = True)
-    for l in output.splitlines():
-        f.write("    ")
-        f.write(l)
-        f.write("\n")
