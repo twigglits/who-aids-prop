@@ -55,6 +55,8 @@ void EventHIVSeed::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 	// Build pool of people which can be seeded
 	assert(m_seedMinAge >= 0 && m_seedMaxAge >= m_seedMinAge);
+	assert(m_seedGender == Any || m_seedGender == Male || m_seedGender == Female);
+
 	vector<Person *> possibleSeeders;
 
 	for (int i = 0 ; i < numPeople ; i++)
@@ -63,7 +65,12 @@ void EventHIVSeed::fire(Algorithm *pAlgorithm, State *pState, double t)
 		double age = pPerson->getAgeAt(t);
 		
 		if (age >= m_seedMinAge && age <= m_seedMaxAge)
-			possibleSeeders.push_back(pPerson);
+		{
+			if ( m_seedGender == Any || 
+			     (m_seedGender == Male && pPerson->isMan()) || 
+				 (m_seedGender == Female && pPerson->isWoman()) )
+				possibleSeeders.push_back(pPerson);
+		}
 	}
 
 	// Get the actual number of people that should be seeded
@@ -116,6 +123,7 @@ double EventHIVSeed::m_seedTime = -1;
 double EventHIVSeed::m_seedFraction = -1;
 double EventHIVSeed::m_seedMinAge = -1;
 double EventHIVSeed::m_seedMaxAge = -1;
+EventHIVSeed::SeedGender EventHIVSeed::m_seedGender = EventHIVSeed::None;
 int EventHIVSeed::m_seedAmount = -1;
 bool EventHIVSeed::m_stopOnShort = false;
 bool EventHIVSeed::m_useFraction = true;
@@ -123,17 +131,16 @@ bool EventHIVSeed::m_seeded = false;
 
 void EventHIVSeed::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
-	vector<string> fractionOrAmountStrings;
-	string fractionOrAmount;
+	vector<string> fractionOrAmountStrings = { "fraction", "amount" };
+	vector<string> seedGenderStrings = { "any", "male", "female" };
+	string fractionOrAmount, seedGender;
 	bool_t r;
-
-	fractionOrAmountStrings.push_back("fraction");
-	fractionOrAmountStrings.push_back("amount");
 
 	if (!(r = config.getKeyValue("hivseed.time", m_seedTime)) ||
 	    !(r = config.getKeyValue("hivseed.type", fractionOrAmount, fractionOrAmountStrings)) ||
 	    !(r = config.getKeyValue("hivseed.age.min", m_seedMinAge, 0)) ||
-	    !(r = config.getKeyValue("hivseed.age.max", m_seedMaxAge, m_seedMinAge))
+	    !(r = config.getKeyValue("hivseed.age.max", m_seedMaxAge, m_seedMinAge)) ||
+		!(r = config.getKeyValue("hivseed.gender", seedGender, seedGenderStrings))
 	    )
 		abortWithMessage(r.getErrorString());
 
@@ -155,11 +162,20 @@ void EventHIVSeed::processConfig(ConfigSettings &config, GslRandomNumberGenerato
 	}
 	else
 		abortWithMessage("Internal error: unexpected 'hivseed.type'");
+
+	if (seedGender == "any")
+		m_seedGender = Any;
+	else if (seedGender == "male")
+		m_seedGender = Male;
+	else if (seedGender == "female")
+		m_seedGender = Female;
+	else
+		abortWithMessage("Internal error: unexpected 'hivseed.gender'");
 }
 
 void EventHIVSeed::obtainConfig(ConfigWriter &config)
 {
-	string seedType;
+	string seedType, seedGender;
 	bool_t r;
 
 	if (m_useFraction)
@@ -167,10 +183,20 @@ void EventHIVSeed::obtainConfig(ConfigWriter &config)
 	else
 		seedType = "amount";
 
+	if (m_seedGender == Any)
+		seedGender = "any";
+	else if (m_seedGender == Male)
+		seedGender = "male";
+	else if (m_seedGender == Female)
+		seedGender = "female";
+	else
+		seedGender = "unknown";
+
 	if (!(r = config.addKey("hivseed.time", m_seedTime)) ||
 	    !(r = config.addKey("hivseed.type", seedType)) ||
 	    !(r = config.addKey("hivseed.age.min", m_seedMinAge)) ||
-	    !(r = config.addKey("hivseed.age.max", m_seedMaxAge))
+	    !(r = config.addKey("hivseed.age.max", m_seedMaxAge)) ||
+		!(r = config.addKey("hivseed.gender", seedGender))
 	    )
 		abortWithMessage(r.getErrorString());
 
@@ -196,12 +222,13 @@ JSONConfig hivseedingJSONConfig(R"JSON(
                 ["hivseed.time", 0],
                 ["hivseed.type", "fraction", [ "fraction", "amount"] ],
                 ["hivseed.age.min", 0],
-                ["hivseed.age.max", 1000]
+                ["hivseed.age.max", 1000],
+				["hivseed.gender", "any", [ "any", "male", "female"] ]
             ],
             "info": [ 
                 "Controls when the initial HIV seeders are introduced, and who those seeders",
                 "are. First, the possible seeders are chosen from the population, based on the",
-                "specified mininum and maximum ages.",
+                "specified mininum and maximum ages, and on the specified gender.",
                 "",
                 "The specified time says when the seeding event should take place. Note that",
                 "if the time is negative, no seeders will be introduced since the event will ",

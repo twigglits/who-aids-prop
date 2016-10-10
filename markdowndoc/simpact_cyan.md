@@ -1,6 +1,6 @@
 <img src="SimpactCyan_cropped.png" style="float:right;width:10%;">
 
-Simpact Cyan - 0.19.1
+Simpact Cyan - 0.19.2
 =====================
 
 This document is the reference documentation for the Simpact Cyan
@@ -2637,6 +2637,7 @@ people will be marked as HIV infected.
 
 To do so, only the people that
 have the right age (as specified by `hivseed.age.min` and `hivseed.age.max`)
+and right gender (as specified by `hivseed.gender`)
 will be possible 'seeders', and depending on the setting of `hivseed.type`
 either a fixed number of people will be used, or each person will have a
 certain probability of being a seeder. In case a fixed number is requested
@@ -2658,6 +2659,9 @@ parentheses), and their meaning:
    People who are possible seeders must be at least this old.
  - `hivseed.age.max` (1000):  
    People who are possible seeders must be at most this old.
+ - `hivseed.gender` ('any'):  
+   People who are possible seeders must have this gender. Can be either `any` (the
+   default), `male` or `female`.
  - `hivseed.fraction` (0.2):  
    This is only used if `hivseed.type` is set to `fraction`, and specifies the
    probability each possible seeder has of actually becoming HIV infected.

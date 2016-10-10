@@ -24,6 +24,7 @@ public:
 	static void obtainConfig(ConfigWriter &config);
 	static double getSeedTime()									{ return m_seedTime; }
 private:
+	enum SeedGender { None, Any, Male, Female };
 	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
 
 	static double m_seedTime, m_seedFraction;
@@ -31,6 +32,7 @@ private:
 	static int m_seedAmount;
 	static bool m_stopOnShort;
 	static bool m_useFraction;
+	static SeedGender m_seedGender;
 
 	static bool m_seeded;
 };
