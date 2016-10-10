@@ -1,0 +1,397 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage{graphicx}
+\usepackage[english]{babel}
+\usepackage{subfigure}
+\usepackage{hyperref}
+
+\setlength{\hoffset}{-1.0in}
+
+\addtolength{\hoffset}{1.5cm}
+%\addtolength{\hoffset}{2.0cm}
+
+\setlength{\textwidth}{15.5cm}
+\setlength{\voffset}{-1.0in}
+\addtolength{\voffset}{0.75cm}
+\setlength{\textheight}{24.0cm}
+\setlength{\topmargin}{0.5cm}
+\setlength{\footskip}{1.5cm}
+
+% Goed om zelf eens af te printen: zet alles wat hoger
+% \addtolength{\voffset}{-1.5cm}
+
+\setlength{\parindent}{0cm}
+\setlength{\parskip}{0.2cm}
+
+\newcommand{\ud}{\mathrm{d}}
+\newcommand{\grad}{\vec{\nabla}}
+\newcommand{\mpt}{\mathrm{.}}
+\newcommand{\mcm}{\mathrm{,}}
+\newcommand{\prob}{\mathrm{prob}}
+
+\begin{document}
+	\title{\bf Misc}
+	\maketitle
+
+	\section{Exponential distribution}
+
+		Suppose the probability of something happening in an interval $\Delta t$ equals $a_0 \Delta t$.
+		This means that the probability it happens
+		\begin{itemize}
+			\item in the first interval is just $a_0 \Delta t$,
+			\item in the second interval is $(1-a_0 \Delta t) \times a_0\Delta t$ (i.e. the probability
+			      it doesn't happen in the first interval multiplied by the probability that it does
+				  happen in the second)
+			\item \ldots
+			\item in the $n^{\rm th}$ interval is $(1-a_0 \Delta t)^{n-1} \times a_0\Delta t$
+		\end{itemize}
+
+		Now suppose we call $T = n\Delta t$, then the probability that the event happens in the interval
+		$[T,T+\Delta t]$, is just the same:
+		\[ \prob(T,T+\Delta t) = (1-a_0 \Delta t)^{n-1} \times a_0\Delta t \]
+		If we look at this in terms of some probability density, we can write:
+		\[ \prob(T,T+\Delta t) = \int_T^{T+\Delta t} \prob(s) \ud s \approx \prob(T)\Delta t \mcm \]
+		assuming very small intervals. We can then rewrite the previous equation as
+		\[ \prob(T) = (1-a_0 \Delta t)^{n-1} \times a_0 = a_0 (1-a_0 \Delta t)^{\frac{T-\Delta t}{\Delta t}}\mcm \]
+		which for infinitely small intervals becomes an exponential:
+		\[ \prob(T) = a_0 \exp(-a_0 T) \]
+
+		So if the probability of some event happening in an infinitesimal interval $\ud t$ is $a_0 \ud t$, then
+		the probability density for the event happening at time $T$ is given by the formula above, an exponential
+		distribution.
+
+	\section{Poisson distribution}
+
+		Suppose we start from some exponential distribution with parameter $\lambda$
+		\[ \prob(x_1 | \lambda) = \lambda \exp(-\lambda x_1) \],
+		giving us the probability density for obtaining a number $x_1$ from this distribution (if $x_1$ is
+		positive, the probability for a negative number is zero).
+		If the probability density for obtaining another number $x_2$ is the same,
+		\[ \prob(x_2 | \lambda) = \lambda \exp(-\lambda x_2) \],
+		we could wonder wat the probability density is for $y_2 = x_1 + x_2$, the sum of two such numbers. Of
+		course, since $x_1$ and $x_2$ are independent, the joint probability density is just
+		\[ \prob(x_1,x_2| \lambda) = \lambda^2\exp(-\lambda x_1 -\lambda x_2)\]
+		if both $x_1$ and $x_2$ are positive.
+
+		By introducing another variable $y'_2 = x_1 - x_2$, we can transform the joint probability density 
+		for $x_1$ and $x_2$ into one for $y_2$ and $y'_2$:
+		\[ \prob(y_2,y'_2) = \prob\left(x_1(y_2,y'_2)\right)\prob\left(x_2(y_2,y'_2)\right)\times\frac{1}{2}\mcm \]
+		where the factor $\frac{1}{2}$ comes from the Jacobian determinant of the transformation between variables.
+		The condition that both $x_1$ and $x_2$ must be positive, becomes:
+		\[ -y_2 < y'_2 < y_2 \mcm \]
+		otherwise the joint probability density is zero. Some algebra yields
+		\[ \prob(y_2,y'_2) = \frac{\lambda^2}{2}\exp(-\lambda y_2) \]
+		To get the probability density for the $y_2$, i.e. the sum of $x_1$ and $x_2$, we just have to marginalize
+		$y'_2$:
+		\[ \prob(y_2) = \int_{-y_2}^{y_2} \ud y'_2 \frac{\lambda^2}{2}\exp(-\lambda y_2) = \lambda^2 y_2 \exp(-\lambda y_2) \mcm\]
+		where the integration interval comes from the fact that the density is zero otherwise.
+
+		This can be repeated for the sum of more events, and if we call $s_i$ the sum of $i$ events with
+		the same exponential distribution, we find
+		\[ \prob(s_1) = \lambda\exp(-\lambda s_1) \]
+		\[ \prob(s_2) = \lambda^2 s_2 \exp(-\lambda s_2) \]
+		\[ \prob(s_3) = \frac{\lambda^3}{2} s_3^2 \exp(-\lambda s_3) \]
+		\[ \prob(s_4) = \frac{\lambda^4}{2\times 3} s_4^3 \exp(-\lambda s_4) \]
+		\[ \cdots \]
+		\[ \prob(s_n) = \frac{\lambda^n}{(n-1)!} s_n^{n-1} \exp(-\lambda s_n) \]
+
+		So for underlying numbers from an exponential distribution we can write:
+		\[ \prob(x| n \rm{\ events}, \lambda) = \frac{\lambda^n}{(n-1)!} x^{n-1} \exp(-\lambda x) \mcm \]
+		the probability density that the sum of $n$ numbers equals $x$. Using Bayes' rule with a Jeffrey's
+		prior for $n$ and $x$, we get:
+		\[ \prob(n \rm{\ events} |x,\lambda) = \frac{1}{n!} (\lambda x)^n \exp(-\lambda x) \]
+
+		Calling the average of this probability $\mu$, we get:
+		\[ \mu = \sum_{n=0}^{\infty} n\times\prob(n \rm{\ events} | x,\lambda) = \lambda x \]
+		which finally yields the Poisson distribution:
+		\[ \prob(n \rm{\ events} | \mu) = \frac{\mu^n \exp(-\mu)}{n!} \]
+
+	\section{Poisson process}
+
+		Suppose we can pick times from an exponential distribution $\prob(t) = \exp(-t)$, yielding
+		a list of time intervals $\Delta t_1$, $\Delta t_2$, \ldots. We shall interpret these intervals
+		as the time between certain events, so the first event occurs at $t_1 = \Delta t_1$, the second
+		at $t_2 = t_1 + \Delta t_2$, so $\Delta t_2$ later, etc. Generating event times in this way is
+		called a {\em unit rate Poisson process}.
+
+		We can then define a function $Y(t)$, which returns the number of events that took place until time
+		$t$. So this function is zero before $t_1$ and makes a jump to one at $t_1$. Then, at $t_2$ the
+		function jumps to value two, and so on. Based on this function $Y$ we can also define another
+		function
+		\[ Y_\lambda(t) \equiv Y(\lambda t) \],
+		meaning that we'll be progressing faster or slower along the event time line. Note that this is the
+		same as if we'd start from a probability distribution $\prob(t) = \lambda\exp(-\lambda t)$.
+
+		Using $Y_\lambda$, we can look at the probability that a specific number of events happened in
+		a certain time interval:
+		\[ \prob(Y_\lambda(t+\Delta t) - Y_\lambda(t) = n) \mcm \]
+		which just follows a Poisson distribution:
+		\[ \prob(Y_\lambda(t+\Delta t) - Y_\lambda(t) = n) = \frac{(\lambda t)^n\exp(-\lambda \Delta t)}{n!} \]
+		This means that the probability that at least one event happens is
+		\[ \prob(Y_\lambda(t+\Delta t) - Y_\lambda(t) > 0) = 1 -  \prob(Y_\lambda(t+\Delta t) + Y_\lambda(t) = 0)
+		                                                   = 1 - \exp(-\lambda \Delta t) \mcm \]
+		which for a small interval can be approximated as
+		\[ \prob(Y_\lambda(t+\Delta t) - Y_\lambda(t) > 0) \approx \lambda \Delta t \]
+													
+		Instead of a uniform speedup or slowdown, we can also use a more general mapping to a unit-rate
+		Poisson process, using a `propensity function' or `hazard' $a(t)$:
+		\[ Y_a(y) \equiv Y(T(t)) \mcm \]
+		where
+		\[ T(t) = \int_0^t a(s) \ud s \]
+		specifies the mapping between the real time $t$ and the time for the unit-rate process $T$. The
+		probability that an event fires in $\Delta t$ after time $t$, then becomes
+		\[ \prob(Y_a(t+\Delta t) - Y_a(t) > 0) \approx a(t) \Delta t \mcm \]
+		again for a small interval.
+
+	\section{Simulation state}
+
+		We're going to use such a Poisson process to base an event based simulation on. For now, we'll
+		be working with propensity functions that only depend on time through $X(t)$, the state of the
+		simulation at time $t$. Furthermore, this simulation state will only change at times at which
+		events fire.
+
+		Suppose we have two types of events, $A$ and $B$, firing based on a non-uniform Poisson process.
+		At some time $t_0$, for example the start of the simulation, two event fire times have been calculated,
+		one for $A$ ($t_A$) and one for $B$ ($t_B$). These have both been calculated based on the
+		state at time $t_0$, so based on $X(t_0)$. 
+		
+		The times $t_A$ and $t_B$ correspond to times of the unit-rate poisson process $T_A$ 
+		and $T_B$ and it is from this unit-rate Poisson process that the random times are picked. They
+		are then mapped to actual event times using the mappings
+		\[ T_A = \int_{t_0}^{t_A} a(X(t_0)) \ud s \]
+		\begin{equation}
+			T_B = \int_{t_0}^{t_B} b(X(t_0)) \ud s
+			\label{eq:tBold}
+		\end{equation}
+		where $a$ and $b$ are the propensity functions for the two processes. Note that in the integral
+		it says $X(t_0)$, indicating that the calculations are based on the state of the simulation at time
+		$t_0$. Also note that it's the $T$ values that are generated from the unit rate Poisson process,
+		and that the equations need to be solved for arguments in the integral boundaries.
+
+		When these $t$ times are first calculated, it is unknown which one will fire first. For this argument,
+		well assume that it's an event from process $A$ that fires first, at $t_A$. While the $T_B$
+		value is still correct (it is just generated from a unit rate Poisson process), the mapping to $t_B$
+		is no longer correct if the firing of the $A$ event has changed the state.
+
+		Remember that the state $X$ can only change at event times, so in this case, the new mapping for the
+		time of the $B$ event, let's call it $t_B^N$ should correspond to:
+		\begin{equation}
+			T_B = \int_{t_0}^{t_A} b(X(t_0)) \ud s + \int_{t_A}^{t_B^N} b(X(t_A)) \ud s
+			\label{eq:TBsplit}
+		\end{equation}
+		\begin{equation}
+			\Leftrightarrow T_B = \int_{t_0}^{t_B} b(X(t_0)) \ud s - \int_{t_A}^{t_B} b(X(t_0)) \ud s
+		                             + \int_{t_A}^{t_B^N} b(X(t_A)) \ud s
+			\label{eq:tBnew}
+		\end{equation}
+
+		Comparing (\ref{eq:tBold}) and (\ref{eq:tBnew}), one sees that $t_B^N$ should satisfy
+		\begin{equation}
+			\int_{t_A}^{t_B} b(X(t_0)) \ud s = \int_{t_A}^{t_B^N} b(X(t_A)) \ud s
+		\end{equation}
+
+		In this particular scenario, we're assuming that the propensities only change at the times the events
+		fire, so here $b(X(t_0)) = b_0 = \rm{const}$ and $b(X(t_A)) = b_A = \rm{const}$. The equation above
+		then becomes
+		\begin{equation}
+			(t_B-t_A) b_0 = (t_B^N-t_A) b_A
+			\label{eq:internaltimes}
+		\end{equation}
+		\[ \Leftrightarrow t_B^N = t_A + \frac{b_0}{b_A}(t_B-t_A) \]
+		Since $t_B$ was already calculated and $t_A$ is also known, we know the new real-world fire time for
+		the event from process $B$ when we have calculated the value $b_A = b(X(t_A)) $ of the propensity for 
+		the new state of the system, i.e. after it has been modified by $A$ at $t_A$.
+		
+		Equation (\label{eq:internaltimes}) also suggest that we can look at it another way. Because the
+		propensity is a constant in between event firings, the product of a time interval and the propensity
+		corresponds to a change in internal unit-rate process time $T$. The equation says that the internal
+		interval we first expected from time $t_A$ to $t_B$ was $(t_B-t_A) b_0$, but due to the change in
+		propensity this interval should now be mapped onto $(t_B^N-t_A) b_A$, yielding a new event time $t_B^N$.
+
+		Another way of looking at things is suggested by (\ref{eq:TBsplit}). It says that we can first calculate
+		a new value $T'_B$,
+		\begin{equation}
+			T'_B = T_B - \int_{t_0}^{t_A} b(X(t_0)) \ud s
+			\label{eq:TBchange}
+	 	\end{equation}
+		which adjusts the internal event time for the time that has passed until $A$ fired at $t_A$. Then, the
+		new event time $t_B^N$ is calculated by equating this remaining internal time $T'_B$ to the
+		integral as usual:
+		\[ T'_B = \int_{t_A}^{t_B^N} b(X(t_A)) \ud s \]
+		Using this integral form also works for more general time dependent propensities, which not only depend
+		on the state (still only changing at event fire times), but also on a time parameter:
+		\[ T(t) = \int_0^t a(X(s),s) \ud s \]
+
+	\section{Time-dependent modified Next Reaction Method}
+
+		\subsection{Core algorithm}
+
+			Instead of calling internal times $T$, we'll call them $\Delta T$ to indicate that they're time intervals that will be modified by the procedure from (\ref{eq:TBchange}). Suppose there are $M$
+			possible reactions, and call $rnd()$ a function that returns a random number in $[0,1]$ (uniform).
+			The time-dependent modified Next Reaction Method then works as follows:
+		
+			\begin{itemize}
+				\item Initialization: 
+				\begin{enumerate}
+					\item for $k$ from $1$ to $M$, $\Delta T_k = \log\left(\frac{1}{rnd()}\right)$ \\
+						This picks numbers from an exponential distribution $p(x) = \exp(-x)$ and correspond
+						to the initial internal fire times for the different event types (which still need
+						to be mapped onto real world times using the propensities).
+					\item set $t = 0$
+				\end{enumerate}
+				\item Loop:
+				\begin{enumerate}
+					\item for $k$ from $1$ to $M$, calculate $\Delta t_k$ so that $\Delta T_k = \int_t^{t+\Delta t_k} a_k(X(t),s) ds $ \\
+						This translates the time left from the exponential distribution (the Poisson process) into
+						a physical time that should pass until the event fires. \label{loopstart}
+					\item call $\mu$ the index for which $\Delta t_\mu = \min(\Delta t_1, ... , \Delta t_M)$ \\
+						This is the event that shall fire first.
+					\item for $k$ from $1$ to $M$ except $\mu$, change $\Delta T_k$ to $\Delta T_k - \int_t^{t+\Delta t_\mu} a_k(X(t),s) ds $ \\
+						Note that because $\Delta t_\mu$ is the smallest of them all, the integral will be smaller
+						than the one in \ref{loopstart}, and $\Delta T_k$ will stay positive (unless there's some 
+						really strange propensity function, which of course should not happen)
+					\item add $\Delta t_\mu$ to $t$
+					\item fire event $\mu$ which can change the simulation state
+					\item set $\Delta T_\mu = \log\left(\frac{1}{rnd()}\right)$ \\
+						For this particular event, no next one had been calculated, so we need to pick
+						a new internal time from an exponential distribution (again for the poisson process)
+				\end{enumerate}
+			\end{itemize}
+		
+
+		\subsection{An optimization}
+
+			It may not be necessary to do the $\int_t^{t+\Delta t_\mu} a_k(X(t),s) ds$ calculation every time.
+			If the propensity function changes due to each event, then we really do need to calculate every
+			\[ \Delta T_{k,1} = \int_{t_0}^{t_1} a_k(X(t),s) ds \textrm{, }
+			   \Delta T_{k,2} = \int_{t_1}^{t_2} a_k(X(t),s) ds \textrm{, }
+			   \Delta T_{k,3} = \int_{t_2}^{t_3} a_k(X(t),s) ds \textrm{, etc.} \]
+			
+			However, if the propensity does not change for a particular event $k$, then instead of calculating
+			each $\Delta T_{k,i}$ above, we can save some unnecessary recalculations by just calculating an
+			integral 
+			\[ \Delta T_{k,sum} = \int_{t_0}^{t_{end}} a_k(X(t),s) ds \]
+			when really needed.
+	
+			To make this work, some additional bookkeeping is needed to be able to determine when the events
+			would fire in real time.
+	
+			\begin{itemize}
+				\item Initialization: 
+				\begin{enumerate}
+					\item for $k$ from $1$ to $M$, $\Delta T_k = \log\left(\frac{1}{rnd()}\right)$ \\
+						This picks numbers from an exponential distribution $p(x) = \exp(-x)$
+					\item set $t = 0$ 
+					\item for each $k$, we must also know the time at which this calculation of
+						$\Delta T$ took place. For now this is just $t = 0$, so we set $t^c_k = 0$ for
+						all $k$.
+					\item for each $k$, map these internal Poisson intervals $\Delta T_k$ to event fire times
+						$t^f_k$ using the propensities: 
+						\[ \Delta T_k = \int_{t^c_k}^{t^f_k} a_k(X(t^c_k),s) ds \]
+	
+				\end{enumerate}
+	
+				\item Loop:
+				\begin{enumerate}
+					\item for $k$ from $1$ to $M$, calculate the minimum real time that would elapse
+						until an event: $\Delta t_\mu = \min(t^f_1 - t, ... , t^f_M - t)$. Here $\mu$
+						is the index of the event that corresponds to this minimal value.
+					\item add $\Delta t_\mu$ to $t$
+	
+					\item only for the events $k$ for which the propensities will be affected by $\mu$, we need to do
+						the following:
+						\begin{itemize}
+							\item Diminish the internal time $\Delta T_k$ with the internal time that has passed: 
+								\[ \Delta T_k := \Delta T_k - \int_{t^c_k}^{t} a_k(X(t^c_k),s) ds \]
+								Here $t$ is the new
+								time, and the propensities are still the {\em old} propensities!
+							\item Set $t^c_k = t$
+						\end{itemize}
+	
+					\item fire event $\mu$ (change state vector), generate a new random number and $\Delta T$ value, set
+						$t^c_\mu = t$ and calculate $t^f_\mu$ accordingly.
+	
+					\item only for the events $k$ for which the propensities were affected by $\mu$, we need to recalculate
+						the real fire times of these events: calculate $t^f_k$ so that this holds:
+						\[\Delta T_k = \int_{t^c_k}^{t^f_k} a_k(X(t^c_k),s) ds \]
+						Note that here we're working with the {\em new} propensities.
+	
+				\end{enumerate}
+			\end{itemize}
+	
+			If one keeps track of which event affects which, this can really save some calculation time.
+			Furthermore, if certain events are stored in a list sorted on real event fire times, the
+			minimum may very easily be calculated: if these times increase, one will only need to look
+			at the first event instead of them all.
+	
+			One might argue that keeping such a list ordered may require some computation as well, but
+			if the list (or a part of it) does not need to be updated due to a certain event, no computation
+			is needed for that part.
+	
+			A slightly re-ordered version (for positive times only since we use a negative one as a marker):
+	
+			\begin{itemize}
+				\item Initialization: 
+				\begin{enumerate}
+					\item set $t = 0$
+					\item for $k$ from $1$ to $M$, let $\Delta T_k = \log\left(\frac{1}{rnd()}\right)$ 
+						(this picks numbers from an exponential distribution $p(x) = \exp(-x)$).
+						Set $t^c_k = 0$ and set $t^f_k = -1$ to indicate that this
+						event time still needs to be calculated from the $\Delta T_k$ version.
+	
+				\end{enumerate}
+	
+				\item Loop:
+				\begin{enumerate}
+					\item for $k$ from $1$ to $M$, if $t^f_k < 0$ then calculate $t^f_k$ from the
+						stored $\Delta T_k$ value so that:
+						\[\Delta T_k = \int_{t^c_k}^{t^f_k} a_k(X(t^c_k),s) ds \]
+	
+					\item for $k$ from $1$ to $M$, calculate the minimum real time that would elapse
+						until an event takes place: $\Delta t_\mu = \min(t^f_1 - t, ... , t^f_M - t)$. Here $\mu$
+						is the index of the event that corresponds to this minimal value.
+					\item add $\Delta t_\mu$ to $t$
+	
+					\item only for the events $k$ for which the propensities will be affected by $\mu$, we need to do
+						the following:
+						\begin{itemize}
+							\item Diminish the internal time $\Delta T_k$ with the internal time that has passed: 
+								\[ \Delta T_k := \Delta T_k - \int_{t^c_k}^{t} a_k(X(t^c_k),s) ds \]
+								Here $t$ is the new time, and the propensities are still the 
+								{\em old} propensities!
+							\item Set $t^c_k = t$ and set $t^f_k = -1$ to indicate that it still needs
+								to be calculated from the remaining $\Delta T_k$.
+						\end{itemize}
+	
+					\item fire event $\mu$ (change state vector), generate a new random number and $\Delta T$ value, set
+						$t^c_\mu = t$ and set $t^f_\mu = -1$ to indicate that $t^f_c$ should be calculated from
+						$\Delta T_\mu$.
+	
+				\end{enumerate}
+			\end{itemize}
+
+	\section{Probability distribution for a propensity/hazard}	
+
+		For the mNRM method, we started from random numbers drawn from the exponential
+		probability distribution $\prob(T) = \exp(-T)$, used as `internal' times by
+		the algorithm. These are mapped onto real-world times by using a certain propensity
+		function or hazard, providing a relation between real-world time and internal
+		time
+		\[ T(t) = \int_0^t h(s) \ud s \mcm \]
+		where $h(t)$ is the hazard.
+
+		This means that in terms of $t$, the probability density becomes
+		\[ \prob(t) = \exp(-T(t)) \frac{\ud T}{\ud t} = \exp(-T(t)) h(t) \]
+		For example, if the hazard is
+		\[ h(t) = \frac{\kappa}{\lambda}\left(\frac{t}{\lambda}\right)^{\kappa-1} \mcm \]
+		then
+		\[ T(t) = \left(\frac{t}{\lambda}\right)^\kappa \]
+		the probability density becomes:
+		\[ h(t) = \exp\left[-\left(\frac{t}{\lambda}\right)^\kappa\right] \frac{\kappa}{\lambda}\left(\frac{t}{\lambda}\right)^{\kappa-1} \mpt \]
+		This is of course the Weibull distribution with parameters $\kappa$ and $\lambda$.
+	
+
+
+\end{document}
+
+

@@ -31,6 +31,7 @@ cd $TMPDIR/${LIBNAME}-${VERSION}
 rm -f `find . -name ".git*"`
 rm builddist.sh
 rm -rf sphinxdoc
+rm -rf markdowndoc
 
 S=${TMPDIR}/${LIBNAME}-${VERSION}
 

@@ -313,9 +313,9 @@ texinfo_documents = [
 import subprocess
 import os
 import shutil
+import glob
 
 curpath = os.getcwd()
-
 try:
     if os.getenv("READTHEDOCS") == 'True':
         dstdir = "_build/html"
@@ -324,9 +324,25 @@ try:
     
     dstdir = os.path.abspath(dstdir)
 
+    os.chdir("../../markdowndoc")
+    for i in glob.glob("*.tex"):
+        # Run it a couple of times to get the references right
+        subprocess.call([ "pdflatex", i ])
+        subprocess.call([ "pdflatex", i ])
+
+    subprocess.call("./markdown2.py simpact_cyan.md > index.html", shell=True)
+    #subprocess.call("./markdown2.py maxart.md > maxart.html", shell=True)
+
+    subprocess.call("cp * {}".format(dstdir), shell=True)
+
+    os.chdir(curpath)
     os.chdir("../../")
     subprocess.call("doxygen", shell=True)
-    subprocess.call("mv -f documentation/html/* {}".format(dstdir), shell=True)
+    docudir = os.path.join(dstdir, "documentation")
+    if os.path.exists(docudir):
+        subprocess.call("rm -rf {}".format(docudir), shell=True)
+
+    subprocess.call("mv -f documentation/html {}".format(docudir), shell=True)
 finally:
     os.chdir(curpath)
 

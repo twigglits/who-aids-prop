@@ -1,0 +1,80 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage{graphicx}
+\usepackage[english]{babel}
+\usepackage{subfigure}
+\usepackage{hyperref}
+
+\setlength{\hoffset}{-1.0in}
+
+\addtolength{\hoffset}{1.5cm}
+%\addtolength{\hoffset}{2.0cm}
+
+\setlength{\textwidth}{15.5cm}
+\setlength{\voffset}{-1.0in}
+\addtolength{\voffset}{0.75cm}
+\setlength{\textheight}{24.0cm}
+\setlength{\topmargin}{0.5cm}
+\setlength{\footskip}{1.5cm}
+
+% Goed om zelf eens af te printen: zet alles wat hoger
+% \addtolength{\voffset}{-1.5cm}
+
+\setlength{\parindent}{0cm}
+\setlength{\parskip}{0.2cm}
+
+\newcommand{\ud}{\mathrm{d}}
+\newcommand{\grad}{\vec{\nabla}}
+\newcommand{\mpt}{\mathrm{.}}
+\newcommand{\mcm}{\mathrm{,}}
+
+\begin{document}
+	\title{\bf Formation/dissolution hazard}
+	\maketitle
+
+	The hazard used for the formation and dissolution events (between persons $i$ and $j$) has 
+	the following form:
+	\[ h = \exp\left[ \alpha_0 + \alpha_1 P_i + \alpha_2 P_j  + \alpha_3|P_i - P_j| 
+	             +\alpha_4 \left(\frac{A_i+A_j}{2}\right) + \alpha_5 |A_i-A_j-D_p| + \beta t_{diff} \right] \]
+	
+	The properties used are:
+	\begin{itemize}
+		\item $\alpha_k$, $\beta$ : Constants
+		\item $P_i$, $P_j$ : Number of partners of these persons
+		\item $A_i$, $A_j$ : Age
+		\item $D_p$ : Preferred age difference
+		\item $t_{diff}$: Time since relationship became possible between these two persons
+	\end{itemize}
+
+	Here, both the age and $t_{diff}$ contain a time dependency as follows:
+	\[ A_i(t) = t - t_{B,i} \]
+	\[ t_{diff} = t - t_r \]
+	where
+	\begin{itemize}
+		\item $t_{B,i}$ : Time at which person $i$ was born
+		\item $t_r$ : Time at which relationship became possible between these two persons
+	\end{itemize}
+
+	This hazard can be rewritten as follows, where the time dependency is now explicitly
+	shown:
+	\[ h = B\exp(Ct) \]
+	In this expression, $B$ and $C$ are no longer time dependent:
+	\[ B = \exp\left[ \alpha_0 + \alpha_1 P_i + \alpha_2 P_j  + \alpha_3|P_i - P_j|
+	                - \alpha_4\left(\frac{t_{B,i}+t_{B,j}}{2}\right)
+					+ \alpha_5|-t_{B,i}+t_{B,j}-D_p| - \beta t_r
+					\right] \]
+	\[ C = \alpha_4+\beta \]
+
+	Integrating the hazard to obtain the relationship between a real-world time
+	interval $\Delta t$ and the internal time interval $\Delta T$ yields:
+	\[ \Delta T = \int_{t_0}^{t_0+\Delta t} B \exp(Ct) dt = \frac{E}{C}\left[\exp(C\Delta t) - 1 \right] \]
+	where $E$ is defined as follows:
+	\[ E = \exp\left[ \alpha_0 + \alpha_1 P_i + \alpha_2 P_j  + \alpha_3|P_i - P_j|
+	                + \alpha_4\left(\frac{2t_0 - t_{B,i}-t_{B,j}}{2}\right)
+				    + \alpha_5|-t_{B,i}+t_{B,j}-D_p| + \beta (t_0 - t_r) \right] \]
+
+	Solving for $\Delta t$ this equation becomes:
+	\[ \Delta t = \frac{1}{C}\log\left(\frac{C}{E}\Delta T + 1\right) \]
+
+
+\end{document}

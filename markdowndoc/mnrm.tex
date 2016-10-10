@@ -1,0 +1,178 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage{graphicx}
+\usepackage[english]{babel}
+\usepackage{subfigure}
+\usepackage{hyperref}
+
+\setlength{\hoffset}{-1.0in}
+
+\addtolength{\hoffset}{1.5cm}
+%\addtolength{\hoffset}{2.0cm}
+
+\setlength{\textwidth}{15.5cm}
+\setlength{\voffset}{-1.0in}
+\addtolength{\voffset}{0.75cm}
+\setlength{\textheight}{24.0cm}
+\setlength{\topmargin}{0.5cm}
+\setlength{\footskip}{1.5cm}
+
+% Goed om zelf eens af te printen: zet alles wat hoger
+% \addtolength{\voffset}{-1.5cm}
+
+\setlength{\parindent}{0cm}
+\setlength{\parskip}{0.2cm}
+
+\newcommand{\ud}{\mathrm{d}}
+\newcommand{\grad}{\vec{\nabla}}
+\newcommand{\mpt}{\mathrm{.}}
+\newcommand{\mcm}{\mathrm{,}}
+
+\begin{document}
+	\title{\bf Time-dependent modified next reaction method}
+	\maketitle
+
+	\section*{Core algorithm}
+
+		Number of reactions: $M$\\
+		$rnd()$ is function that return a random number in $[0,1]$ (uniform)
+	
+		\begin{itemize}
+			\item Initialization: 
+			\begin{enumerate}
+				\item for $k$ from $1$ to $M$, $\Delta T_k = \log\left(\frac{1}{rnd()}\right)$ \\
+					This picks numbers from an exponential distribution $p(x) = \exp(-x)$
+				\item set $t = 0$
+			\end{enumerate}
+			\item Loop:
+			\begin{enumerate}
+				\item for $k$ from $1$ to $M$, calculate $\Delta t_k$ so that $\Delta T_k = \int_t^{t+\Delta t_k} a_k(X(t),s) ds $ \\
+					This translates the time left from the exponential distribution (the Poisson process) into
+					a physical time that should pass until the event fires. \label{loopstart}
+				\item call $\mu$ the index for which $\Delta t_\mu = \min(\Delta t_1, ... , \Delta t_M)$ \\
+					This is the event that shall fire first.
+				\item for $k$ from $1$ to $M$ except $\mu$, change $\Delta T_k$ to $\Delta T_k - \int_t^{t+\Delta t_\mu} a_k(X(t),s) ds $ \\
+					Note that because $\Delta t_\mu$ is the smallest of them all, the integral will be smaller
+					than the one in \ref{loopstart}, en $\Delta T_k$ will stay positive (unless there's some 
+					really strange propensity function, which of course should not happen)
+				\item add $\Delta t_\mu$ to $t$
+				\item fire event $\mu$ (change state vector)
+				\item set $\Delta T_\mu = \log\left(\frac{1}{rnd()}\right)$ \\
+					For this particular event, no next one had been calculated, so we need to pick
+					a new internal time from an exponential distribution (again for the poisson process)
+			\end{enumerate}
+		\end{itemize}
+
+	\section*{An optimization}
+
+		It may not be necessary to do the $\int_t^{t+\Delta t_\mu} a_k(X(t),s) ds$ calculation every time.
+		If the propensity function changes due to each event, then we really do need to calculate every
+		\[ \Delta T_{k,1} = \int_{t_0}^{t_1} a_k(X(t),s) ds \textrm{, }
+		   \Delta T_{k,2} = \int_{t_1}^{t_2} a_k(X(t),s) ds \textrm{, }
+		   \Delta T_{k,3} = \int_{t_2}^{t_3} a_k(X(t),s) ds \textrm{, etc.} \]
+		
+		However, if the propensity does not change for a particular event $k$, then instead of calculating
+		each $\Delta T_{k,i}$ above, we can save some unnecessary recalculations by just calculating an
+		integral 
+		\[ \Delta T_{k,sum} = \int_{t_0}^{t_{end}} a_k(X(t),s) ds \]
+		when really needed.
+
+		To make this work, some additional bookkeeping is needed to be able to determine when the events
+		would fire in real time.
+
+		\begin{itemize}
+			\item Initialization: 
+			\begin{enumerate}
+				\item for $k$ from $1$ to $M$, $\Delta T_k = \log\left(\frac{1}{rnd()}\right)$ \\
+					This picks numbers from an exponential distribution $p(x) = \exp(-x)$
+				\item set $t = 0$ 
+				\item for each $k$, we must also know the time at which this calculation of
+					$\Delta T$ took place. For now this is just $t = 0$, so we set $t^c_k = 0$ for
+					all $k$.
+				\item for each $k$, map these internal Poisson intervals $\Delta T_k$ to event fire times
+					$t^f_k$ using the propensities: 
+					\[ \Delta T_k = \int_{t^c_k}^{t^f_k} a_k(X(t^c_k),s) ds \]
+
+			\end{enumerate}
+
+			\item Loop:
+			\begin{enumerate}
+				\item for $k$ from $1$ to $M$, calculate the minimum real time that would elapse
+					until an event: $\Delta t_\mu = \min(t^f_1 - t, ... , t^f_M - t)$. Here $\mu$
+					is the index of the event that corresponds to this minimal value.
+				\item add $\Delta t_\mu$ to $t$
+
+				\item only for the events $k$ for which the propensities will be affected by $\mu$, we need to do
+					the following:
+					\begin{itemize}
+						\item Diminish the internal time $\Delta T_k$ with the internal time that has passed: 
+							\[ \Delta T_k := \Delta T_k - \int_{t^c_k}^{t} a_k(X(t^c_k),s) ds \]
+							Here $t$ is the new
+							time, and the propensities are still the {\em old} propensities!
+						\item Set $t^c_k = t$
+					\end{itemize}
+
+				\item fire event $\mu$ (change state vector), generate a new random number and $\Delta T$ value, set
+					$t^c_\mu = t$ and calculate $t^f_\mu$ accordingly.
+
+				\item only for the events $k$ for which the propensities were affected by $\mu$, we need to recalculate
+					the real fire times of these events: calculate $t^f_k$ so that this holds:
+					\[\Delta T_k = \int_{t^c_k}^{t^f_k} a_k(X(t^c_k),s) ds \]
+					Note that here we're working with the {\em new} propensities.
+
+			\end{enumerate}
+		\end{itemize}
+
+		If one keeps track of which event affects which, this can really save some calculation time.
+		Furthermore, if certain events are stored in a list sorted on real event fire times, the
+		minimum may very easily be calculated: if these times increase, one will only need to look
+		at the first event instead of them all.
+
+		One might argue that keeping such a list ordered may require some computation as well, but
+		if the list (or a part of it) does not need to be updated due to a certain event, no computation
+		is needed for that part.
+
+		A slightly re-ordered version (for positive times only since we use a negative one as a marker):
+
+		\begin{itemize}
+			\item Initialization: 
+			\begin{enumerate}
+				\item set $t = 0$
+				\item for $k$ from $1$ to $M$, let $\Delta T_k = \log\left(\frac{1}{rnd()}\right)$ 
+					(this picks numbers from an exponential distribution $p(x) = \exp(-x)$).
+					Set $t^c_k = 0$ and set $t^f_k = -1$ to indicate that this
+					event time still needs to be calculated from the $\Delta T_k$ version.
+
+			\end{enumerate}
+
+			\item Loop:
+			\begin{enumerate}
+				\item for $k$ from $1$ to $M$, if $t^f_k < 0$ then calculate $t^f_k$ from the
+					stored $\Delta T_k$ value so that:
+					\[\Delta T_k = \int_{t^c_k}^{t^f_k} a_k(X(t^c_k),s) ds \]
+
+				\item for $k$ from $1$ to $M$, calculate the minimum real time that would elapse
+					until an event takes place: $\Delta t_\mu = \min(t^f_1 - t, ... , t^f_M - t)$. Here $\mu$
+					is the index of the event that corresponds to this minimal value.
+				\item add $\Delta t_\mu$ to $t$
+
+				\item only for the events $k$ for which the propensities will be affected by $\mu$, we need to do
+					the following:
+					\begin{itemize}
+						\item Diminish the internal time $\Delta T_k$ with the internal time that has passed: 
+							\[ \Delta T_k := \Delta T_k - \int_{t^c_k}^{t} a_k(X(t^c_k),s) ds \]
+							Here $t$ is the new time, and the propensities are still the 
+							{\em old} propensities!
+						\item Set $t^c_k = t$ and set $t^f_k = -1$ to indicate that it still needs
+							to be calculated from the remaining $\Delta T_k$.
+					\end{itemize}
+
+				\item fire event $\mu$ (change state vector), generate a new random number and $\Delta T$ value, set
+					$t^c_\mu = t$ and set $t^f_\mu = -1$ to indicate that $t^f_c$ should be calculated from
+					$\Delta T_\mu$.
+
+			\end{enumerate}
+		\end{itemize}
+
+
+\end{document}

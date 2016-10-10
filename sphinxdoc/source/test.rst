@@ -4,7 +4,7 @@ Test output
 .. code-block:: none
 
     /usr/bin/doxygen
-    /home/jori/projects/simpact-git/sphinxdoc/source
+    /home/jori/projects/simptestrepo/sphinxdoc/source
     ACLOCAL_FLAGS='-I /usr/local/share/aclocal/'
     BASH=/bin/sh
     BASHOPTS=cmdhist:complete_fullquote:extquote:force_fignore:hostcomplete:interactive_comments:progcomp:promptvars:sourcepath
@@ -22,7 +22,7 @@ Test output
     COLORTERM=xfce4-terminal
     CPLUS_INCLUDE_PATH=/usr/lib64/qt/include:/usr/lib64/qt/include
     CXX='ccache g++'
-    DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-tR1RRmFmBI,guid=6f702ac3ebb2e2766c35226d57fa665e
+    DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-araElf63vR,guid=aa1b77c07c1f6b70c79ef23557faad0b
     DESKTOP_SESSION=kde-plasma
     DIRSTACK=()
     DISPLAY=:0.0
@@ -60,8 +60,8 @@ Test output
     MACHTYPE=x86_64-slackware-linux-gnu
     MAKEFLAGS=
     MAKELEVEL=1
-    MAKE_TERMERR=/dev/pts/1
-    MAKE_TERMOUT=/dev/pts/1
+    MAKE_TERMERR=/dev/pts/2
+    MAKE_TERMOUT=/dev/pts/2
     MANPATH=/usr/local/man:/usr/man:/usr/lib64/java/man:/usr/share/texmf/man
     MFLAGS=
     MINICOM='-c on'
@@ -72,13 +72,13 @@ Test output
     PIPESTATUS=([0]="0")
     PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig:/usr/local/share/pkgconfig:/usr/lib64/pkgconfig:/usr/share/pkgconfig:/usr/local/lib64/pkgconfig:/usr/local/share/pkgconfig
     POSIXLY_CORRECT=y
-    PPID=4477
+    PPID=7665
     PS4='+ '
-    PWD=/home/jori/projects/simpact-git/sphinxdoc/source
+    PWD=/home/jori/projects/simptestrepo/sphinxdoc/source
     PYTHONPATH=/usr/local/share/simpact-cyan/python/
     QT4DIR=/usr/lib64/qt
     QT_PLUGIN_PATH=/home/jori/.kde/lib64/kde4/plugins/:/usr/lib64/kde4/plugins/
-    SESSION_MANAGER=local/jed:@/tmp/.ICE-unix/1330,unix/jed:/tmp/.ICE-unix/1330
+    SESSION_MANAGER=local/jed:@/tmp/.ICE-unix/1326,unix/jed:/tmp/.ICE-unix/1326
     SHELL=/bin/bash
     SHELLOPTS=braceexpand:hashall:interactive-comments:posix
     SHLVL=3
@@ -88,14 +88,14 @@ Test output
     USER=jori
     VDPAU_LOG=0
     VISUAL=vim
-    WINDOWID=54525956
+    WINDOWID=65011983
     WINDOWPATH=7
     XCURSOR_SIZE=0
     XCURSOR_THEME=KDE_Classic
     XDG_CONFIG_DIRS=/etc/xdg:/etc/kde/xdg:/etc/kde/xdg
     XDG_CURRENT_DESKTOP=KDE
     XDG_DATA_DIRS=/usr/share:/usr/share:/usr/local/share
-    XDG_SESSION_COOKIE=jed-1476027997.853297-1850964623
+    XDG_SESSION_COOKIE=jed-1476046090.180479-1985639414
     XDM_MANAGED=method=classic
     _=pwd
     _static
