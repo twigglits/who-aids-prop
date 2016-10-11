@@ -320,9 +320,12 @@ curdir = os.getcwd()
 try:
     os.chdir("_static")
     for i in glob.glob("*.tex"):
-        # Run it a couple of times to get the references right
-        subprocess.call([ "pdflatex", i ])
-        subprocess.call([ "pdflatex", i ])
+        try:
+            # Run it a couple of times to get the references right
+            subprocess.call([ "pdflatex", i ])
+            subprocess.call([ "pdflatex", i ])
+        except Exception as e:
+            print("Warning: can't seem to run pdflatex on {}:".format(i, e))
 finally:
     os.chdir(curdir)
 
@@ -335,13 +338,14 @@ try:
     
     dstdir = os.path.abspath(dstdir)
 
-    os.chdir("../../")
-    subprocess.call("doxygen", shell=True)
-    docudir = os.path.join(dstdir, "documentation")
-    if os.path.exists(docudir):
-        subprocess.call("rm -rf {}".format(docudir), shell=True)
+    if os.getenv("READTHEDOCS") == 'True':
+        os.chdir("../../")
+        subprocess.call("doxygen", shell=True)
+        docudir = os.path.join(dstdir, "documentation")
+        if os.path.exists(docudir):
+            subprocess.call("rm -rf {}".format(docudir), shell=True)
 
-    subprocess.call("mv -f documentation/html {}".format(docudir), shell=True)
+        subprocess.call("mv -f documentation/html {}".format(docudir), shell=True)
 finally:
     os.chdir(curpath)
 
