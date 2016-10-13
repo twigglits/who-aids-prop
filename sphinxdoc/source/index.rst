@@ -21,7 +21,8 @@ as well:
  
 .. _programs:
 
-The Simpact Cyan installers, as well as the source code for the
+The development source code can be found on `GitHub <https://github.com/j0r1/simpactcyan>`_.
+The Simpact Cyan installers, as well as source code packages for the
 program, can be found in the `'programs' <http://research.edm.uhasselt.be/jori/simpact/programs/>`_.
 directory. If you're using MS-Windows, you'll need to install the 
 `Visual Studio 2015 redistributable package <https://www.microsoft.com/en-us/download/details.aspx?id=48145>`_
