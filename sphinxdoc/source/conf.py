@@ -136,14 +136,8 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #html_theme = 'alabaster'
-#html_theme = "classic-mod"
-# html_theme_path = [ "." ]
-
-html_theme = 'sphinx_rtd_theme'
-html_context = {
-    'extra_css_files': [ "_static/theme-mod.css" ],
-    'script_files': [ "_static/inspectlinks.js" ],
-}
+html_theme = "rtd-mod"
+html_theme_path = [ "." ]
 
 #html_theme_options = {
 #    "rightsidebar": "true",
