@@ -18,6 +18,8 @@ as well:
  - Documentation of the program code itself can be found here: 
    `code documentation <documentation/index.html>`_.
  - A tutorial for using the R bindings: `Age-mixing tutorial Bruges 2015 <http://rpubs.com/wdelva/agemixing>`_
+ - R versions of the iPython notebook examples: 
+   `available on GitHub <https://github.com/dmhendrickx/R-code-examples-SIMPACT-documentation>`_
  
 .. _programs:
 
