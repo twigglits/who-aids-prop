@@ -1,5 +1,9 @@
 .. _simpactcyan:
 
+.. image:: _static/SimpactCyan_cropped.png
+    :align: right
+    :width: 10%
+
 Simpact Cyan - |version|
 ========================
 

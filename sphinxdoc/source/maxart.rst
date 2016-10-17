@@ -5,6 +5,10 @@
    <br/>
 .. _maxart:
 
+.. image:: _static/MaxART-Simpact.jpg
+    :align: right
+    :width: 15%
+
 MaxART simulation
 =================
 
