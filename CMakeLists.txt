@@ -6,7 +6,7 @@ else()
 endif()
 
 project(simpact-cyan)
-set(VERSION 0.20.0rc1)
+set(VERSION 0.20.0)
 include(${PROJECT_SOURCE_DIR}/cmake/SimpactMacros.cmake)
 
 simpact_setup()
