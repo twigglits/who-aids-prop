@@ -1138,7 +1138,7 @@ a low probability.
 Here is an overview of the relevant configuration options, their defaults (between
 parentheses), and their meaning:
 
- - ``some.option.dist2d.binormalsymm.mean`` (0):   |br|
+ - ``some.option.dist2d.binormalsymm.mean`` (0): |br|
    This corresponds to the value of :math:`\mu` in the formula for the probability density.
  - ``some.option.dist2d.binormalsymm.rho`` (0: |br|
    This corresponds to the value of :math:`\rho` in the formula for the probability density.

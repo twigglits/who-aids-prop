@@ -45,6 +45,30 @@ For example, if the simulation object has the name ``simpact``, the call would b
 
     simpact.setSimulationPrefix("maxart")
 
+Output
+------
+
+In addition to the :ref:`output files <outputfiles>` of the general simulation, there
+is one additional MaxART-specific output file possible, specified by the 
+``maxart.outfile.logsteps`` option. This output file will contain a table with
+the different :ref:`health care facilities <maxartfacilities>`, the time at which
+a study step took place, and an indication of the stage that the facility was in
+during a specific step. This can be one of:
+
+ - ``C`` for the control stage
+ - ``T`` for the transitioning stage
+ - ``I`` for the intervention stage
+ - ``Post`` for when the study has ended
+
+An example can be seen in the following notebook: `maxart-facilitysteps.ipynb <_static/maxart-facilitysteps.ipynb>`_
+
+Here is an overview of the relevant configuration options, their defaults (between
+parentheses), and their meaning:
+
+ - ``maxart.outfile.logsteps`` ('${SIMPACT_OUTPUT_PREFIX}maxartsteplog.csv'): |br|
+   The name of the CSV file that will contain information about which facility was
+   in which stage of the study during the simulation.
+
 Simulation details
 ------------------
 
@@ -145,8 +169,6 @@ parentheses), and their meaning:
    be writted to this CSV file.
 
 .. _maxartrandomization:
-
-.. dummy
 
  - ``facilities.randomization`` ('maxart-randomization.csv' from the data directory): |br|
    This specifies the randomization of the health care facilities to be used in the

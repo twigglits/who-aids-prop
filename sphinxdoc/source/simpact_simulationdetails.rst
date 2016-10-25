@@ -127,8 +127,6 @@ parentheses), and their meaning:
 
 .. _eyecap:
 
-.. dummy comment
-
  - ``population.eyecap.fraction`` (1): |br|
    This parameter allows you to
    specify with how many persons of the opposite sex (who are sexually active), 
@@ -152,8 +150,6 @@ parentheses), and their meaning:
 
 .. _coarsegrid:
  
-.. dummy comment
-
  - ``population.coarsemap.subdivx`` (20): |br|
    As described above, in case the :ref:`'eyecap' <eyecap>` setting is used, each person
    will have a set of interests assigned to them. For issues of speed, a coarse grid
@@ -172,8 +168,6 @@ parentheses), and their meaning:
    grid cells in the y-direction.
 
 .. _populationmsm:
-
-.. dummy comment
 
  - ``population.msm`` ('no'): |br|
    If ``no`` (the default), only heterosexual relationships will be possible. If set to
@@ -508,7 +502,7 @@ parentheses), and their meaning:
    location to each person. In the main Simpact Cyan simulation, this is currently
    not used in any hazard.
 
- - ``person.survtime.logoffset.dist.type`` ('fixed' with value 0):
+ - ``person.survtime.logoffset.dist.type`` ('fixed' with value 0): |br|
    This :ref:`one dimensional distribution <prob1d>` can be used to add some randomness
    to the :ref:`survival time <aidsmortality>` until dying of AIDS related causes after 
    becoming HIV infected.
