@@ -1,0 +1,20 @@
+The 'checkdoc.py' program runs 
+
+    simpact-cyan-release --showconfigoptions
+
+and
+
+    maxart-release --showconfigoptions
+
+to get a list of all options that should have documentation.
+
+It compares this list with the one from the *.rst files: it reads each
+such file, and if it begins with "- ``" and ends with ": |br|", e.g.
+
+     - ``monitoring.cd4.threshold`` (350.0): |br|
+
+it is considered to be an explanation of a config option.
+
+The script then compares the lists and reports the options that are present
+in the executables but have no documentation, as well a the options that
+are documented but are not (or no longer) used in the executable.
