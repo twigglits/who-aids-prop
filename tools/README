@@ -1,0 +1,4 @@
+CompileSimpact.sh is a script that downloads a SimpactCyan version, as
+well as the GSL and TIFF libraries, and installs them in
+$HOME/SimpactCyanBuild. This can be helpful if you need to compile
+a version from source, for example on a supercomputer.
