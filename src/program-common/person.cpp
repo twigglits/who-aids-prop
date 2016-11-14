@@ -111,12 +111,15 @@ void Person::writeToPersonLog()
 	Person *pHSV2Origin = (m_hsv2.isInfected()) ? m_hsv2.getInfectionOrigin() : 0;
 	int hsv2origin = (pHSV2Origin != 0) ? (int)pHSV2Origin->getPersonID() : (-1); // TODO: cast should be ok
 
-	LogPerson.print("%d,%d,%10.10f,%10.10f,%d,%d,%10.10f,%10.10f,%10.10f,%10.10f,%d,%d,%10.10f,%10.10f,%10.10f,%10.10f,%d,%10.10f,%d",
+	double cd4AtInfection = (m_hiv.isInfected())?m_hiv.getCD4CountAtInfectionStart() : (-1);
+	double cd4AtDeath = (m_hiv.isInfected())?m_hiv.getCD4CountAtDeath() : (-1);
+
+	LogPerson.print("%d,%d,%10.10f,%10.10f,%d,%d,%10.10f,%10.10f,%10.10f,%10.10f,%d,%d,%10.10f,%10.10f,%10.10f,%10.10f,%d,%10.10f,%d,%10.10f,%10.10f",
 		        id, gender, timeOfBirth, timeOfDeath, fatherID, motherID, debutTime,
 		        formationEagerness,formationEagernessMSM,
 		        infectionTime, origin, infectionType, log10SPVLoriginal, treatmentTime,
 				m_location.x, m_location.y, aidsDeath,
-				hsv2InfectionTime, hsv2origin);
+				hsv2InfectionTime, hsv2origin, cd4AtInfection, cd4AtDeath);
 }
 
 void Person::writeToLocationLog(double tNow)
@@ -130,11 +133,13 @@ void Person::writeToTreatmentLog(double dropoutTime, bool justDied)
 	int gender = (isMan())?0:1;
 	int justDiedInt = (justDied)?1:0;
 	double lastTreatmentStartTime = m_hiv.getLastTreatmentStartTime();
+	double lastCD4 = m_hiv.getLastCD4CountAtARTStart();
 
 	assert(m_hiv.hasLoweredViralLoad());
 	assert(lastTreatmentStartTime >= 0);
 
-	LogTreatment.print("%d,%d,%10.10f,%10.10f,%d", id, gender, lastTreatmentStartTime, dropoutTime, justDiedInt);
+	LogTreatment.print("%d,%d,%10.10f,%10.10f,%d,%10.10f", id, gender, lastTreatmentStartTime, 
+	                                                       dropoutTime, justDiedInt, lastCD4);
 }
 
 Man::Man(double dateOfBirth) : Person(dateOfBirth, Male)

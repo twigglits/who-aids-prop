@@ -45,7 +45,10 @@ public:
 	void resetViralLoad(double dropoutTime);
 	int getNumberTreatmentStarted() const											{ assert(isInfected()); return m_treatmentCount; }
 
+	double getCD4CountAtInfectionStart() const										{ return m_cd4AtStart; }
+	double getCD4CountAtDeath() const												{ return m_cd4AtDeath; }
 	double getCD4Count(double t) const;
+	double getLastCD4CountAtARTStart() const										{ assert(isInfected()); assert(m_VspLowered); return m_lastCD4AtTreatmentStart; }
 	double getARTAcceptanceThreshold() const										{ return m_artAcceptanceThreshold; }
 
 	void markAIDSDeath()															{ /*assert(hasDied());*/ m_aidsDeath = true; }
@@ -80,6 +83,7 @@ private:
 	AIDSTimeOfDeathUtility m_aidsTodUtil;
 
 	double m_cd4AtStart, m_cd4AtDeath;
+	double m_lastCD4AtTreatmentStart;
 	double m_artAcceptanceThreshold;
 
 	static double m_hivSeedWeibullShape;

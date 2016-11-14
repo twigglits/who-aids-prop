@@ -133,6 +133,12 @@ finished. At the moment, the following columns are defined:
       ``inf`` in case the person is not infected.
   19. ``HSV2InfectOriginID``: The ID of the person that's the origin of the HSV2 infection, or -1
       if there is none (no infection or seeded).
+  20. ``CD4atInfection``: As explained in :ref:`the CD4 count <cd4count>` related
+      documentation, the CD4 values at start of infection and at time of death are currently
+      chosen from a distribution. This column will contain the first of these values when
+      the person is infected, or -1 otherwise.
+  21. ``CD4atDeath``: Similar to the previous column, but will contain the CD4 value at the
+      time of (AIDS related) death.
 
 Relationship log
 ^^^^^^^^^^^^^^^^
@@ -167,6 +173,8 @@ or dying). The file currently has five columns:
      ``inf`` (infinity).
   5. ``DiedNow``: If the treatment got stopped because the person died, this flag will be 1.
      Otherwise it will be 0.
+  6. ``CD4atARTstart``: The value of the CD4 count of this person right before the treatment
+     started.
 
 Settings log
 ^^^^^^^^^^^^

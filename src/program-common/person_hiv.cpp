@@ -29,6 +29,7 @@ Person_HIV::Person_HIV(Person *pSelf) : m_pSelf(pSelf)
 
 	m_cd4AtStart = -1;
 	m_cd4AtDeath = -1;
+	m_lastCD4AtTreatmentStart = -1;
 
 	assert(m_pARTAcceptDistribution);
 	m_artAcceptanceThreshold = m_pARTAcceptDistribution->pickNumber();
@@ -89,6 +90,10 @@ void Person_HIV::lowerViralLoad(double fractionOnLogscale, double treatmentTime)
 	assert(!m_VspLowered); 
 	assert(fractionOnLogscale > 0 && fractionOnLogscale < 1.0); 
 	
+	// Save the CD4 at the time the treatment starts.
+	// Note that this must be done before changing the time of death!
+	m_lastCD4AtTreatmentStart = getCD4Count(treatmentTime);
+
 	m_VspLowered = true; 
 	m_Vsp = std::pow(m_Vsp, fractionOnLogscale); 
 	assert(m_Vsp > 0);
