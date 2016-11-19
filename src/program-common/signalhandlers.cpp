@@ -20,13 +20,20 @@ typedef void (*SignalHandler)(int);
 
 SignalHandler oldSigHandlers[NUMSIG];
 
-void terminationHandler(int sig)
+void writeUnexpectedTermination()
 {
+	string msg = "UNEXPECTED TERMINATION OF PROGRAM!";
+
 	cerr << endl;
-	cerr << "UNEXPECTED TERMINATION OF PROGRAM!" << endl;
+	cerr << msg << endl;
 	cerr.flush();
 
-	LogFile::writeToAllLogFiles("UNEXPECTED TERMINATION OF PROGRAM!");
+	LogFile::writeToAllLogFiles(msg);
+}
+
+void terminationHandler(int sig)
+{
+	writeUnexpectedTermination();
 
 	if (sig < NUMSIG && oldSigHandlers[sig])
 		oldSigHandlers[sig](sig);

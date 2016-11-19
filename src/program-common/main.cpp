@@ -18,6 +18,7 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <memory>
 
 using namespace std;
 
@@ -88,21 +89,21 @@ int real_main(int argc, char **argv)
 		return -1;
 	}
 
+	unique_ptr<PopulationAlgorithmInterface> algorithm(pAlgo); // to destroy it automatically
+	unique_ptr<PopulationStateInterface> state(pState); // to destroy it automatically
+
 	SimpactPopulation *pPop = createSimpactPopulation(*pAlgo, *pState);
 	if (!pPop)
 	{
 		cerr << "Unexpected error: unable to allocate a SimpactPopulation derived class" << endl;
-		delete pAlgo;
-		delete pState;
 		return -1;
 	}
+
+	unique_ptr<SimpactPopulation> population(pPop); // to destroy it automatically
 
 	if (!(r = pPop->init(populationConfig, ageDist)))
 	{
 		cerr << "Unable to initialize population: " << r.getErrorString() << endl;
-		delete pPop;
-		delete pAlgo;
-		delete pState;
 		return -1;
 	}
 
@@ -143,10 +144,6 @@ int real_main(int argc, char **argv)
 
 	// Log config file
 	ConfigSettingsLog::writeConfigSettings(LogSettings);	
-
-	delete pPop;
-	delete pAlgo;
-	delete pState;
 
 	return 0;
 }
@@ -229,8 +226,28 @@ void logInitialLocations(SimpactPopulation &pop)
 int main(int argc, char **argv)
 {
 	installSignalHandlers();
+	int status = -111;
 
 //	InverseErfI::initialize(); // TODO: we should really 'destroy' at the end as well, to be really clean
-	return real_main(argc, argv);
+	try
+	{
+		status = real_main(argc, argv);
+	}
+	catch(const bad_alloc &e)
+	{
+		cerr << "Out of memory!" << endl;
+		writeUnexpectedTermination();
+	}
+	catch(const exception &e)
+	{
+		cerr << "Exception caught: " << e.what() << endl;
+		writeUnexpectedTermination();
+	}
+	catch(...)
+	{
+		cerr << "Unknown exception caught!" << endl;
+		writeUnexpectedTermination();
+	}
+	return status;
 }
 
