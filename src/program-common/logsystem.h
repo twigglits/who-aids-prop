@@ -13,7 +13,7 @@ class LogSystem
 public: 
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
-	static LogFile logEvents, logPersons, logRelations, logTreatment, logSettings, logLocation;
+	static LogFile logEvents, logPersons, logRelations, logTreatment, logSettings, logLocation, logViralLoadHIV;
 };
 
 #define LogEvent LogSystem::logEvents
@@ -22,5 +22,6 @@ public:
 #define LogTreatment LogSystem::logTreatment
 #define LogSettings LogSystem::logSettings
 #define LogLocation LogSystem::logLocation
+#define LogViralLoadHIV LogSystem::logViralLoadHIV
 
 #endif // LOGSYSTEM_H

@@ -56,7 +56,7 @@ void EventChronicStage::fire(Algorithm *pAlgorithm, State *pState, double t)
 	Person *pPerson = getPerson(0);
 	assert(pPerson->hiv().getInfectionStage() == Person_HIV::Acute);
 
-	pPerson->hiv().setInChronicStage();
+	pPerson->hiv().setInChronicStage(t);
 
 	// Schedule the event that will mark the start of the AIDS stage
 	EventAIDSStage *pEvt = new EventAIDSStage(pPerson, false);

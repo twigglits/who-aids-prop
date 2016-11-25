@@ -27,9 +27,9 @@ public:
 	double getInfectionTime() const													{ assert(isInfected()); return m_infectionTime; }
 	Person *getInfectionOrigin() const												{ assert(isInfected()); return m_pInfectionOrigin; }
 	InfectionStage getInfectionStage() const										{ return m_infectionStage; }
-	void setInChronicStage()														{ assert(m_infectionStage == Acute); m_infectionStage = Chronic; }
-	void setInAIDSStage()															{ assert(m_infectionStage == Chronic); m_infectionStage = AIDS; }
-	void setInFinalAIDSStage()														{ assert(m_infectionStage == AIDS); m_infectionStage = AIDSFinal; }
+	void setInChronicStage(double tNow);
+	void setInAIDSStage(double tNow);
+	void setInFinalAIDSStage(double tNow);
 	double getAIDSMortalityTime() const												{ return m_aidsTodUtil.getTimeOfDeath(); }
 
 	bool isDiagnosed() const														{ return (m_diagnoseCount > 0); }
@@ -56,6 +56,8 @@ public:
 
 	// This is a per person value
 	double getSurvivalTimeLog10Offset() const										{ return m_log10SurvTimeOffset; }
+
+	void writeToViralLoadLog(double tNow, const std::string &description) const;
 
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
@@ -116,6 +118,27 @@ inline double Person_HIV::getViralLoad() const
 	
 	abortWithMessage("Unknown stage in Person::getViralLoad");
 	return -1;
+}
+
+inline void Person_HIV::setInChronicStage(double tNow)
+{ 
+	assert(m_infectionStage == Acute); 
+	m_infectionStage = Chronic; 
+	writeToViralLoadLog(tNow, "Chronic stage"); 
+}
+
+inline void Person_HIV::setInAIDSStage(double tNow)
+{ 
+	assert(m_infectionStage == Chronic); 
+	m_infectionStage = AIDS; 
+	writeToViralLoadLog(tNow, "AIDS stage"); 
+}
+
+inline void Person_HIV::setInFinalAIDSStage(double tNow)
+{ 
+	assert(m_infectionStage == AIDS); 
+	m_infectionStage = AIDSFinal; 
+	writeToViralLoadLog(tNow, "Final AIDS stage");
 }
 
 #endif // PERSON_HIV_H

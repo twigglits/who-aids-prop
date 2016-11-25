@@ -7,7 +7,9 @@
 #include "eventhivtransmission.h"
 #include "configfunctions.h"
 #include "jsonconfig.h"
+#include "logsystem.h"
 #include <vector>
+#include <cmath>
 
 using namespace std;
 
@@ -57,15 +59,19 @@ void Person_HIV::setInfected(double t, Person *pOrigin, InfectionType iType)
 	// Always start in the acute stage
 	m_infectionStage = Acute;
 
+	string logDescription;
+
 	if (iType == Seed) // We need to initialize the set-point viral load
 	{
 		m_Vsp = pickSeedSetPointViralLoad();
 		m_VspOriginal = m_Vsp;
+		logDescription = "Infection by seeding";
 	}
 	else if (iType == Partner)
 	{
 		m_Vsp = pickInheritedSetPointViralLoad(pOrigin);
 		m_VspOriginal = m_Vsp;
+		logDescription = "Infection by transmission";
 	}
 	else
 	{
@@ -81,6 +87,9 @@ void Person_HIV::setInfected(double t, Person *pOrigin, InfectionType iType)
 	m_aidsTodUtil.changeTimeOfDeath(t, m_pSelf);
 
 	initializeCD4Counts();
+
+	assert(logDescription.length() > 0);
+	writeToViralLoadLog(t, logDescription);
 }
 
 void Person_HIV::lowerViralLoad(double fractionOnLogscale, double treatmentTime)
@@ -105,6 +114,8 @@ void Person_HIV::lowerViralLoad(double fractionOnLogscale, double treatmentTime)
 	m_aidsTodUtil.changeTimeOfDeath(treatmentTime, m_pSelf);
 
 	m_treatmentCount++;
+
+	writeToViralLoadLog(treatmentTime, "Started ART");
 }
 
 void Person_HIV::resetViralLoad(double dropoutTime)
@@ -119,6 +130,8 @@ void Person_HIV::resetViralLoad(double dropoutTime)
 
 	// This has changed the time of death
 	m_aidsTodUtil.changeTimeOfDeath(dropoutTime, m_pSelf);
+
+	writeToViralLoadLog(dropoutTime, "Dropped out of ART");
 }
 
 double Person_HIV::getCD4Count(double t) const
@@ -195,6 +208,19 @@ double Person_HIV::pickInheritedSetPointViralLoad(const Person *pOrigin)
 	double Vsp0 = pOrigin->hiv().getSetPointViralLoad();
 
 	return m_pVspModel->inheritSetPointViralLoad(Vsp0);
+}
+
+void Person_HIV::writeToViralLoadLog(double tNow, const string &description) const
+{
+	assert(m_pSelf);
+
+	int id = (int)m_pSelf->getPersonID();
+	double currentVl = getViralLoad();
+
+	assert(m_Vsp > 0);
+
+	LogViralLoadHIV.print("%10.10f,%d,%s,%10.10f,%10.10f", tNow, id, description.c_str(),
+	                      log10(m_Vsp), log10(currentVl));
 }
 
 double Person_HIV::m_hivSeedWeibullShape = -1;

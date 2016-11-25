@@ -45,11 +45,11 @@ void EventAIDSStage::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 	if (m_finalStage)
 	{
-		pPerson->hiv().setInFinalAIDSStage();
+		pPerson->hiv().setInFinalAIDSStage(t);
 	}
 	else
 	{
-		pPerson->hiv().setInAIDSStage();
+		pPerson->hiv().setInAIDSStage(t);
 
 		// If we're not yet in the final stage, we need to schedule an event again
 		EventAIDSStage *pEvt = new EventAIDSStage(pPerson, true);
