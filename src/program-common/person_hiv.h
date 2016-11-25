@@ -92,7 +92,6 @@ private:
 	static double m_acuteFromSetPointParamX;
 	static double m_aidsFromSetPointParamX;
 	static double m_finalAidsFromSetPointParamX;
-	static double m_maxValue;
 	static double m_maxViralLoad;
 
 	static VspModel *m_pVspModel;

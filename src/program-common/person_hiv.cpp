@@ -152,21 +152,18 @@ double Person_HIV::getViralLoadFromSetPointViralLoad(double x) const
 	double part = std::log(x)/b + std::pow(m_Vsp,-c);
 
 	assert(m_maxViralLoad > 0);
-	if (m_maxValue < 0) // we still need to calculate it
-	{
-		m_maxValue = std::pow(m_maxViralLoad, -c);
-		assert(m_maxValue > 0);
-	}
+	double maxValue = std::pow(m_maxViralLoad, -c);
+	assert(maxValue > 0);
 
 	if (c > 0)
 	{
-		if (part < m_maxValue)
-			part = m_maxValue;
+		if (part < maxValue)
+			part = maxValue;
 	}
 	else
 	{
-		if (part > m_maxValue)
-			part = m_maxValue;
+		if (part > maxValue)
+			part = maxValue;
 	}
 
 	double Vacute = std::pow(part,-1.0/c);
@@ -209,7 +206,6 @@ double Person_HIV::m_aidsFromSetPointParamX = -1;
 double Person_HIV::m_finalAidsFromSetPointParamX = -1;
 
 double Person_HIV::m_maxViralLoad = -1; // this one is read from the config file
-double Person_HIV::m_maxValue = -1; // this will be calculated using the value of 'c'
 
 VspModel *Person_HIV::m_pVspModel = 0;
 ProbabilityDistribution *Person_HIV::m_pCD4StartDistribution = 0;
