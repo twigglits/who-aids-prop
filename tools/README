@@ -1,4 +1,9 @@
-CompileSimpact.sh is a script that downloads a SimpactCyan version, as
-well as the GSL and TIFF libraries, and installs them in
-$HOME/SimpactCyanBuild. This can be helpful if you need to compile
-a version from source, for example on a supercomputer.
+CompileSimpact.sh is a bash script that downloads a SimpactCyan version, as
+well as the GSL and TIFF libraries, and installs them in 
+$HOME/SimpactCyanBuild. This can be helpful if you need to compile a version
+from source, for example on a supercomputer.
+
+comparesettings.py is a python script that can be used to compare the output
+and speed of different executables. This is useful to see that the changes 
+you made did not affect the output of a simulation with specific settings, or
+that it did not slow things down.
