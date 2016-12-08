@@ -5,7 +5,8 @@ Simpact Cyan is the C++ version of the [Simpact](http://www.simpact.org/) family
 of programs. It is an agent based model (ABM) to study the way an infection 
 spreads and can be influenced, and is currently focused on HIV. 
 
-The main documentation can be found at [readthedocs](http://simpactcyan.readthedocs.io/).
+The main documentation can be found at 
+[simpactcyan.readthedocs.io](http://simpactcyan.readthedocs.io/).
 
 Source code packages and pre-compiled versions can be found 
 [here](http://research.edm.uhasselt.be/jori/simpact/programs/).
@@ -30,9 +31,13 @@ installed Anaconda Python.
  2. Open a Terminal window, and make sure that the Anaconda environment
     has been activated, i.e. that the `conda` command is recognized. If
     not, it may be necessary to update your `PATH` environment variable
-    using a command like this:
+    using a command like this
 
         export PATH=/Users/me/anaconda/bin:"$PATH"
+
+    or run Anaconda's activation command:
+
+        source /Users/me/anaconda/bin/activate
 
  3. Execute the following commands to set up the build environment:
 
@@ -46,12 +51,12 @@ installed Anaconda Python.
     libraries will be installed.
 
  4. We need to create a directory where the build files will be stored,
-    lets create a directory `/Users/me/simpactcyan/build` for this. In
+    let's create a directory `/Users/me/simpactcyan/build` for this. In
     that directory, we'll call the `cmake` command, setting the
     CMake variable `CMAKE_INSTALL_PREFIX` to the Anaconda path (this is
     needed so that the TIFF and GSL libraries can be located correctly).
 
-       cmake /Users/me/simpactcyan -DCMAKE_INSTALL_PREFIX=/Users/me/anaconda
+        cmake /Users/me/simpactcyan -DCMAKE_INSTALL_PREFIX=/Users/me/anaconda
 
  5. When the CMake step is finished, you can now just run
 
@@ -76,15 +81,17 @@ installed Anaconda Python.
     the following commands **before** loading the `RSimpactCyan` package:
 
         Sys.setenv(PATH=paste("/Users/me/simpactcyan/build",Sys.getenv("PATH"),sep=":"))
-        Sys.setenv(DYLD_LIBRARY_PATH="/Users/me/anaconda/lib")
         Sys.setenv(PYTHONPATH="/Users/me/simpactcyan/python")
         Sys.setenv(SIMPACT_DATA_DIR="/Users/me/simpactcyan/data/")
+        Sys.setenv(DYLD_LIBRARY_PATH="/Users/me/anaconda/lib")
 
-    The first line makes sure that the `RSimpactCyan` will be able to locate the
+    The first line makes sure that `RSimpactCyan` will be able to locate the
     compiled executables. The second line makes sure that the Python module 
-    that's stored in that directory will be found. The last line tells the 
+    that's stored in that directory will be found. The third line tells the 
     library where the data files can be found. Note that the data directory 
-    needs to end with a single `/`.
+    needs to end with a single `/`. The last line makes sure that the executable
+    can find the GSL and TIFF libraries which are stored in the Anaconda
+    directory structure.
 
     Only after these lines have been set can you load the library:
 
@@ -93,11 +100,81 @@ installed Anaconda Python.
     If you then use e.g. the `simpact.run` command, the newly compiled versions
     are used.
 
+ 8. The previous step allows you to run the new executables from within R, 
+    but to debug the code this is not the most convenient way to run the 
+    program. Instead, first create a configuration file using e.g. the
+    `dryrun` option of  `simpact.run`. You can then just run the executable
+    from the command line, as described in the 
+    [manual](http://simpactcyan.readthedocs.io/en/latest/simpact_conf_and_running.html#running-from-command-line),
+    for example:
+
+        ./simpact-cyan-debug /path/to/config.txt 0 opt
+
 
 Compiling Simpact Cyan on GNU/Linux
 -----------------------------------
 
+Using your package management system, make sure to install the development
+versions of the GSL and TIFF libraries. For Debian or Ubuntu systems, the GSL 
+package will be called something like `libgsl-dev` or `libgsl0-dev`, and the
+TIFF package will be `libtiff-dev`, `libtiff4-dev` or `libtiff5-dev`. For
+Fedora based systems, the packages will be `gsl-devel` and `libtiff-devel`.
+Apart from a C++ compiler, and the `make` build system, you'll also need to 
+have [CMake](https://cmake.org) (can be installed using the `cmake` package).
 
+ 1. Download the Simpact Cyan source code and extract it somewhere, or clone
+    the GitHub repository somewhere. Below, I'll assume that this has created
+    a path called `/home/me/simpactcyan`.
+
+ 2. We need to create a directory where the build files will be stored,
+    let's create a directory `/home/me/simpactcyan/build` for this. In
+    that directory, we'll call the `cmake` command:
+
+        cmake /home/me/simpactcyan
+
+ 3. When the CMake step is finished, you can now just run
+
+        make
+
+    to start building the Simpact Cyan executables, or use something like
+
+        make -j 4
+
+    to start four build jobs in parallel, which can speed up the process if
+    your computer or laptop has several processor cores.
+
+ 4. When the build is complete, running e.g. `./simpact-cyan-release` will
+    will show a usage message.
+
+ 5. To make sure that this version is used from within an R session, execute
+    the following commands **before** loading the `RSimpactCyan` package:
+
+        Sys.setenv(PATH=paste("/home/me/simpactcyan/build",Sys.getenv("PATH"),sep=":"))
+        Sys.setenv(PYTHONPATH="/home/me/simpactcyan/python")
+        Sys.setenv(SIMPACT_DATA_DIR="/home/me/simpactcyan/data/")
+
+    The first line makes sure that the `RSimpactCyan` will be able to locate the
+    compiled executables. The second line makes sure that the Python module 
+    that's stored in that directory will be found. The last line tells the 
+    library where the data files can be found. Note that the data directory 
+    needs to end with a single `/`. 
+
+    Only after these lines have been set can you load the library:
+
+        library("RSimpactCyan")
+
+    If you then use e.g. the `simpact.run` command, the newly compiled versions
+    are used.
+
+ 6. The previous step allows you to run the new executables from within R, 
+    but to debug the code this is not the most convenient way to run the 
+    program. Instead, first create a configuration file using e.g. the
+    `dryrun` option of  `simpact.run`. You can then just run the executable
+    from the command line, as described in the 
+    [manual](http://simpactcyan.readthedocs.io/en/latest/simpact_conf_and_running.html#running-from-command-line),
+    for example:
+
+        ./simpact-cyan-debug /path/to/config.txt 0 opt
 
 Compiling Simpact Cyan on MS-Windows
 ------------------------------------
