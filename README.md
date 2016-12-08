@@ -87,4 +87,51 @@ as well, with some obvious changes to the commands.
  13. To compile the release version, simply change the the selection from step
     10, right click `ALL_BUILD` again and select `Build`.
 
+ 14. To run the version you're working on from within R, you need to run the
+    following commands **before** loading `RSimpactCyan`:
+
+        Sys.setenv(PATH=paste("c:\\projects\\simpactcyan\\build\\Debug;c:\\projects\\simpactcyan\\build\\Release",Sys.getenv("PATH"),sep=";"))
+        Sys.setenv(PYTHONPATH="c:\\projects\\simpactcyan\\python")
+        Sys.setenv(SIMPACT_DATA_DIR="c:\\projects\\simpactcyan\\data\\")
+    
+    The first line makes sure that the `RSimpactCyan` will be able to locate the
+    compiled executables. Note that you need to have both the debug and release
+    executables. The second line makes sure that the Python module that's stored
+    in that directory will be found. The last line tells the library where the 
+    data files can be found. Note that double backslashes need to be used (or
+    a single normal slash), and that the data directory needs to end with `\\`
+    (or with a single `/`). 
+
+    Only after these lines have been set can you load the library:
+
+        library("RSimpactCyan")
+
+    If you then use e.g. the `simpact.run` command, the newly compiled versions
+    are used.
+
+ 15. The previous step allows you to run the new executables from within R, 
+    but to debug the code this is not the most convenient way to run the 
+    program. Instead, first create a configuration file using e.g. the
+    `dryrun` option of  `simpact.run`. 
+    
+ 16. In Visual Studio, right click the `simpact-cyan` subproject and select 
+    `Set at StartUp Project`. Right click the `simpact-cyan` subproject again
+    and select `Properties` at the bottom of the menu. In this properties
+    dialog, make sure that the drop-down list next to `Configuration:`
+    (at the top-left of the dialog) is showing `Debug`. In the tree view on
+    the left, you should see a `Debugging` option in the `Configuration Properties`,
+    which you need to select.
+
+ 17. In the option on the right that appear then, you'll see an empty input
+    field named `Command Arguments`. There, you'll need to fill in the arguments
+    to the executable, as described in the [manual](http://simpactcyan.readthedocs.io/en/latest/simpact_conf_and_running.html#running-from-command-line). So this would be something like
+
+        c:\path\to\generated\configfile.txt 0 opt
+
+    After pressing `Ok` to store the settings and close the dialog, make sure
+    you set the active version to `Debug` (and not `Release`) in the bar below
+    the menu bar. Pressing F5 then not only starts the program with the specified
+    configuration, but also starts the Visual Studio debugger, allowing you to
+    set breakpoints at various locations.
+
 
