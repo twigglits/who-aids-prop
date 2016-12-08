@@ -1,24 +1,7 @@
-#ifdef WIN32
-
-// Signals currently not supported on Windows
-void installSignalHandlers()
-{
-}
-
-#else
-
 #include "logfile.h"
 #include <iostream>
-#include <stdlib.h>
-#include <signal.h>
 
 using namespace std;
-
-#define NUMSIG 256
-
-typedef void (*SignalHandler)(int);
-
-SignalHandler oldSigHandlers[NUMSIG];
 
 void writeUnexpectedTermination()
 {
@@ -30,6 +13,25 @@ void writeUnexpectedTermination()
 
 	LogFile::writeToAllLogFiles(msg);
 }
+
+
+#ifdef WIN32
+
+// Signals currently not supported on Windows
+void installSignalHandlers()
+{
+}
+
+#else
+
+#include <stdlib.h>
+#include <signal.h>
+
+#define NUMSIG 256
+
+typedef void (*SignalHandler)(int);
+
+SignalHandler oldSigHandlers[NUMSIG];
 
 void terminationHandler(int sig)
 {
