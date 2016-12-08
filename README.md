@@ -7,7 +7,97 @@ spreads and can be influenced, and is currently focused on HIV.
 
 The main documentation can be found at [readthedocs](http://simpactcyan.readthedocs.io/).
 
-Source code packages and pre-compiled versions can be found [here](http://research.edm.uhasselt.be/jori/simpact/programs/).
+Source code packages and pre-compiled versions can be found 
+[here](http://research.edm.uhasselt.be/jori/simpact/programs/).
+
+Compiling Simpact Cyan on OS X
+------------------------------
+
+You need to have [GSL](https://www.gnu.org/software/gsl/) installed,
+as well as the [TIFF library](http://www.libtiff.org/), and 
+[CMake](https://cmake.org) is needed to generate the build files.
+While you can download the CMake tool from the website, and you
+can compile and install the GSL and TIFF libraries manually, I find
+it easier to use pre-compiled versions of these things, which I
+made available using the [Anaconda Python](https://www.continuum.io/downloads)
+environment. For these instructions, I'm going to assume that you have 
+installed Anaconda Python. 
+
+ 1. Download the Simpact Cyan source code and extract it somewhere, or clone
+    the GitHub repository somewhere. Below, I'll assume that this has created
+    a path called `/Users/me/simpactcyan`.
+
+ 2. Open a Terminal window, and make sure that the Anaconda environment
+    has been activated, i.e. that the `conda` command is recognized. If
+    not, it may be necessary to update your `PATH` environment variable
+    using a command like this:
+
+        export PATH=/Users/me/anaconda/bin:"$PATH"
+
+ 3. Execute the following commands to set up the build environment:
+
+        conda install cmake
+        conda install gcc
+        conda install -c jori libtiff
+        conda install -c jori gsl
+
+    These commands will make sure CMake is available, that the GNU C compiler
+    (gcc) is available, and that precompiled versions of the TIFF and GSL
+    libraries will be installed.
+
+ 4. We need to create a directory where the build files will be stored,
+    lets create a directory `/Users/me/simpactcyan/build` for this. In
+    that directory, we'll call the `cmake` command, setting the
+    CMake variable `CMAKE_INSTALL_PREFIX` to the Anaconda path (this is
+    needed so that the TIFF and GSL libraries can be located correctly).
+
+       cmake /Users/me/simpactcyan -DCMAKE_INSTALL_PREFIX=/Users/me/anaconda
+
+ 5. When the CMake step is finished, you can now just run
+
+        make
+
+    to start building the Simpact Cyan executables, or use something like
+
+        make -j 4
+
+    to start four build jobs in parallel, which can speed up the process if
+    your computer or laptop has several processor cores.
+
+ 6. When the build is complete, running e.g. `./simpact-cyan-release` will
+    most likely show an error message about a library not being loaded. To
+    tell the system where the TIFF and GSL libraries can be found, execute
+
+        export DYLD_LIBRARY_PATH=/Users/me/anaconda/lib
+
+    Afterwards, running `./simpact-cyan-release` will show a usage message.
+
+ 7. To make sure that this version is used from within an R session, execute
+    the following commands **before** loading the `RSimpactCyan` package:
+
+        Sys.setenv(PATH=paste("/Users/me/simpactcyan/build",Sys.getenv("PATH"),sep=":"))
+        Sys.setenv(DYLD_LIBRARY_PATH="/Users/me/anaconda/lib")
+        Sys.setenv(PYTHONPATH="/Users/me/simpactcyan/python")
+        Sys.setenv(SIMPACT_DATA_DIR="/Users/me/simpactcyan/data/")
+
+    The first line makes sure that the `RSimpactCyan` will be able to locate the
+    compiled executables. The second line makes sure that the Python module 
+    that's stored in that directory will be found. The last line tells the 
+    library where the data files can be found. Note that the data directory 
+    needs to end with a single `/`.
+
+    Only after these lines have been set can you load the library:
+
+        library("RSimpactCyan")
+
+    If you then use e.g. the `simpact.run` command, the newly compiled versions
+    are used.
+
+
+Compiling Simpact Cyan on GNU/Linux
+-----------------------------------
+
+
 
 Compiling Simpact Cyan on MS-Windows
 ------------------------------------
