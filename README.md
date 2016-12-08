@@ -51,41 +51,40 @@ as well, with some obvious changes to the commands.
     In the central part of the window, you'll see this `CMAKE_INSTALL_PREFIX`
     appear.
 
- 7. In the main CMake GUI, press the button `Configure` and if everything works
-    correctly, you'll see a bunch of red lines appear in the same part of the
-    window where the `CMAKE_INSTALL_PREFIX` was shown. If you click `Configure`
-    again, they should become white, and the `Generate` button be possible
-    to click. If there are still some red lines, it's possible that you have
-    to press `Configure` once more. 
+ 7. In the main CMake GUI, press the button `Configure` and you'll get a 
+    window that asks to specify the generator for the project. There, you should 
+    be able to select `Visual Studio 14 2015` (the version number of Visual 
+    Studio 2015 is 14). 
     
- 8. Press `Generate`, and you'll get a window that asks to specify the
-    generator for the project. There, you should be able to select
-    `Visual Studio 14 2015` (the version number of Visual Studio 2015 is
-    14). After selecting this, a file called `c:\projects\simpact\build\simpact-cyan.sln`
-    should be created.
+ 8. If everything works correctly, you'll see a bunch of red lines appear in the
+    same part of the window where the `CMAKE_INSTALL_PREFIX` was shown. If you
+    click `Configure` again, they should become white, and the `Generate` button 
+    should be possible to click. If there are still some red lines, it's possible 
+    that you have to press `Configure` once more. After clicking `Generate`,
+    a file called `c:\projects\simpact\build\simpact-cyan.sln` should be created.
 
  9. Open this `.sln` file (the 'solution' file, which is the name for a
     project in Visual Studio) with Visual Studio 2015. When this has been started,
     we'll be able to actually compile the source code and build the executables.
 
-10. By default, you'll see that `Debug` is selected in the bar that also has
-    the `Start` button (so not in the menu bar, but below). This means that the
-    debug version of the code will be compiled. You can also change this to
-    to `Release` (and even some other things), which will compile the optimized
-    version of the code. For now, we'll just leave this at `Debug`.
+ 10. By default, you'll see that `Debug` option is selected in the bar below the
+    menu bar. This means that the debug version of the code will be compiled. You 
+    can also change this to `Release` (and even some other things), which will 
+    compile the optimized version of the code. For now, we'll just leave this at
+    `Debug`.
 
-11. In the solution explorer, probably at the right of the Visual Studio window,
+ 11. In the solution explorer, probably at the right of the Visual Studio window,
     you'll see the `ALL_BUILD` subproject. If you right-click this, you'll get
     a pop-up menu where the top item is `Build`. Click this to start the
     compilation process.
 
-12. If all went well, the folder `c:\projects\simpactcyan\build\Debug` should
+ 12. If all went well, the folder `c:\projects\simpactcyan\build\Debug` should
     now contain the executable called `simpact-cyan-debug.exe`. Since this
     is a command line program, we'll start it from the command line: open
     the 'Command Prompt' and go to the specified directory. If you then
     type `simpact-cyan-debug`, the program should output some usage information.
 
-13. To compile the release version, simply change the the selection from step
+ 13. To compile the release version, simply change the the selection from step
     10, right click `ALL_BUILD` again and select `Build`.
 
 
