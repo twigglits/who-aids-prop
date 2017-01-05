@@ -494,7 +494,7 @@ class PySimpactCyan(object):
             
             if not quiet:
                 print("Results will be stored in directory '%s'" % os.getcwd())
-                print("Running simpact executable...")
+                print("Running simpact executable '{}' ...".format(fullPath))
 
             proc = subprocess.Popen([fullPath, configFile, parallelStr, algoStr], stdout=f, stderr=f, cwd=os.getcwd(), env=newEnv)
             try:
