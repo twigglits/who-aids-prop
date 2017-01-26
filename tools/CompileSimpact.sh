@@ -61,7 +61,7 @@ if ! gcc -std=c++0x -c -o "$T/overridetest.o" "$T/overridetest.cpp" >/dev/null 2
 	EXTRACXXFLAGS="$EXTRACXXFLAGS -Doverride="
 fi
 
-cat << EOF >> "$T/steadyclocktest.cpp"
+cat << EOF > "$T/steadyclocktest.cpp"
 #include <chrono>
 
 int main(void)
