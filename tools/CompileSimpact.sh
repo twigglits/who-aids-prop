@@ -2,6 +2,9 @@
 
 if [ "$#" != "1" ] ; then
 	echo "Please specify a version number for Simpact Cyan"
+	echo
+	echo "You can set GSL_OPTS for extra 'configure' options for GSL, and"
+	echo "TIFF_OPTS for extra 'configure' options for the TIFF library"
 	exit -1
 fi
 
@@ -128,8 +131,18 @@ tiff-4.0.6.tar.gz,http://download.osgeo.org/libtiff/ \
 
         if [ -e "$D/configure" ] ; then
                 cd "$D"
+		OPTS=""
+		if [ ${N:0:4} = "tiff" ] ; then
+			echo "TIFF"
+			OPTS="$TIFF_OPTS"
+		elif [ ${N:0:3} = "gsl" ] ; then
+			echo "GSL"
+			OPTS="$GSL_OPTS"
+		fi
                 if ! [ -e Makefile ] ; then
-                        CFLAGS=-O2 ./configure --prefix="$P"
+			echo CFLAGS=-O2 ./configure --prefix="$P" $OPTS
+			sleep 1
+                        CFLAGS=-O2 ./configure --prefix="$P" $OPTS
                 fi
                 make
                 make install
