@@ -56,6 +56,8 @@ public:
 
 	// This is a per person value
 	double getSurvivalTimeLog10Offset() const										{ return m_log10SurvTimeOffset; }
+	double getHazardB0Parameter() const															{ return m_hazardB0Param; }
+	double getHazardB1Parameter() const																{ return m_hazardB1Param; }
 
 	void writeToViralLoadLog(double tNow, const std::string &description) const;
 
@@ -76,6 +78,8 @@ private:
 	int m_diagnoseCount;
 	bool m_aidsDeath;
 	double m_log10SurvTimeOffset;
+	double m_hazardB0Param;
+	double m_hazardB1Param;
 
 	double m_Vsp, m_VspOriginal;
 	bool m_VspLowered;
@@ -102,6 +106,8 @@ private:
 	static ProbabilityDistribution *m_pCD4EndDistribution;
 	static ProbabilityDistribution *m_pARTAcceptDistribution;
 	static ProbabilityDistribution *m_pLogSurvTimeOffsetDistribution;
+	static ProbabilityDistribution *m_pB0Dist;
+	static ProbabilityDistribution *m_pB1Dist;
 };
 
 inline double Person_HIV::getViralLoad() const
