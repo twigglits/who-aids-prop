@@ -16,6 +16,9 @@ package respectively; the way to use them is described below.
 The Python bindings are included in the Simpact Cyan package, the R 
 bindings need to be installed separately from within R.
 
+**Quick getting started instructions for R users** can be found
+in the `RSimpactCyan github repository <https://github.com/j0r1/RSimpactCyan/blob/master/INSTALLATION.md>`_.
+
 Apart from this document, there exists some additional documentation
 as well:
 
@@ -27,7 +30,7 @@ as well:
  
 .. _programs:
 
-The development source code can be found on `GitHub <https://github.com/j0r1/simpactcyan>`_.
+The development source code of the binaries can be found on `GitHub <https://github.com/j0r1/simpactcyan>`_.
 The Simpact Cyan installers, as well as source code packages for the
 program, can be found in the `'programs' <http://research.edm.uhasselt.be/jori/simpact/programs/>`_.
 directory. If you're using MS-Windows, you'll need to install the 
