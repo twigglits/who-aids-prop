@@ -16,8 +16,7 @@ package respectively; the way to use them is described below.
 The Python bindings are included in the Simpact Cyan package, the R 
 bindings need to be installed separately from within R.
 
-**Quick getting started instructions for R users** can be found
-in the `RSimpactCyan github repository <https://github.com/j0r1/RSimpactCyan/blob/master/INSTALLATION.md>`_.
+.. include:: simpact_quick_r_steps.rst
 
 Apart from this document, there exists some additional documentation
 as well:

@@ -156,6 +156,8 @@ Running from within R
 Getting started
 ^^^^^^^^^^^^^^^
 
+.. include:: simpact_quick_r_steps.rst
+
 The R interface to Simpact Cyan will underneath still execute one of the
 Simpact Cyan programs, e.g. ``simpact-cyan-release``, so the :ref:`program <programs>`
 relevant to your operating system must be installed first. Note that if
