@@ -157,8 +157,7 @@ def main():
 
 Usage: {} path
 
-Here 'path' can be a local .tar.gz file, a .tar.gz file available over http
-or the base directory of a project (containing the main CMakeLists.txt file).
+Here 'path' can be a local .tar.gz file or a .tar.gz file available over http.
 """.format(e, sys.argv[0]))
         sys.exit(-1)
 
