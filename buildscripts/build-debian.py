@@ -77,7 +77,7 @@ Architecture: {}
 Installed-Size: {}
 Maintainer: Jori Liesenborgs <jori.liesenborgs@uhasselt.be>
 Description: SimpactCyan programs for individual based simulations using the MNRM algorithm
-Depends: {}, {}
+Depends: {}, {}, libgomp1
 """.format(version, arch, totalSize, libGsl, libTiff))
 
     subprocess.check_call(["tar", "cfzv", "control.tar.gz", "control"])

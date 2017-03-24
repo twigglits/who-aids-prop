@@ -226,6 +226,7 @@ cfgs = {
     "16.04_64": { "file": "vagrantfiles/16.04_64/Vagrantfile", "script": "build-debian.py" },
     "fc23_64": { "file": "vagrantfiles/fc23_64/Vagrantfile", "script": "build-fedora.py" },
     "fc24_64": { "file": "vagrantfiles/fc24_64/Vagrantfile", "script": "build-fedora.py" },
+    "debian8_64": { "file": "vagrantfiles/debian8_64/Vagrantfile", "script": "build-debian.py" },
 }
 
 def main():
