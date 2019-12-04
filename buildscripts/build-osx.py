@@ -32,7 +32,8 @@ build:
 
 requirements:
   build:
-    - gcc 
+    - clangxx_osx-64
+    - llvm-openmp
     - cmake     
     - gsl
     - libtiff 
@@ -41,6 +42,7 @@ requirements:
   run:
     - gsl
     - libtiff
+    - llvm-openmp
         
 """.format(version, fileName, fullFileName))
 
@@ -48,31 +50,34 @@ requirements:
 #!/bin/bash
 
 unset MACOSX_DEPLOYMENT_TARGET
-mkdir build && cd build && CFLAGS="-I $PREFIX/include" && CXXFLAGS="-I $PREFIX/include" cmake .. -DCMAKE_INSTALL_PREFIX="$PREFIX" && make && make install
+mkdir build && cd build && CFLAGS="-L $PREFIX/lib -I $PREFIX/include -I $PREFIX/clang/*/include/" && CXXFLAGS="-L $PREFIX/lib -I $PREFIX/include -I $PREFIX/clang/*/include/" cmake .. -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_FIND_ROOT_PATH="$PREFIX" && make && make install
 """)
 
     open("condapack/bld.bat", "wt").write("")
 
     # This builds the executables
-    subprocess.check_call( ["conda", "build", "condapack" ])
+    subprocess.check_call( ["conda", "build", "-c", "jori", "condapack" ])
 
     return tmpDir
 
 def createDmg(tmpDir, version, startDir):
 
-    # Get the conda dir
-    out = S(subprocess.check_output( [ "conda", "info"]))
-    condaDir = None
-    for l in out.splitlines():
-        if "default environment" in l:
-            condaDir = l.split(" : ")[1]
-            break
+    envName = "simpactenvdir" # TODO: something more random?
+    print("Using conda environment name", envName)
 
-    if condaDir is None:
+    # Get the conda dir
+    condaDir = os.environ["CONDA_PREFIX"]
+    if not condaDir:
         raise Exception("Couldn't detect conda directory")
 
     packageFile = glob.glob(os.path.join(condaDir, "conda-bld", "osx-64", "simpactcyan-" + version + "-*.tar.bz2"))[0]
     print("Package file is " + packageFile)
+
+    condaDir = os.path.join(condaDir, "envs", envName) # Install everything in separate env, seems to be needed to get dependencies just right
+    if os.path.exists(condaDir):
+        raise Exception("Environment", envName, "already exists")
+
+    subprocess.check_call( ["conda", "create", "-y", "-n", envName, "--use-local", "-c", "jori", "simpactcyan"])
 
     shutil.copytree(os.path.join(startDir, "platform-osx"), os.path.join(tmpDir, "packages-osx"))
 
@@ -187,11 +192,7 @@ line.
 """.format(e))
         sys.exit(-1)
 
-    subprocess.call(["conda", "config", "--add", "channels", "http://conda.anaconda.org/jori"])
     subprocess.call(["conda", "install", "-y", "conda-build"])
-    subprocess.call(["conda", "install", "-y", "gsl"])
-    subprocess.call(["conda", "install", "-y", "libtiff"])
-    subprocess.call(["conda", "install", "-y", "gcc"])
 
     fileName = os.path.basename(fullFileName)
     version = getVersionFromFilename(fileName)
