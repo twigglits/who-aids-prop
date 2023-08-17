@@ -338,11 +338,14 @@ finally:
 curpath = os.getcwd()
 try:
     if on_rtd:
-        dstdir = "_build/html"
+        dstdir = os.path.join(os.environ["READTHEDOCS_OUTPUT"], "html")
     else:
         dstdir = "../build/html"
     
     dstdir = os.path.abspath(dstdir)
+    if not os.path.exists(dstdir):
+        print("Destination directory did not exist, creating it")
+        os.makedirs(dstdir, exist_ok=True)
 
     if on_rtd and os.path.exists("../../Doxyfile"):
         os.chdir("../../")
