@@ -1,0 +1,2 @@
+sudo apt install libgsl-dev
+sudo apt install libtiff-dev

@@ -1,8 +1,8 @@
 #!/bin/bash
+
 user=jeannaude
 
 mkdir -p /home/$user/who-aids-prop/build
-
 cd /home/$user/who-aids-prop/build
 cmake ..
 make
@@ -13,3 +13,5 @@ sudo Rscript -e 'Sys.setenv(PATH=paste("/home/$user/who-aids-prop/build", Sys.ge
             Sys.setenv(PYTHONPATH="/home/$user/who-aids-prop/python");
             Sys.setenv(SIMPACT_DATA_DIR="/home/$user/who-aids-prop/data/");
             library("RSimpactCyan")'
+
+# python3 buildscripts/build-debian.py
