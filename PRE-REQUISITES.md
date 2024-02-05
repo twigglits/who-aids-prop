@@ -85,3 +85,14 @@ python3 buildscripts/build-debian.py .
 ```
 
 That command will build the debian package and deposit it under the `/tmp/` folder in root `/`.
+
+For compiling C++ code you can execute the following in the terminal:
+```C++
+g++ -o over overriddetest.cpp
+```
+
+In the above example `over` is the name that we are assigning to our program. You can call you program whatever you'd like. `overriddetest.cpp` is the name of the C++ file that we are compiling.
+After compilation we can execute our C++ program like this:
+```bash
+./over
+```
