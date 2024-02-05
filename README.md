@@ -146,6 +146,9 @@ have [CMake](https://cmake.org) (can be installed using the `cmake` package).
  4. When the build is complete, running e.g. `./simpact-cyan-release` will
     will show a usage message.
 
+## Currently NOT WORKING(tested on Ubuntu 22.04):
+
+```
  5. To make sure that this version is used from within an R session, execute
     the following commands **before** loading the `RSimpactCyan` package:
 
@@ -165,6 +168,7 @@ have [CMake](https://cmake.org) (can be installed using the `cmake` package).
 
     If you then use e.g. the `simpact.run` command, the newly compiled versions
     are used.
+```
 
  6. The previous step allows you to run the new executables from within R, 
     but to debug the code this is not the most convenient way to run the 
