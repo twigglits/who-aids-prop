@@ -10,3 +10,10 @@ cfg["person.geo.dist2d.type"] = "discrete"
 cfg["person.geo.dist2d.discrete.densfile"] = "data:csvMatrix"
 
 simpact.run(cfg, "/tmp/simpacttest", dataFiles=data)
+# PrEP
+# PEP
+# General Population
+# ART
+# Condom Programming
+# HIV testing
+# VMMC
