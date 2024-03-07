@@ -309,4 +309,7 @@ as well, with some obvious changes to the commands.
     configuration, but also starts the Visual Studio debugger, allowing you to
     set breakpoints at various locations.
 
-
+Events, Harzards and other functions are found in the following path:
+```
+/home/jupyter/who-aids-prop/src/program-common
+```
