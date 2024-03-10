@@ -149,6 +149,13 @@ have [CMake](https://cmake.org) (can be installed using the `cmake` package).
 
  4. When the build is complete, running e.g. `./simpact-cyan-release` will
     will show a usage message.
+    
+ 5. Then we need to add this to one of our paths specified on the $PATH variable.
+```
+ln -s /home/jupyter/who-aids-prop/build/simpact-cyan-release /usr/local/bin/simpact-cyan-release
+
+```
+
 
 ## Currently NOT WORKING(tested on Ubuntu 22.04):
 
