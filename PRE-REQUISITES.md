@@ -72,6 +72,7 @@ Now we have to:
 ```bash
 cmake ..
 make -j 4
+ln -s /home/jupyter/who-aids-prop/build/simpact-cyan-release /usr/local/bin/simpact-cyan-release
 ./simpact-cyan-release
 ```
 
