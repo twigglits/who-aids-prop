@@ -144,7 +144,7 @@ public:
 	~Woman();
 
 	void setPregnant(bool f)							{ m_pregnant = f; }
-	bool isPregnant() const							{ return m_pregnant; }
+	bool isPregnant() const								{ return m_pregnant; }
 private:
 	// in same way that we set preg percentage, do same for men and run simulation. can comment out hazard score, and set to vmmc for testing.
 	bool m_pregnant;
