@@ -27,7 +27,6 @@ Person::Person(double dateOfBirth, Gender g) : PersonBase(g, dateOfBirth), m_rel
 
 	m_pPersonImpl = new PersonImpl(*this);
 }
-
 Person::~Person()
 {
 	delete m_pPersonImpl;
@@ -144,6 +143,7 @@ void Person::writeToTreatmentLog(double dropoutTime, bool justDied)
 
 Man::Man(double dateOfBirth) : Person(dateOfBirth, Male)
 {
+	m_vmmc = false;
 }
 
 Man::~Man()
@@ -160,4 +160,3 @@ Woman::~Woman()
 }
 
 ConfigFunctions personConfigFunctions(Person::processConfig, Person::obtainConfig, "Person");
-

@@ -128,7 +128,14 @@ class Man : public Person
 public:
 	Man(double dateOfBirth);
 	~Man();
+	
+	void setVmmc(bool f) 								{ m_vmmc = f; }
+	bool isVmmc() const								{ return m_vmmc; }  
+	// figure out how to access and set vmmc property.
+private:
+	bool m_vmmc;
 };
+	
 
 class Woman : public Person
 {
@@ -137,8 +144,9 @@ public:
 	~Woman();
 
 	void setPregnant(bool f)							{ m_pregnant = f; }
-	bool isPregnant() const								{ return m_pregnant; }
+	bool isPregnant() const							{ return m_pregnant; }
 private:
+	// in same way that we set preg percentage, do same for men and run simulation. can comment out hazard score, and set to vmmc for testing.
 	bool m_pregnant;
 };
 
@@ -175,6 +183,12 @@ inline double Person::getDistanceTo(Person *pPerson)
 
 	return std::sqrt(dx*dx+dy*dy);
 }
+
+	// in general .h files are used for declaration of classes, and variables and their types.
+	// in general .cpp files then import these .h files with i.e.  ( "#include "example.h" )
+	// header files tend to only import classes from other .h files
+	// header cpp files tend to also only import functions from other .h files.
+
 
 #endif // PERSON_H
 
