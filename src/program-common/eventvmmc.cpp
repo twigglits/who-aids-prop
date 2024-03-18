@@ -1,23 +1,20 @@
 #include "eventvmmc.h"
-#include "configsettings.h"
-#include "configwriter.h"
-#include "configdistributionhelper.h"
 #include "gslrandomnumbergenerator.h"
-#include "piecewiselinearfunction.h"
-#include "point2d.h"
+#include "configdistributionhelper.h"
+#include "util.h"
+#include "configsettings.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
 #include "configsettingslog.h"
-#include "util.h"
 #include <iostream>
 #include <cstdlib> // for rand() function
-#include <chrono>  // for std::chrono::system_clock
+#include <chrono>
 
 using namespace std;
 
 EventVMMC::EventVMMC(Person *pPerson) : SimpactEvent(pPerson)
 {
-	Person *pPerson = getPerson(0);
+	Person *pPerson = getPerson(0);  //we instantiate the person class
 }
 
 EventVMMC::~EventVMMC()
@@ -50,10 +47,9 @@ void EventVMMC::writeLogs(const SimpactPopulation &pop, double tNow) const
 
 bool EventVMMC::isEligibleForTreatment(double t)
 {
-
 	// Person must be of some kind of age.
 	Man *pMale = MAN(getPerson(0));
-	assert(pMale->isMan());
+	assert(pMale->isMan());   // we assert the a person from the male class isMale
 	if (!pMale->isVmmc())
 		return true;  // this means that we return that indeed, yes the male is eligible to have the VMMC treatment
 	
@@ -67,7 +63,7 @@ bool EventVMMC::isWillingToStartTreatment() {
 
 	if (randomNumber == 1)
     	return true;
-	return false;  // need to confirm that a person can pick yes after initial 'no'
+	return false;
 }
 
 void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t)
@@ -89,8 +85,8 @@ void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 	if (EventVMMC::hasNextIntervention()) // check if we need to schedule a next intervention
 	{
-	Man *pMale = MAN(getPerson(0));
-    EventVMMC* event = new EventVMMC(pMale);
+        Man *pMale = MAN(getPerson(0));
+        EventVMMC* event = new EventVMMC(pMale);
 	}
 }
 
