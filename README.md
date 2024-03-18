@@ -1,6 +1,10 @@
 Simpact Cyan
 ============
 
+## Quickstart Guide
+
+Please go to [PRE-REQUISITES](PRE-REQUISITES.md) to get started.
+
 Simpact Cyan is the C++ version of the [Simpact](http://www.simpact.org/) family 
 of programs. It is an agent based model (ABM) to study the way an infection 
 spreads and can be influenced, and is currently focused on HIV and HIV-HSV2 co-infection.
@@ -145,7 +149,17 @@ have [CMake](https://cmake.org) (can be installed using the `cmake` package).
 
  4. When the build is complete, running e.g. `./simpact-cyan-release` will
     will show a usage message.
+    
+ 5. Then we need to add this to one of our paths specified on the $PATH variable.
+```
+ln -s /home/jupyter/who-aids-prop/build/simpact-cyan-release /usr/local/bin/simpact-cyan-release
 
+```
+
+
+## Currently NOT WORKING(tested on Ubuntu 22.04):
+
+```
  5. To make sure that this version is used from within an R session, execute
     the following commands **before** loading the `RSimpactCyan` package:
 
@@ -165,6 +179,7 @@ have [CMake](https://cmake.org) (can be installed using the `cmake` package).
 
     If you then use e.g. the `simpact.run` command, the newly compiled versions
     are used.
+```
 
  6. The previous step allows you to run the new executables from within R, 
     but to debug the code this is not the most convenient way to run the 
@@ -301,4 +316,7 @@ as well, with some obvious changes to the commands.
     configuration, but also starts the Visual Studio debugger, allowing you to
     set breakpoints at various locations.
 
-
+Events, Harzards and other functions are found in the following path:
+```
+/home/jupyter/who-aids-prop/src/program-common
+```
