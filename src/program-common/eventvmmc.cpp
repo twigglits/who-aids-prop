@@ -17,6 +17,7 @@ using namespace std;
 
 EventVMMC::EventVMMC(Person *pPerson) : SimpactEvent(pPerson)
 {
+	Person *pPerson = getPerson(0);
 }
 
 EventVMMC::~EventVMMC()
@@ -88,8 +89,8 @@ void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 	if (EventVMMC::hasNextIntervention()) // check if we need to schedule a next intervention
 	{
-		EventVMMC *pEvt = new EventVMMC();
-		population.onNewEvent(pEvt);
+	Man *pMale = MAN(getPerson(0));
+    EventVMMC* event = new EventVMMC(pMale);
 	}
 }
 
