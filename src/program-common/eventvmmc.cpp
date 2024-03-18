@@ -51,7 +51,7 @@ bool EventVMMC::isEligibleForTreatment(double t)
     Man *pMale = MAN(getPerson(0));
     assert(pMale->isMan());   // we assert that a person is from the male class
     
-    double age = pMale->getDateOfBirth();  //getAgeAt
+    double age = t - pMale->getDateOfBirth();  //getAgeAt
     if (pMale->isMan() && !pMale->isVmmc() && age >= 15.0) {  //if person is male & not yet circumsized & age 15 or older
         return true;  // eligible for treatment
     } else {
