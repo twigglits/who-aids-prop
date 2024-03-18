@@ -139,8 +139,8 @@ double EventHSV2Transmission::s_c = 0;
 double EventHSV2Transmission::s_d = 0; 
 double EventHSV2Transmission::s_e1 = 0;
 double EventHSV2Transmission::s_e2 = 0;
-double EventHSV2Transmission::s_v3 = 0;
-double EventHSV2Transmission::s_v4 = 0;
+double EventHSV2Transmission::s_v3 = 0.72;
+double EventHSV2Transmission::s_v4 = 0.84;
 double EventHSV2Transmission::HazardFunctionHSV2Transmission::s_b = 0;
 
 void EventHSV2Transmission::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
