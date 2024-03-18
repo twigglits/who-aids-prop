@@ -207,8 +207,8 @@ double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &popu
 	assert(s_b != 0);
 	assert(s_c != 0);
 
-
-	double logh = s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter() + s_v1*pPerson2->hiv().getHazardB1Parameter() + s_v2*pPerson2->hiv().getHazardB1Parameter();  //this is formula for HIV transmission event
+														 //here we multiply by number of relationships		// so here we getparam H from person class
+	double logh = s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter() + s_v1*pPerson1->hiv().getHazardB1Parameter() + s_v2*pPerson2->hiv().getHazardB1Parameter();  //this is formula for HIV transmission event
 
 	if (s_f1 != 0 && pPerson2->isWoman())
 	{
@@ -292,8 +292,8 @@ JSONConfig hivTransmissionJSONConfig(R"JSON(
                 ["hivtransmission.param.f2", 0],
 			["hivtransmission.param.g1", 0],
 			["hivtransmission.param.g2", 0],
-			["hivtransmission.param.v1", 0],
-			["hivtransmission.param.v2", 0],
+			["hivtransmission.param.v1", 0.4001],  
+			["hivtransmission.param.v2", 0.8000],
                 ["hivtransmission.maxageref.diff", 1] ],
             "info": [ 
                 "The hazard of transmission is h = exp(a + b * V^(-c) + d1*Pi + d2*Pj + e1*Hi + e2*Hj + g1*b0_j + g2*b1_j)",
