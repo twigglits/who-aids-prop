@@ -47,13 +47,17 @@ void EventVMMC::writeLogs(const SimpactPopulation &pop, double tNow) const
 
 bool EventVMMC::isEligibleForTreatment(double t)
 {
-	// Person must be of some kind of age.
-	Man *pMale = MAN(getPerson(0));
-	assert(pMale->isMan());   // we assert the a person from the male class isMale
-	if (!pMale->isVmmc())
-		return true;  // this means that we return that indeed, yes the male is eligible to have the VMMC treatment
-	
-	return false;
+    // Person must be male and 15 years or older to be eligible for treatment.
+    Man *pMale = MAN(getPerson(0));
+    assert(pMale->isMan());   // we assert that a person is from the male class
+    
+    // Check if the male is not already VMMC and is 15 years or older
+    double age = t - pMale->getDateOfBirth();
+    if (pMale->isMan() && !pMale->isVmmc() && age >= 15.0) {
+        return true;  // eligible for treatment
+    } else {
+        return false; // not eligible for treatment
+    }
 }
 
 bool EventVMMC::isWillingToStartTreatment() {
