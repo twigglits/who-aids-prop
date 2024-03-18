@@ -139,6 +139,8 @@ double EventHSV2Transmission::s_c = 0;
 double EventHSV2Transmission::s_d = 0; 
 double EventHSV2Transmission::s_e1 = 0;
 double EventHSV2Transmission::s_e2 = 0;
+double EventHSV2Transmission::s_v3 = 0;
+double EventHSV2Transmission::s_v4 = 0;
 double EventHSV2Transmission::HazardFunctionHSV2Transmission::s_b = 0;
 
 void EventHSV2Transmission::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
@@ -150,6 +152,8 @@ void EventHSV2Transmission::processConfig(ConfigSettings &config, GslRandomNumbe
         	!(r = config.getKeyValue("hsv2transmission.hazard.d", s_d)) ||
 		!(r = config.getKeyValue("hsv2transmission.hazard.e1", s_e1)) ||
 		!(r = config.getKeyValue("hsv2transmission.hazard.e2", s_e2)) ||
+		!(r = config.getKeyValue("hsv2transmission.hazard.v3", s_v3)) ||
+		!(r = config.getKeyValue("hsv2transmission.hazard.v4", s_v4)) ||
         	!(r = config.getKeyValue("hsv2transmission.hazard.t_max", s_tMax))
         )
         abortWithMessage(r.getErrorString());
@@ -164,6 +168,8 @@ void EventHSV2Transmission::obtainConfig(ConfigWriter &config)
 		!(r = config.addKey("hsv2transmission.hazard.d", s_d))||
 		!(r = config.addKey("hsv2transmission.hazard.e1", s_e1))||
 		!(r = config.addKey("hsv2transmission.hazard.e2", s_e2))||
+		!(r = config.addKey("hsv2transmission.hazard.v3", s_v3))||
+		!(r = config.addKey("hsv2transmission.hazard.v4", s_v4))||
 		!(r = config.addKey("hsv2transmission.hazard.t_max", s_tMax))
 		)
 		abortWithMessage(r.getErrorString());
@@ -220,7 +226,7 @@ double EventHSV2Transmission::HazardFunctionHSV2Transmission::getA(const Person 
 {
     assert(pOrigin);
     assert(pTarget);
-    return pOrigin->hsv2().getHazardAParameter() - s_b*pOrigin->hsv2().getInfectionTime() + s_c*EventHSV2Transmission::getM(pOrigin) + s_d*EventHSV2Transmission::getH(pOrigin) + s_e1*pTarget->hiv().getHazardB0Parameter() + s_e2*pTarget->hsv2().getHazardB2Parameter(); 
+    return pOrigin->hsv2().getHazardAParameter() - s_b*pOrigin->hsv2().getInfectionTime() + s_c*EventHSV2Transmission::getM(pOrigin) + s_d*EventHSV2Transmission::getH(pOrigin) + s_e1*pTarget->hiv().getHazardB0Parameter() + s_e2*pTarget->hsv2().getHazardB2Parameter() + s_v3*pTarget->hsv2().getHazardB2Parameter() + s_v4*pTarget->hsv2().getHazardB2Parameter(); //HSV2 transmission formula here
 }
 
 ConfigFunctions hsv2TransmissionConfigFunctions(EventHSV2Transmission::processConfig, EventHSV2Transmission::obtainConfig, 
@@ -235,11 +241,13 @@ JSONConfig hsv2TransmissionJSONConfig(R"JSON(
 				[ "hsv2transmission.hazard.d", 0 ],
 				[ "hsv2transmission.hazard.e1", 0 ],
 				[ "hsv2transmission.hazard.e2", 0 ],
+				[ "hsv2transmission.hazard.v3", 0 ],
+				[ "hsv2transmission.hazard.v4", 0 ],
 				[ "hsv2transmission.hazard.t_max", 200 ]
 			],
             "info": [ 
 				"These configuration parameters allow you to set the 'b', 'c' and 'd' values in the hazard",
-				" h = exp(a_i + b*(t-t_infected)+ c*M_i + d*H_i + e1*b0_j + e2*b2_j)",
+				" h = exp(a_i + b*(t-t_infected)+ c*M_i + d*H_i + e1*b0_j + e2*b2_j + v3 + v4)",
 				"The value of 'a_i' depends on the individual, and can be specified as a ",
 				"distribution in the person parameters ",
 				"The value of 'b0_j' depends on the individual, and can be specified as a ",
