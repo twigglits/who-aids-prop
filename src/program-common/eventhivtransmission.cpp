@@ -208,7 +208,7 @@ double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &popu
 	assert(s_c != 0);
 
 														 //here we multiply by number of relationships		// so here we getparam H from person class
-	double logh = s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter() + s_v1*pPerson1->hiv().getHazardB1Parameter() + s_v2*pPerson2->hiv().getHazardB1Parameter();  //this is formula for HIV transmission event
+	double logh = s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter() + s_v1*pPerson1->hiv().getHazardB1Parameter() + s_v2*pPerson2->hiv().getHazardB1Parameter();  //currently unsure how to bring in vmmc property into hazard function
 
 	if (s_f1 != 0 && pPerson2->isWoman())
 	{

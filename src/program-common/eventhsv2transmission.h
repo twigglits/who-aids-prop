@@ -47,8 +47,8 @@ protected:
 	static double s_d; 
 	static double s_e1;
 	static double s_e2;
-	static double s_v3;
-	static double s_v4;
+	static double s_v3;  // for vmmc in heterosexual relationship
+	static double s_v4;  // for vmmc in MSM relationship
 };
 
 #endif // EVENTHSV2TRANSMISSION_H
