@@ -59,13 +59,14 @@ bool EventVMMC::isEligibleForTreatment(double t)
     }
 }
 
-bool EventVMMC::isWillingToStartTreatment() {
-	std::srand(static_cast<unsigned int>(std::time(nullptr)));
-	// Generate a random number between 0 and 1 (Currently willingness to start treatment is hard coded to 50%) parameterize in a concise way so that we can modify probability easily
-    int randomNumber = std::rand() % 2;
+bool EventVMMC::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen) {
+	Person *pPerson = getPerson(0);
 
-	if (randomNumber == 1)
-    	return true;
+	// Coin toss
+	double x = pRndGen->pickRandomDouble();
+	if (x < pPerson->hiv().getARTAcceptanceThreshold())
+		return true;
+
 	return false;
 }
 

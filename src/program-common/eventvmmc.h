@@ -29,7 +29,7 @@ private:
 	static void popNextInterventionInfo(double &t, ConfigSettings &config);
 
 	bool isEligibleForTreatment(double t);
-	bool isWillingToStartTreatment();
+	bool isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen);
 
 	bool m_scheduleImmediately;
 
