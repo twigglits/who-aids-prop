@@ -62,7 +62,6 @@ bool EventVMMC::isEligibleForTreatment(double t)
 bool EventVMMC::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen) {
 	Person *pPerson = getPerson(0);
 
-	// Coin toss
 	double x = pRndGen->pickRandomDouble();
 	if (x < pPerson->hiv().getARTAcceptanceThreshold())
 		return true;
