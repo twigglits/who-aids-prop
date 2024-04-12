@@ -131,7 +131,6 @@ public:
 	
 	void setVmmc(bool f) 								{ m_vmmc = f; }
 	bool isVmmc() const								{ return m_vmmc; }  
-	// figure out how to access and set vmmc property.
 private:
 	bool m_vmmc;
 };
@@ -184,11 +183,4 @@ inline double Person::getDistanceTo(Person *pPerson)
 	return std::sqrt(dx*dx+dy*dy);
 }
 
-	// in general .h files are used for declaration of classes, and variables and their types.
-	// in general .cpp files then import these .h files with i.e.  ( "#include "example.h" )
-	// header files tend to only import classes from other .h files
-	// header cpp files tend to also only import functions from other .h files.
-
-
 #endif // PERSON_H
-
