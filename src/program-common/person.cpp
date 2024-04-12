@@ -42,13 +42,13 @@ void Person::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRn
 
 	// Population distribution
 	delete m_pPopDist;
-	m_pPopDist = getDistribution2DFromConfig(config, pRndGen, "person.geo");
+	m_pPopDist = getDistribution2DFromConfig(config, pRndGen, "person.geo");  // here this is how we make it accessible...
 }
 
 void Person::obtainConfig(ConfigWriter &config)
 {
 	assert(m_pPopDist);
-	addDistribution2DToConfig(m_pPopDist, config, "person.geo");
+	addDistribution2DToConfig(m_pPopDist, config, "person.geo");   // here this is how we make it accessible...
 }
 
 void Person::writeToPersonLog()
