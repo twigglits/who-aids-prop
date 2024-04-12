@@ -77,21 +77,18 @@ void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 	popNextInterventionInfo(interventionTime, interventionConfig);
 	assert(interventionTime == t); // make sure we're at the correct time
-
-	GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
 	
-	// Re-read the configurations, excluding the ones in the "initonce" category
-	vector<string> excludes { "initonce", "__first__" };
-	ConfigFunctions::processConfigurations(interventionConfig, pRndGen, excludes);
-
-	ConfigSettingsLog::addConfigSettings(t, interventionConfig);
-
-	if (EventVMMC::hasNextIntervention()) // check if we need to schedule a next intervention
+	GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
+	Person *pPerson = getPerson(0);
+	
+	if (isEligibleForTreatment(t) && isWillingToStartTreatment(t, pRndGen))
 	{
-        Man *pMale = MAN(getPerson(0));  // if another intervention needs to be scheduled, me ensure that person object is male
-        EventVMMC* event = new EventVMMC(pMale);
+		SimpactEvent::writeEventLogStart(true, "(VMMC_treatment)", t, pPerson, 0);
 	}
 }
+
+// double EventVMMC:: = -1;
+// PieceWiseLinearFunction *EventVMMC::s_pRecheckInterval = 0;
 
 void EventVMMC::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
