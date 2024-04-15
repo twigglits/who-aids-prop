@@ -85,6 +85,8 @@ void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t)
 	{
 		SimpactEvent::writeEventLogStart(true, "(VMMC_treatment)", t, pPerson, 0);
 	}
+
+	population.initializeFormationEvents(pPerson, false, false, t);
 }
 
 // double EventVMMC:: = -1;
