@@ -28,7 +28,7 @@ string EventTest::getDescription(double tNow) const
 void EventTest::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	// Person *pPerson1 = getPerson(0);
-	writeEventLogStart(true, "intervention", tNow, 0, 0);
+	writeEventLogStart(true, "intervention: Antenatal Care 2", tNow, 0, 0);
 }
 
 double EventTest::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
