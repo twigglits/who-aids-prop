@@ -212,6 +212,19 @@ int EventHSV2Transmission::getH(const Person *pPerson1)
 	return H;
 } 
 
+int EventHSV2Transmission::getV(const Person *pPerson)
+{
+	if (!pPerson->isMan()) {
+        return 0; // If not a man, VMMC status does not apply; return 0
+    }
+	// Cast the Person instance to a Man
+    const Man *man = dynamic_cast<const Man *>(pPerson);
+	// Call the isVmmc() method on the Man instance
+    bool v = man->isVmmc();
+    // Return 1 if the man is circumsized, 0 otherwise
+    return v ? 1 : 0;  //converts the true false, to 1 or 0.
+}
+
 EventHSV2Transmission::HazardFunctionHSV2Transmission::HazardFunctionHSV2Transmission(const Person *pPerson1, 
                                                                                       const Person *pPerson2)
     : HazardFunctionExp(getA(pPerson1, pPerson2), s_b)
@@ -226,7 +239,7 @@ double EventHSV2Transmission::HazardFunctionHSV2Transmission::getA(const Person 
 {
     assert(pOrigin);
     assert(pTarget);
-    return pOrigin->hsv2().getHazardAParameter() - s_b*pOrigin->hsv2().getInfectionTime() + s_c*EventHSV2Transmission::getM(pOrigin) + s_d*EventHSV2Transmission::getH(pOrigin) + s_e1*pTarget->hiv().getHazardB0Parameter() + s_e2*pTarget->hsv2().getHazardB2Parameter() + s_v3*pTarget->hsv2().getHazardB2Parameter() + s_v4*pTarget->hsv2().getHazardB2Parameter(); //currently unsure how to bring in vmmc property into hazard function
+    return (pOrigin->hsv2().getHazardAParameter() - s_b*pOrigin->hsv2().getInfectionTime() + s_c*EventHSV2Transmission::getM(pOrigin) + s_d*EventHSV2Transmission::getH(pOrigin) + s_e1*pTarget->hiv().getHazardB0Parameter() + s_e2*pTarget->hsv2().getHazardB2Parameter())*((s_v3*getV(pOrigin)) + (s_v4*getV(pTarget)));; //currently unsure how to bring in vmmc property into hazard function
 }
 
 ConfigFunctions hsv2TransmissionConfigFunctions(EventHSV2Transmission::processConfig, EventHSV2Transmission::obtainConfig, 
@@ -256,4 +269,3 @@ JSONConfig hsv2TransmissionJSONConfig(R"JSON(
 				"distribution in the person parameters."
             ]
         })JSON");
-

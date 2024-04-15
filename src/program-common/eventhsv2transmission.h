@@ -42,6 +42,7 @@ protected:
 	static double getTMax(const Person *pOrigin, const Person *pTarget);
 	static int getM(const Person *pPerson1);
 	static int getH(const Person *pPerson1);
+	static int getV(const Person *pPerson);
 	static double s_tMax;
 	static double s_c; 
 	static double s_d; 
