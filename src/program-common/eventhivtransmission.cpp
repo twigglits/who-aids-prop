@@ -218,17 +218,17 @@ double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &popu
 	assert(s_a != 0);
 	assert(s_b != 0);
 	assert(s_c != 0);
-	s_p = 0;		//declaration
-	double logh=0;  //declaration
+	s_p = 0;  //declaration
 
 	if ((s_p1*getH(pPerson1) > 0) or (s_p2*getH(pPerson2) > 0)){
 		s_p = 0.2;
-		logh = (s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter()) * s_p;
 	}
 	else
-	{
-		logh = s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter();
+	{	
+		s_p = 1; //set equal to 1, as we don't want to decrease hazard function value. Because no one is using a condom
 	}
+
+	double logh = (s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter()) * s_p;
 	
 	if (s_f1 != 0 && pPerson2->isWoman())
 	{

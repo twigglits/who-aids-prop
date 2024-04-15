@@ -139,6 +139,8 @@ double EventHSV2Transmission::s_c = 0;
 double EventHSV2Transmission::s_d = 0; 
 double EventHSV2Transmission::s_e1 = 0;
 double EventHSV2Transmission::s_e2 = 0;
+double EventHSV2Transmission::s_p1 = 0;
+double EventHSV2Transmission::s_p2 = 0;
 double EventHSV2Transmission::HazardFunctionHSV2Transmission::s_b = 0;
 
 void EventHSV2Transmission::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
@@ -150,6 +152,8 @@ void EventHSV2Transmission::processConfig(ConfigSettings &config, GslRandomNumbe
         	!(r = config.getKeyValue("hsv2transmission.hazard.d", s_d)) ||
 		!(r = config.getKeyValue("hsv2transmission.hazard.e1", s_e1)) ||
 		!(r = config.getKeyValue("hsv2transmission.hazard.e2", s_e2)) ||
+		!(r = config.getKeyValue("hsv2transmission.hazard.p1", s_p1)) ||
+		!(r = config.getKeyValue("hsv2transmission.hazard.p2", s_p2)) ||
         	!(r = config.getKeyValue("hsv2transmission.hazard.t_max", s_tMax))
         )
         abortWithMessage(r.getErrorString());
@@ -164,6 +168,8 @@ void EventHSV2Transmission::obtainConfig(ConfigWriter &config)
 		!(r = config.addKey("hsv2transmission.hazard.d", s_d))||
 		!(r = config.addKey("hsv2transmission.hazard.e1", s_e1))||
 		!(r = config.addKey("hsv2transmission.hazard.e2", s_e2))||
+		!(r = config.addKey("hsv2transmission.hazard.p1", s_p1))||
+		!(r = config.addKey("hsv2transmission.hazard.p2", s_p2))||
 		!(r = config.addKey("hsv2transmission.hazard.t_max", s_tMax))
 		)
 		abortWithMessage(r.getErrorString());
@@ -194,6 +200,18 @@ int EventHSV2Transmission::getM(const Person *pPerson1)
 	if (M1 == true)
 		M = 1;
 	return M;
+}
+
+int EventHSV2Transmission::getP(const Person *pPerson)
+{
+	if (!pPerson->isMan()) {
+        return 0; // If not a man, Condom status does not apply; return 0
+    }
+	const Man *man = dynamic_cast<const Man *>(pPerson);
+	// Call isCondom method on Man
+    bool c = man->isCondom();
+    // Return 1 if the man uses a condom, 0 otherwise
+    return c ? 1 : 0;  //converts the true false, to 1 or 0.
 }
 
 int EventHSV2Transmission::getH(const Person *pPerson1)
@@ -235,6 +253,8 @@ JSONConfig hsv2TransmissionJSONConfig(R"JSON(
 				[ "hsv2transmission.hazard.d", 0 ],
 				[ "hsv2transmission.hazard.e1", 0 ],
 				[ "hsv2transmission.hazard.e2", 0 ],
+				[ "hsv2transmission.hazard.p1", 0 ],
+				[ "hsv2transmission.hazard.p2", 0 ],
 				[ "hsv2transmission.hazard.t_max", 200 ]
 			],
             "info": [ 
