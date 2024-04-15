@@ -48,8 +48,8 @@ protected:
 	static double s_d; 
 	static double s_e1;
 	static double s_e2;
-	static double s_p1;
-	static double s_p2;
+	static double s_p3;
+	static double s_p4;
 };
 
 #endif // EVENTHSV2TRANSMISSION_H
