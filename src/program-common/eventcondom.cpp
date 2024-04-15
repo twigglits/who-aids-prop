@@ -9,15 +9,19 @@
 
 using namespace std;
 
-void processNonInterventionEventConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 
-EventCondom::EventCondom()
+EventCondom::EventCondom(Person *pPerson) :SimpactEvent(pPerson)
 {
+	Person *pPerson = getPerson(0);  //we instantiate the person class
+	Person *pPerson = getPerson(1);  //we instantiate the person class
 }
 
 EventCondom::~EventCondom()
 {
 }
+
+// void processNonInterventionEventConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
+
 
 double EventCondom::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
@@ -34,7 +38,7 @@ double EventCondom::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndG
 
 string EventCondom::getDescription(double tNow) const
 {
-	return "Intervention event";
+	return "Intervention: event";
 }
 
 void EventCondom::writeLogs(const SimpactPopulation &pop, double tNow) const
@@ -59,11 +63,11 @@ void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 	ConfigSettingsLog::addConfigSettings(t, interventionConfig);
 
-	if (EventCondom::hasNextIntervention()) // check if we need to schedule a next intervention
-	{
-		EventCondom *pEvt = new EventCondom();
-		population.onNewEvent(pEvt);
-	}
+	// if (EventCondom::hasNextIntervention()) // check if we need to schedule a next intervention
+	// {
+	// 	EventCondom *pEvt = new EventCondom();
+	// 	population.onNewEvent(pEvt);
+	// }
 }
 
 void EventCondom::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
@@ -127,10 +131,9 @@ void EventCondom::processConfig(ConfigSettings &config, GslRandomNumberGenerator
 		abortWithMessage("The number of fileIDs does not match the number of intervention times");
 
 	ConfigSettings baseSettings = config; // we'll let each intervention config start from the previous setting
- 
-	assert(m_interventionSettings.size() == 0);
-	assert(m_interventionTimes.size() == 0);
-
+ 	// 	EventCondom *pEvt = new EventCondom();
+	// 	population.onNewEvent(pEvt);
+	// }
 	// Ok, got everything we need. Load the config files.
 	for (size_t i = 0 ; i < fileIDParts.size() ; i++)
 	{

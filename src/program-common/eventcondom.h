@@ -9,9 +9,9 @@
 class EventCondom : public SimpactEvent
 {
 public:
-	EventCondom();
+	EventCondom(Person *pPerson);
 	~EventCondom();
-
+	
 	std::string getDescription(double tNow) const;
 	void writeLogs(const SimpactPopulation &pop, double tNow) const;
 
