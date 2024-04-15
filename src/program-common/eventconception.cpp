@@ -1,4 +1,5 @@
 #include "eventconception.h"
+#include "eventtest.h"
 #include "configdistributionhelper.h"
 #include "probabilitydistribution.h"
 #include "eventbirth.h"
@@ -44,13 +45,16 @@ void EventConception::fire(Algorithm *pAlgorithm, State *pState, double t)
 	assert(!pWoman->isPregnant());
 	pWoman->setPregnant(true);
 
-	EventBirth *pEvtBirth = new EventBirth(pWoman);
+	// EventBirth *pEvtBirth = new EventBirth(pWoman);
+	EventTest *pEvtTest = new EventTest(pWoman);
 	// Note: also store who's the father in this event (we can't use the constructor because
 	//       the system will think two people are needed for the birth event, causing it to
 	//       be deleted if the father dies for example)
-	pEvtBirth->setFather(pMan);
 
-	population.onNewEvent(pEvtBirth);
+	// pEvtBirth->setFather(pMan);
+	// pEvtBirth->setFather(pMan);
+	// population.onNewEvent(pEvtBirth);
+	population.onNewEvent(pEvtTest);
 }
 
 double EventConception::calculateInternalTimeInterval(const State *pState, double t0, double dt)
