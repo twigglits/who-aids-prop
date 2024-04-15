@@ -128,6 +128,11 @@ class Man : public Person
 public:
 	Man(double dateOfBirth);
 	~Man();
+
+	void setCondom(bool c)							{ m_condom = c; }
+	bool isCondom() const								{ return m_condom; }
+private:
+	bool m_condom;
 };
 
 class Woman : public Person

@@ -12,12 +12,22 @@ using namespace std;
 
 EventCondom::EventCondom(Person *pPerson) :SimpactEvent(pPerson)
 {
-	Person *pPerson = getPerson(0);  //we instantiate the person class
-	Person *pPerson = getPerson(1);  //we instantiate the person class
+	Person *pPerson = getPerson(0);
+	Person *pPerson = getPerson(1);  
 }
 
 EventCondom::~EventCondom()
 {
+}
+
+bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen) {
+	Person *pPerson = getPerson(0);
+
+	double x = pRndGen->pickRandomDouble();
+	if (x < pPerson->hiv().getARTAcceptanceThreshold())
+		return true;
+
+	return false;
 }
 
 // void processNonInterventionEventConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
@@ -38,12 +48,12 @@ double EventCondom::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndG
 
 string EventCondom::getDescription(double tNow) const
 {
-	return "Intervention: event";
+	return "Intervention: Condom event";
 }
 
 void EventCondom::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
-	writeEventLogStart(true, "intervention", tNow, 0, 0);
+	writeEventLogStart(true, "Intervention: Condom event", tNow, 0, 0);
 }
 
 void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t)

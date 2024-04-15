@@ -33,6 +33,7 @@ protected:
 	static double s_a;
 	static double s_b;
 	static double s_c;
+	static double s_p;
 	static double s_d1;
 	static double s_d2;
 	static double s_e1;
@@ -41,9 +42,11 @@ protected:
 	static double s_f2;
 	static double s_g1;
 	static double s_g2;
+	static double s_p1;
+	static double s_p2;
 	static double s_tMaxAgeRefDiff;
 	static int getH(const Person *pPerson);
+	static int getP(const Person *pPerson);
 };
 
 #endif // EVENTHIVTRANSMISSION_H
-

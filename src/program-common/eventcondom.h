@@ -26,7 +26,7 @@ public:
 	static bool hasNextIntervention();
 private:
 	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
-
+    bool isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen);
 	static double getNextInterventionTime();
 	static void popNextInterventionInfo(double &t, ConfigSettings &config);
 
