@@ -81,11 +81,16 @@ void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t)
 	GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
 	Person *pPerson = getPerson(0);
 	
-	if (isEligibleForTreatment(t) && isWillingToStartTreatment(t, pRndGen))
+	if (isEligibleForTreatment(t) && isWillingToStartTreatment(t, pRndGen))  //so if this condition is met we set the VMMC property to true
 	{
 		SimpactEvent::writeEventLogStart(true, "(VMMC_treatment)", t, pPerson, 0);
-	}
 
+		Man *pMale = MAN(pPerson);
+        assert(pMale->isMan()); // Ensure the person is a man
+        
+        // Set the isVmmc property to true
+        pMale->setVmmc(true);
+	}
 	population.initializeFormationEvents(pPerson, false, false, t);
 }
 
