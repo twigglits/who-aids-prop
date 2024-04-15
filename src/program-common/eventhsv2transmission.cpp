@@ -263,8 +263,8 @@ JSONConfig hsv2TransmissionJSONConfig(R"JSON(
 				[ "hsv2transmission.hazard.d", 0 ],
 				[ "hsv2transmission.hazard.e1", 0 ],
 				[ "hsv2transmission.hazard.e2", 0 ],
-				[ "hsv2transmission.hazard.p1", 0 ],
-				[ "hsv2transmission.hazard.p2", 0 ],
+				[ "hsv2transmission.hazard.p3", 0 ],
+				[ "hsv2transmission.hazard.p4", 0 ],
 				[ "hsv2transmission.hazard.t_max", 200 ]
 			],
             "info": [ 
