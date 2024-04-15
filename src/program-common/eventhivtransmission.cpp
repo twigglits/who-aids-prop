@@ -221,7 +221,7 @@ double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &popu
 	s_p = 0;  //declaration
 
 	if ((s_p1*getH(pPerson1) > 0) or (s_p2*getH(pPerson2) > 0)){
-		s_p = 0.2;
+		s_p = 0.2;  //set equal to 0.2 as this is the factor by which we reduce the chances of transmission
 	}
 	else
 	{	
