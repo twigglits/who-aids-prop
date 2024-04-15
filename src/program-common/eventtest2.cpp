@@ -27,7 +27,7 @@ string EventTest2::getDescription(double tNow) const
 void EventTest2::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	// Person *pPerson1 = getPerson(0);
-	writeEventLogStart(true, "intervention", tNow, 0, 0);
+	writeEventLogStart(true, "intervention: Antenatal Care 2", tNow, 0, 0);
 }
 
 double EventTest2::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
@@ -38,7 +38,7 @@ double EventTest2::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGe
 	double dt = evtTime - population.getTime();
 
 	if (evtTime < 0 || dt < 0)
-		abortWithMessage("ANC 1::getNextInterventionTime: the next intervention takes place at time " + doubleToString(evtTime) + " which is before the current time " + doubleToString(population.getTime()) + " (dt = " + doubleToString(dt) + ")"); 
+		abortWithMessage("ANC 2::getNextInterventionTime: the next intervention takes place at time " + doubleToString(evtTime) + " which is before the current time " + doubleToString(population.getTime()) + " (dt = " + doubleToString(dt) + ")"); 
 	
 	return dt;
 }
@@ -228,7 +228,7 @@ ConfigFunctions interventionConfigFunctions(EventTest2::processConfig, EventTest
 		                                    "EventTest2", "initonce");
 
 JSONConfig interventionJSONConfig(R"JSON(
-        "EvenTest": { 
+        "EventTest2": { 
             "depends": null,
             "params": [ ["intervention.enabled", "no", [ "yes", "no"] ] ],
             "info": [ 
@@ -238,8 +238,8 @@ JSONConfig interventionJSONConfig(R"JSON(
             ]
         },
 
-        "EvenTest_enabled": { 
-            "depends": [ "EvenTest", "intervention.enabled", "yes"],
+        "EventTest2_enabled": { 
+            "depends": [ "EventTest2", "intervention.enabled", "yes"],
             "params": [ 
                  ["intervention.baseconfigname", null],
                  ["intervention.times", null],
