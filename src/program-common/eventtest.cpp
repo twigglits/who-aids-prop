@@ -63,14 +63,13 @@ void EventTest::fire(Algorithm *pAlgorithm, State *pState, double t)
 
     Woman *pWoman = WOMAN(getPerson(1));
 	EventTest *pEvtTest = new EventTest(pWoman);
-    EventTest2 *pEvtTest2 = new EventTest2(pWoman);
 	
 	population.onNewEvent(pEvtTest);
 
 
-	if (EventTest::hasNextIntervention()) // check if we need to schedule a next intervention
+	if (EventTest::hasNextIntervention()) // check if we need to schedule a next intervention, which will be after 6 months
 	{
-		EventTest2 *pEvtTest2 = new EventTest2();
+		EventTest2 *pEvtTest2 = new EventTest2(pWoman);
 		population.onNewEvent(pEvtTest2);
 	}
 }
