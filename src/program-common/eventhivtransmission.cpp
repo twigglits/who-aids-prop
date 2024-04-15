@@ -167,6 +167,7 @@ double EventHIVTransmission::calculateInternalTimeInterval(const State *pState, 
 {
 	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	double h = calculateHazardFactor(population, t0);
+	Person *pPerson = getPerson(0);
 	return dt*h;
 }
 
@@ -188,7 +189,20 @@ int EventHIVTransmission::getH(const Person *pPerson)
  	if (H1 == true)
    		H = 1;
 	return H;
-} 
+}
+
+int EventHIVTransmission::getV(const Person *pPerson)
+{
+	if (!pPerson->isMan()) {
+        return 0; // If not a man, VMMC status does not apply; return 0
+    }
+	// Cast the Person instance to a Man
+    const Man *man = dynamic_cast<const Man *>(pPerson);
+	// Call the isVmmc() method on the Man instance
+    bool v = man->isVmmc();
+    // Return 1 if the man is circumsized, 0 otherwise
+    return v ? 1 : 0;  //converts the true false, to 1 or 0.
+}
 
 double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &population, double t0)
 {
@@ -206,9 +220,9 @@ double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &popu
 	assert(s_a != 0);
 	assert(s_b != 0);
 	assert(s_c != 0);
-	
+
 	//here we multiply by number of relationships,  so here we getparam H from person class
-	double logh = (s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter())*((s_v1*pPerson1->hiv().getHazardB0Parameter()) + s_v2*pPerson2->hiv().getHazardB1Parameter());  //currently unsure how to bring in vmmc property into hazard function
+	double logh = (s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter())*((s_v1*getV(pPerson1)) + (s_v2*getV(pPerson2)));
 
 	if (s_f1 != 0 && pPerson2->isWoman())
 	{

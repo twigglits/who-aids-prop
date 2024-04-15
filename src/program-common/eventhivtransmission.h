@@ -45,6 +45,7 @@ protected:
 	static double s_v2;  // for vmmc in MSM relationship
 	static double s_tMaxAgeRefDiff;
 	static int getH(const Person *pPerson);
+	static int getV(const Person *pPerson);
 };
 
 #endif // EVENTHIVTRANSMISSION_H
