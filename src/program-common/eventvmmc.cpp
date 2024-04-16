@@ -63,7 +63,7 @@ bool EventVMMC::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pR
 	Person *pPerson = getPerson(0);
 
 	double x = pRndGen->pickRandomDouble();
-	if (x < pPerson->hiv().getARTAcceptanceThreshold())
+	if (x < pPerson->hiv().getARTAcceptanceThreshold())  //sampled from fixed distribution, which is a coin toss TODO: duplicate so that it is uncoupled from hivARTacceptanceThreshold
 		return true;
 
 	return false;
@@ -112,7 +112,7 @@ void EventVMMC::processConfig(ConfigSettings &config, GslRandomNumberGenerator *
 	yesNoOptions.push_back("yes");
 	yesNoOptions.push_back("no");
 
-	if (!(r = config.getKeyValue("intervention.enabled", yesNo, yesNoOptions)))
+	if (!(r = config.getKeyValue("intervention.enabled", yesNo, yesNoOptions)))  //vmmcintervention //vmmc
 		abortWithMessage(r.getErrorString());
 
 	if (yesNo == "no") // no interventions, nothing to do
