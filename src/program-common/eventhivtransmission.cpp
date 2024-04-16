@@ -221,14 +221,14 @@ double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &popu
 	s_p = 0;  //declaration
 
 	if ((s_p1*getP(pPerson1) > 0) or (s_p2*getP(pPerson2) > 0)){
-		s_p = 0.2;  //set equal to 0.2 as this is the factor by which we reduce the chances of transmission
+		s_p = -1.6094;  //set equal to 0.2 as this is the factor by which we reduce the chances of transmission
 	}
 	else
 	{	
-		s_p = 1; //set equal to 1, as we don't want to decrease hazard function value. Because no one is using a condom
+		s_p = 0; //set equal to 0, as we don't want to decrease hazard function value. Because no one is using a condom
 	}
 
-	double logh = (s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter()) * s_p;
+	double logh = (s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter()) + s_p;
 	
 	if (s_f1 != 0 && pPerson2->isWoman())
 	{
