@@ -139,7 +139,7 @@ double EventHSV2Transmission::s_c = 0;
 double EventHSV2Transmission::s_d = 0; 
 double EventHSV2Transmission::s_e1 = 0;
 double EventHSV2Transmission::s_e2 = 0;
-double EventHSV2Transmission::s_v2 = 0.72;
+double EventHSV2Transmission::s_v2 = -0.916;
 double EventHSV2Transmission::HazardFunctionHSV2Transmission::s_b = 0;
 
 void EventHSV2Transmission::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
@@ -236,7 +236,7 @@ double EventHSV2Transmission::HazardFunctionHSV2Transmission::getA(const Person 
 {
     assert(pOrigin);
     assert(pTarget);
-    return (pOrigin->hsv2().getHazardAParameter() - s_b*pOrigin->hsv2().getInfectionTime() + s_c*EventHSV2Transmission::getM(pOrigin) + s_d*EventHSV2Transmission::getH(pOrigin) + s_e1*pTarget->hiv().getHazardB0Parameter() + s_e2*pTarget->hsv2().getHazardB2Parameter())*((s_v2*getV(pTarget)));; //currently unsure how to bring in vmmc property into hazard function
+    return (pOrigin->hsv2().getHazardAParameter() - s_b*pOrigin->hsv2().getInfectionTime() + s_c*EventHSV2Transmission::getM(pOrigin) + s_d*EventHSV2Transmission::getH(pOrigin) + s_e1*pTarget->hiv().getHazardB0Parameter() + s_e2*pTarget->hsv2().getHazardB2Parameter() + s_v2*getV(pTarget));; //currently unsure how to bring in vmmc property into hazard function
 }
 
 ConfigFunctions hsv2TransmissionConfigFunctions(EventHSV2Transmission::processConfig, EventHSV2Transmission::obtainConfig, 
