@@ -7,6 +7,7 @@
 #include "person_relations.h"
 #include "person_hiv.h"
 #include "person_hsv2.h"
+#include "person_vmmc.h"
 #include "probabilitydistribution2d.h"
 #include "util.h"
 #include <stdlib.h>
@@ -83,13 +84,17 @@ public:
 	int getNumberOfPersonsOfInterest() const										{ return m_relations.getNumberOfPersonsOfInterest(); }
 	Person *getPersonOfInterest(int idx) const										{ return m_relations.getPersonOfInterest(idx); }
 
-	// HIV stuff
+	// HIV stuff  here we dereference hiv with &hiv
 	Person_HIV &hiv()																{ return m_hiv; }
 	const Person_HIV &hiv() const 													{ return m_hiv; }
 
 	// HSV2 stuff
 	Person_HSV2 &hsv2()																{ return m_hsv2; }
 	const Person_HSV2 &hsv2() const													{ return m_hsv2; }
+
+	// VMMC stuff
+	Person_VMMC &vmmc()																{ return m_vmmc; }
+	const Person_VMMC &vmmc() const 													{ return m_vmmc; }
 
 	// This is a per person value
 	double getSurvivalTimeLog10Offset() const										{ return m_hiv.getSurvivalTimeLog10Offset(); }
@@ -112,6 +117,7 @@ private:
 	Person_Relations m_relations;
 	Person_HIV m_hiv;
 	Person_HSV2 m_hsv2;
+	Person_VMMC m_vmmc;  //added m_vmmc to private section here
 
 	Point2D m_location;
 	double m_locationTime;
