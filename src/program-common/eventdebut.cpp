@@ -47,13 +47,8 @@ void EventDebut::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	assert(getNumberOfPersons() == 1);
-
 	Person *pPerson = getPerson(0);
-	assert(pPerson != 0);
-
-	Man *pMan = MAN(getPerson(1));  // initialize man class here
-	EventVMMC *pEvtVMMC = new EventVMMC(pMan);  // initialize VMMC class here
-
+	EventVMMC *pEvtVMMC = new EventVMMC(pPerson);  // initialize VMMC class here
 	pPerson->setSexuallyActive(t);
 
 	// No relationships will be scheduled if the person is already in the final AIDS stage
