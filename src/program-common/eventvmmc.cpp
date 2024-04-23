@@ -63,7 +63,10 @@ bool EventVMMC::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pR
 	Person *pMan = getPerson(0);
 
 	double x = pRndGen->pickRandomDouble();
-	if (x < pMan->hiv().getARTAcceptanceThreshold())  //sampled from fixed distribution, which is a coin toss TODO: duplicate so that it is uncoupled from hivARTacceptanceThreshold
+	double y = pRndGen->pickRandomDouble();
+
+
+	if (x > y) // will now come from coin toss
 		return true;
 
 	return false;
@@ -86,9 +89,8 @@ void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t)
 		SimpactEvent::writeEventLogStart(true, "(VMMC_treatment)", t, pMan, 0);
 
 		Man *pMan = MAN(getPerson(0));
-        assert(pMan->isMan()); // Ensure the person is a man
+        assert(pMan->isMan());
         
-        // Set the isVmmc property to true
         pMan->setVmmc(true);
 	}
 	population.initializeFormationEvents(pMan, false, false, t);
@@ -116,12 +118,12 @@ void EventVMMC::obtainConfig(ConfigWriter &config)
 	// 	abortWithMessage(r.getErrorString());
 }
 
-ConfigFunctions birthConfigFunctions(EventVMMC::processConfig, EventVMMC::obtainConfig, "EventVMMC");
+ConfigFunctions VMMCConfigFunctions(EventVMMC::processConfig, EventVMMC::obtainConfig, "EventVMMC");
 
-// JSONConfig birthJSONConfig(R"JSON(
-//         "EventBirth": {
+JSONConfig VMMCJSONConfig(R"JSON(
+//         "EventVMMC": {
 //             "depends": null,
-//             "params": [ ["birth.boygirlratio", 0.49751243781094534 ] ],
+//             "params": [ ["vmmc.boygirlratio", 0.49751243781094534 ] ],
 //             "info": [
 //                 "When someone is born, a random number is chosen from [0,1],",
 //                 "and if smaller than this boygirlratio, the new child is male. Otherwise, a ",
@@ -131,7 +133,7 @@ ConfigFunctions birthConfigFunctions(EventVMMC::processConfig, EventVMMC::obtain
 //             ]
 //         },
 
-//         "EventBirth_pregduration": { 
+//         "EventVMMC_pregduration": { 
 //             "depends": null,
 //             "params": [ [ 
 //                 "birth.pregnancyduration.dist", "distTypes", ["fixed", [ ["value", 0.7342465753424657 ] ] ] 
