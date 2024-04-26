@@ -14,7 +14,7 @@ using namespace std;
 
 EventVMMC::EventVMMC(Person *pMan) : SimpactEvent(pMan)
 {
-	// assert(pMan->isMan());
+	assert(pMan->isMan());
 }
 
 EventVMMC::~EventVMMC()
