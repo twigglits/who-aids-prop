@@ -21,17 +21,13 @@ public:
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
 	static bool hasNextIntervention();
+	static bool m_VMMC_enabled;
+	static ProbabilityDistribution *m_vmmcprobDist;
 	
 private:
-	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
-
-	static double getNextInterventionTime();
-	static void popNextInterventionInfo(double &t, ConfigSettings &config);
-
 	bool isEligibleForTreatment(double t);
 	bool isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen);
-
-	bool m_scheduleImmediately;
+	
 
 	static std::list<double> m_interventionTimes;
 	static std::list<ConfigSettings> m_interventionSettings;

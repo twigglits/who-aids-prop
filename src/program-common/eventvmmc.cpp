@@ -14,24 +14,11 @@ using namespace std;
 
 EventVMMC::EventVMMC(Person *pMan) : SimpactEvent(pMan)
 {
-	assert(pMan->isMan());
+	// assert(pMan->isMan());
 }
 
 EventVMMC::~EventVMMC()
 {
-}
-
-double EventVMMC::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
-{
-	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
-
-	double evtTime = getNextInterventionTime();
-	double dt = evtTime - population.getTime();
-
-	if (evtTime < 0 || dt < 0)
-		abortWithMessage("EventVMMC::getNextInterventionTime: the next VMMC intervention takes place at time " + doubleToString(evtTime) + " which is before the current time " + doubleToString(population.getTime()) + " (dt = " + doubleToString(dt) + ")"); 
-	
-	return dt;
 }
 
 string EventVMMC::getDescription(double tNow) const
@@ -78,7 +65,7 @@ void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t)
 	double interventionTime;
 	ConfigSettings interventionConfig;
 
-	popNextInterventionInfo(interventionTime, interventionConfig);
+	// popNextInterventionInfo(interventionTime, interventionConfig);
 	assert(interventionTime == t); // make sure we're at the correct time
 	
 	GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
@@ -96,51 +83,44 @@ void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t)
 	population.initializeFormationEvents(pMan, false, false, t);
 }
 
-// double EventVMMC:: = -1;
-// PieceWiseLinearFunction *EventVMMC::s_pRecheckInterval = 0;
+bool EventVMMC::m_VMMC_enabled = false;
+ProbabilityDistribution *EventVMMC::m_vmmcprobDist = 0;
 
 void EventVMMC::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
-
-	// m_pPregDurationDist = getDistributionFromConfig(config, pRndGen, "birth.pregnancyduration");
-
+	
+	if (m_vmmcprobDist)
+	{
+		delete m_vmmcprobDist;
+		m_vmmcprobDist = 0;
+	}
 	bool_t r;
-	// if (!(r = config.getKeyValue("birth.boygirlratio", m_boyGirlRatio, 0, 1)))
-		// abortWithMessage(r.getErrorString());
+
+	if (!(r = config.getKeyValue("vmmc.enabled", EventVMMC::m_VMMC_enabled)))
+		abortWithMessage(r.getErrorString());
+
+	m_vmmcprobDist = getDistributionFromConfig(config, pRndGen, "EventVMMC.m_vmmcprobDist");
 }
 
 void EventVMMC::obtainConfig(ConfigWriter &config)
 {
 	bool_t r;
 
-	// addDistributionToConfig(m_pPregDurationDist, config, "birth.pregnancyduration");
-	// if (!(r = config.addKey("birth.boygirlratio", m_boyGirlRatio)))
-	// 	abortWithMessage(r.getErrorString());
+	addDistributionToConfig(m_vmmcprobDist, config, "EventVMMC.m_vmmcprobDist");
+
+	if(!(r = config.addKey("vmmc.enabled", EventVMMC::m_VMMC_enabled)))
+	  abortWithMessage(r.getErrorString());
+
 }
 
 ConfigFunctions VMMCConfigFunctions(EventVMMC::processConfig, EventVMMC::obtainConfig, "EventVMMC");
 
 JSONConfig VMMCJSONConfig(R"JSON(
-//         "EventVMMC": {
-//             "depends": null,
-//             "params": [ ["vmmc.boygirlratio", 0.49751243781094534 ] ],
-//             "info": [
-//                 "When someone is born, a random number is chosen from [0,1],",
-//                 "and if smaller than this boygirlratio, the new child is male. Otherwise, a ",
-//                 "woman is added to the population.",
-//                 "",
-//                 "Default is 1.0/2.01"
-//             ]
-//         },
-
-//         "EventVMMC_pregduration": { 
-//             "depends": null,
-//             "params": [ [ 
-//                 "birth.pregnancyduration.dist", "distTypes", ["fixed", [ ["value", 0.7342465753424657 ] ] ] 
-//                 ] 
-//             ],
-//             "info": [ 
-//                 "This parameter is used to specify the pregnancy duration. The default",
-//                 "is the fixed value of 268/365"
-//             ]
-//         })JSON");
+        "EventVMMC": {
+            "depends": null,
+            "params": [ ["vmmc.enabled", true ] ],
+            "info": [
+                "When value is set to true then there is some distribution of males that get circumsized",
+                "Default is true"
+			]
+		})JSON");
