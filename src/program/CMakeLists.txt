@@ -32,6 +32,7 @@ set(SOURCES_SIMPACT
 	../program-common/eventsyncrefyear.cpp
 	../program-common/eventcheckstopalgorithm.cpp
 	../program-common/eventrelocation.cpp
+	../program-common/eventvmmc.cpp
 	../program-common/vspmodellogweibullwithnoise.cpp
 	../program-common/vspmodellogdist.cpp
 	../program-common/simpactevent.cpp

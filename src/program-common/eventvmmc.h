@@ -16,7 +16,7 @@ public:
 	void writeLogs(const SimpactPopulation &pop, double tNow) const;
 	void fire(Algorithm *pAlgorithm, State *pState, double t);
 
-	bool isEveryoneAffected() const									{ return false; }
+	bool isEveryoneAffected() const { return false; }
 
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);

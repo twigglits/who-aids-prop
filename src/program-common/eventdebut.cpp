@@ -1,10 +1,11 @@
+// Rearranged a few imports
 #include "eventdebut.h"
 #include "eventformation.h"
+#include "eventvmmc.h"
 #include "gslrandomnumbergenerator.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
 #include "util.h"
-#include "eventvmmc.h"
 #include <iostream>
 
 EventDebut::EventDebut(Person *pPerson) : SimpactEvent(pPerson)

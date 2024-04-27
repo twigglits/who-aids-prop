@@ -1,20 +1,30 @@
+// Removed a few unsed imports
 #include "eventvmmc.h"
 #include "gslrandomnumbergenerator.h"
 #include "configdistributionhelper.h"
-#include "util.h"
 #include "configsettings.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
 #include "configsettingslog.h"
-#include <iostream>
-#include <cstdlib> // for rand() function
-#include <chrono>
+#include <assert.h>
 
 using namespace std;
 
 EventVMMC::EventVMMC(Person *pPerson) : SimpactEvent(pPerson)
 {
-	Person *pPerson = getPerson(0);  //we instantiate the person class
+
+	// Person *pPerson = getPerson(0);  // we instantiate the person class
+	// Seems like the person is already instantiated,
+	// from somewhere outside the class. Unless, you need to reinitialize
+	// it here again shadows the one provided in the method signature
+
+	// This likes this method is used for validation and initialization
+	//  private variables of the class: eg. from eventbirth.cpp
+
+	//assert(pMother->isWoman());
+	//m_pFather = 0;
+
+	assert(pPerson->isMan());   // we assert that a person is from the male class
 }
 
 EventVMMC::~EventVMMC()
@@ -254,46 +264,49 @@ void EventVMMC::popNextInterventionInfo(double &t, ConfigSettings &config)
 	m_interventionSettings.pop_front();
 }
 
-ConfigFunctions interventionConfigFunctions(EventVMMC::processConfig, EventVMMC::obtainConfig,
-		                                    "EventIntervention", "initonce");
+// Was interventionConfigFunctions, which was conflicting with the one in eventintervention.cpp
+ConfigFunctions vmmcConfigFunctions(EventVMMC::processConfig, EventVMMC::obtainConfig, "EventIntervention", "initonce");
 
-JSONConfig interventionJSONConfig(R"JSON(
-        "EventIntervention": { 
+
+// Was interventionJSONConfig , which was conflicting with the one in eventintervention.cpp. Probably not correct 
+// anymore as I changed the underlying JSON too.
+JSONConfig vmmcJSONConfig(R"JSON(
+        "EventVMMC": { 
             "depends": null,
-            "params": [ ["intervention.enabled", "no", [ "yes", "no"] ] ],
+            "params": [ ["vmmc.enabled", "no", [ "yes", "no"] ] ],
             "info": [ 
-                "If you enable the intervention event, you need to specify a number of times",
+                "If you enable the vmmc event, you need to specify a number of times",
                 "at which this event should fire. On these times, some new configuration lines",
                 "will be read, overriding the initial parameters read from config file."
             ]
         },
 
-        "EventIntervention_enabled": { 
-            "depends": [ "EventIntervention", "intervention.enabled", "yes"],
+        "EventVMMC_enabled": { 
+            "depends": [ "EventVMMC", "vmmc.enabled", "yes"],
             "params": [ 
-                 ["intervention.baseconfigname", null],
-                 ["intervention.times", null],
-                 ["intervention.fileids", null] ],
+                 ["vmmc.baseconfigname", null],
+                 ["vmmc.times", null],
+                 ["vmmc.fileids", null] ],
             "info": [ 
-                "In 'intervention.times' you need to specify the times at which the ",
-                "intervention event should fire. All times must be positive and the list",
+                "In 'vmmc.times' you need to specify the times at which the ",
+                "vmmc event should fire. All times must be positive and the list",
                 "of times must be increasing.",
                 "",
-                "The 'intervention.baseconfigname' is the filename template that should be",
-                "used to read the config settings from for the intervention events. For each",
-                "intervention time, the '%' character will either be replaced by the ",
-                "corresponding string from 'intervention.fileids', or by the time specified ",
-                "in 'intervention.times' if you leave 'intervention.fileids' empty.",
+                "The 'vmmc.baseconfigname' is the filename template that should be",
+                "used to read the config settings from for the vmmc events. For each",
+                "vmmc time, the '%' character will either be replaced by the ",
+                "corresponding string from 'vmmc.fileids', or by the time specified ",
+                "in 'vmmc.times' if you leave 'vmmc.fileids' empty.",
                 "",
                 "For example:",
-                "  intervention.baseconfigname = intconfig_%.txt",
-                "  intervention.times = 1,2,3",
-                "  intervention.fileids = A,B,C",
-                "will read intervention settings from 'intconfig_A.txt', 'intconfig_B.txt' and",
+                "  vmmc.baseconfigname = intconfig_%.txt",
+                "  vmmc.times = 1,2,3",
+                "  vmmc.fileids = A,B,C",
+                "will read vmmc settings from 'intconfig_A.txt', 'intconfig_B.txt' and",
                 "'intconfig_C.txt'.",
                 "",
                 "If you leave the file IDs empty,",
-                "  intervention.fileids =",
+                "  vmmc.fileids =",
                 "then the files used would be 'intconfig_1.txt', 'intconfig_2.txt' and",
                 "'intconfig_3.txt'."
             ]
