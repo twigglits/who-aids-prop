@@ -265,7 +265,7 @@ void EventVMMC::popNextInterventionInfo(double &t, ConfigSettings &config)
 }
 
 // Was interventionConfigFunctions, which was conflicting with the one in eventintervention.cpp
-ConfigFunctions vmmcConfigFunctions(EventVMMC::processConfig, EventVMMC::obtainConfig, "EventIntervention", "initonce");
+ConfigFunctions vmmcConfigFunctions(EventVMMC::processConfig, EventVMMC::obtainConfig, "EventVMMC", "initonce");
 
 
 // Was interventionJSONConfig , which was conflicting with the one in eventintervention.cpp. Probably not correct 
