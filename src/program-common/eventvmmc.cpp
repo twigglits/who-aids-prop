@@ -118,10 +118,10 @@ ConfigFunctions VMMCConfigFunctions(EventVMMC::processConfig, EventVMMC::obtainC
 JSONConfig VMMCJSONConfig(R"JSON(
         "EventVMMC": {
             "depends": null,
-            "params": [ ["vmmc.enabled", true ] ],
+            "params": [ ["vmmc.enabled", "yes", ["yes", "no"] ] ],
             "info": [
-                "When value is set to true then there is some distribution of males that get circumsized",
-                "Default is true"
+                "When value is set to yes then there is some distribution of males that get circumsized",
+                "Default is yes"
 	   ]
 	},
 	"EventVMMC_dist": { 
