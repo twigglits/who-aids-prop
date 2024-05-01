@@ -122,5 +122,14 @@ JSONConfig VMMCJSONConfig(R"JSON(
             "info": [
                 "When value is set to true then there is some distribution of males that get circumsized",
                 "Default is true"
-			]
-		})JSON");
+	   ]
+	},
+	"EventVMMC_dist": { 
+            "depends": null,
+            "params": [ 
+                [ "EventVMMC.m_vmmcprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
+            ],
+            "info": [ 
+                "TODO"
+            ]
+	})JSON");
