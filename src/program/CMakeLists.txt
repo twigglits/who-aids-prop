@@ -55,4 +55,4 @@ set(
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/../program-common/")
 add_simpact_executable(simpact-cyan ${SOURCES_SIMPACT})
 install_simpact_executable(simpact-cyan)
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.16.3)

@@ -23,12 +23,15 @@ EventVMMC::~EventVMMC()
 
 string EventVMMC::getDescription(double tNow) const
 {
+    Person *pMan = MAN(getPerson(0));
+    assert(pMan->isMan());
 	return strprintf("VMMC event for %s", getPerson(0)->getName().c_str());
 }
 
 void EventVMMC::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
-	Person *pMan = getPerson(0);
+	Person *pMan = MAN(getPerson(0));
+    assert(pMan->isMan());
 	writeEventLogStart(true, "VMMC", tNow, pMan, 0);  //when set to true we write logs
 }
 
@@ -40,7 +43,7 @@ bool EventVMMC::isEligibleForTreatment(double t)
     
     double age = pMan->getAgeAt(t);
     if (pMan->isMan() && !pMan->isVmmc() && age >= 15.0) {  //if person is male & not yet circumsized & age 15 or older
-        return true;  // eligible for treatment
+	    return true;  // eligible for treatment
     } else {
         return false; // not eligible for treatment
     }
@@ -64,21 +67,16 @@ void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t)
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	double interventionTime;
 	ConfigSettings interventionConfig;
-
-	// popNextInterventionInfo(interventionTime, interventionConfig);
-	assert(interventionTime == t); // make sure we're at the correct time
 	
 	GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
-	Person *pMan = getPerson(0);
+	Man *pMan = MAN(getPerson(0));
+    assert(pMan->isMan());
+    assert(interventionTime == t); // make sure we're at the correct time
 	
-	if (isEligibleForTreatment(t) && isWillingToStartTreatment(t, pRndGen))  //so if this condition is met we set the VMMC property to true
+	if (isEligibleForTreatment(t) && isWillingToStartTreatment(t, pRndGen) && pMan->isMan())  //so if this condition is met we set the VMMC property to true
 	{
-		SimpactEvent::writeEventLogStart(true, "(VMMC_treatment)", t, pMan, 0);
-
-		Man *pMan = MAN(getPerson(0));
-        assert(pMan->isMan());
-        
         pMan->setVmmc(true);
+		SimpactEvent::writeEventLogStart(true, "(VMMC_treatment)", t, pMan, 0);
 	}
 	population.initializeFormationEvents(pMan, false, false, t);
 }

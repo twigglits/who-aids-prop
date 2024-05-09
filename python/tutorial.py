@@ -17,6 +17,11 @@ data["csvMatrix"] = myMatrix
 cfg = {}
 cfg["person.geo.dist2d.type"] = "discrete"
 cfg["person.geo.dist2d.discrete.densfile"] = "data:csvMatrix"
+#VMMC
+cfg["vmmc.enabled"] = "yes"
+cfg["EventVMMC.m_vmmcprobDist.dist.type"] = "uniform"
+cfg["EventVMMC.m_vmmcprobDist.dist.uniform.max"] = 1
+cfg["EventVMMC.m_vmmcprobDist.dist.uniform.min"] = 0
 
 # Run PySimpactCyan
-simpact.run(cfg, "/tmp/simpacttest", dataFiles=data)
+simpact.run(cfg, "output",seed=42, dataFiles=data)
