@@ -32,7 +32,7 @@ void EventVMMC::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	Person *pMan = MAN(getPerson(0));
     assert(pMan->isMan());
-	writeEventLogStart(true, "VMMC", tNow, pMan, 0);  //when set to true we write logs
+	// writeEventLogStart(true, "VMMC", tNow, pMan, 0);  //when set to true we write logs
 }
 
 bool EventVMMC::isEligibleForTreatment(double t)
@@ -42,11 +42,10 @@ bool EventVMMC::isEligibleForTreatment(double t)
     assert(pMan->isMan());   // we assert that a person is from the male class
     
     double age = pMan->getAgeAt(t);
-    if (pMan->isMan() && !pMan->isVmmc() && age >= 15.0) {  //if person is male & not yet circumsized & age 15 or older
+    if (pMan->isMan() && !pMan->isVmmc() && age >= 15.0 && age <= 49.0)   //if person is male & not yet circumsized & age 15 or older
 	    return true;  // eligible for treatment
-    } else {
+    else 
         return false; // not eligible for treatment
-    }
 }
 
 bool EventVMMC::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen) {
@@ -73,12 +72,9 @@ void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t)
     assert(pMan->isMan());
     assert(interventionTime == t); // make sure we're at the correct time
 	
-	if (isEligibleForTreatment(t) && isWillingToStartTreatment(t, pRndGen) && pMan->isMan())  //so if this condition is met we set the VMMC property to true
-	{
+	if (isEligibleForTreatment(t) && isWillingToStartTreatment(t, pRndGen) && pMan->isMan())
         pMan->setVmmc(true);
-		SimpactEvent::writeEventLogStart(true, "(VMMC_treatment)", t, pMan, 0);
-	}
-	population.initializeFormationEvents(pMan, false, false, t);
+		writeEventLogStart(true, "(VMMC_treatment)", t, pMan, 0);
 }
 
 bool EventVMMC::m_VMMC_enabled = false;
@@ -88,10 +84,10 @@ void EventVMMC::processConfig(ConfigSettings &config, GslRandomNumberGenerator *
 {
 	
 	if (m_vmmcprobDist)
-	{
+	
 		delete m_vmmcprobDist;
 		m_vmmcprobDist = 0;
-	}
+	
 	bool_t r;
 
 	if (!(r = config.getKeyValue("vmmc.enabled", EventVMMC::m_VMMC_enabled)))
