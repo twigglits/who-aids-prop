@@ -14,6 +14,7 @@ public:
 
 	std::string getDescription(double tNow) const;
 	void writeLogs(const SimpactPopulation &pop, double tNow) const;
+    bool isEnabled();
 	void fire(Algorithm *pAlgorithm, State *pState, double t);
 
 	bool isEveryoneAffected() const									{ return false; }
@@ -21,7 +22,7 @@ public:
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
 	static bool hasNextIntervention();
-	static bool m_VMMC_enabled;
+	// static bool m_VMMC_enabled;
 	static ProbabilityDistribution *m_vmmcprobDist;
 	
 private:
