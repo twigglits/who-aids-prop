@@ -1,5 +1,6 @@
 import pysimpactcyan
 import sys
+from contextlib import redirect_stdout
 
 # Check which directories are on PATH
 # echo $PATH
@@ -29,3 +30,7 @@ cfg["EventVMMC.m_vmmcprobDist.dist.uniform.min"] = 0
 # cfg["EventVMMC.m_vmmcprobDist.dist.normal.sigma"] = 1
 
 res = simpact.run(cfg, "output",seed=1, dataFiles=data)
+
+with open('output.txt', 'w') as f:
+    with redirect_stdout(f):
+        simpact.showConfiguration(cfg)
