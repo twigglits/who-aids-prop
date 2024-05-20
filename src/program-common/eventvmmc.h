@@ -16,6 +16,7 @@ public:
 	void writeLogs(const SimpactPopulation &pop, double tNow) const;
     bool isEnabled();
 	void fire(Algorithm *pAlgorithm, State *pState, double t);
+    // getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
 
 	bool isEveryoneAffected() const									{ return false; }
 
@@ -24,9 +25,11 @@ public:
 	static bool hasNextIntervention();
 	// static bool m_VMMC_enabled;
 	static ProbabilityDistribution *m_vmmcprobDist;
+    static ProbabilityDistribution *m_pVMMC;
 	
 private:
-	bool isEligibleForTreatment(double t);
+	bool isEligibleForTreatment(double t, const State *pState);
+    // double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
 	bool isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen);
 	
 

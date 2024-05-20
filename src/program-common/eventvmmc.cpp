@@ -35,14 +35,29 @@ void EventVMMC::writeLogs(const SimpactPopulation &pop, double tNow) const
     assert(pMan->isMan());
 }
 
-bool EventVMMC::isEligibleForTreatment(double t)
+// double EventVMMC::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
+// {
+	// const SimpactPopulation &population = SIMPACTPOPULATION(pState);
+	// Person *pPerson = getPerson(0);
+
+	// assert(pPerson != 0);
+	// assert(getNumberOfPersons() == 1);
+    
+    // double curTime = population.getTime();
+	// double age = pPerson->getAgeAt(curTime); // current age
+// }PregDurationDist
+    
+
+bool EventVMMC::isEligibleForTreatment(double t, const State *pState)
 {
     // Person must be male and 15 years or older to be eligible for treatment.
+    const SimpactPopulation &population = SIMPACTPOPULATION(pState);
+    
     Man *pMan = MAN(getPerson(0));
     assert(pMan->isMan());   // we assert that a person is from the male class
-    
-    double age = pMan->getAgeAt(t);
-    if (pMan->isMan() && !pMan->isVmmc() && age >= 15.0 && age <= 49.0)   //if person is male & not yet circumsized & age 15 or older
+    double curTime = population.getTime();
+    double age = pMan->getAgeAt(curTime); 
+    if (pMan->isMan() && !pMan->isVmmc() && age <= 10.0)   //if person is male & not yet circumsized & age 15 or older
 	    return true;  // eligible for treatment
     else 
         return false; // not eligible for treatment
@@ -70,7 +85,9 @@ void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t)
     assert(pMan->isMan());
     assert(interventionTime == t); // make sure we're at the correct time
 	
-	if (isEligibleForTreatment(t) && isWillingToStartTreatment(t, pRndGen) && pMan->isMan()) // && m_VMMC_enabled==true)
+	if (isEligibleForTreatment(t, pState) && isWillingToStartTreatment(t, pRndGen) && pMan->isMan()) // && m_VMMC_enabled==true)
+        assert(!pMan->isVmmc());
+        
         pMan->setVmmc(true);
 		writeEventLogStart(true, "(VMMC_treatment)", t, pMan, 0);
 }
