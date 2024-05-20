@@ -45,7 +45,7 @@ void EventVMMC::writeLogs(const SimpactPopulation &pop, double tNow) const
     
     // double curTime = population.getTime();
 	// double age = pPerson->getAgeAt(curTime); // current age
-// }PregDurationDist
+// }
     
 
 bool EventVMMC::isEligibleForTreatment(double t, const State *pState)
