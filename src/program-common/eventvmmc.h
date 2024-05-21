@@ -31,6 +31,8 @@ private:
 	bool isEligibleForTreatment(double t, const State *pState);
     // double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
 	bool isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen);
+    double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
+	static ProbabilityDistribution *m_VMMCscheduleDist;
 	
 
 	static std::list<double> m_interventionTimes;

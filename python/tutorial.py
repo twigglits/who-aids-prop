@@ -18,10 +18,17 @@ cfg = {}
 cfg["person.geo.dist2d.type"] = "discrete"
 cfg["person.geo.dist2d.discrete.densfile"] = "data:csvMatrix"
 #VMMC
-cfg["vmmc.enabled"] = "yes"
-cfg["EventVMMC.m_vmmcprobDist.dist.type"] = "uniform"
-cfg["EventVMMC.m_vmmcprobDist.dist.uniform.max"] = 1
-cfg["EventVMMC.m_vmmcprobDist.dist.uniform.min"] = 0
+# cfg["vmmc.enabled"] = "yes"
+cfg["EventVMMC.m_vmmcprobDist.dist.type"] = "discrete.csv.twocol"
+cfg["EventVMMC.m_VMMCscheduleDist.dist.type"] = "uniform"
+cfg["EventVMMC.m_VMMCscheduleDist.dist.uniform.max"] = 1
+cfg["EventVMMC.m_VMMCscheduleDist.dist.uniform.min"] = 0
+# cfg["EventVMMC.m_vmmcprobDist.dist.uniform.max"] = 1
+
+cfg["EventVMMC.m_vmmcprobDist.dist.discrete.csv.twocol.file"] = "who-aids-prop/build/birth_twocol.csv"
+
+# cfg["EventVMMC.m_vmmcprobDist.dist.uniform.max"] = 1
+# cfg["EventVMMC.m_vmmcprobDist.dist.uniform.min"] = 0
 
 # Run PySimpactCyan
 simpact.run(cfg, "output",seed=42, dataFiles=data)
