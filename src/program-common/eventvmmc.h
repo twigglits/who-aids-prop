@@ -32,7 +32,7 @@ private:
     // double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
 	bool isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen);
     double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
-	static ProbabilityDistribution *m_VMMCscheduleDist;
+	static ProbabilityDistribution *m_vmmcscheduleDist;
 	
 
 	static std::list<double> m_interventionTimes;

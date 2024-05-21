@@ -15,7 +15,6 @@ using namespace std;
 EventVMMC::EventVMMC(Person *pMan) : SimpactEvent(pMan)
 {
 	assert(pMan->isMan());
-    // assert(m_VMMC_enabled);
 }
 
 EventVMMC::~EventVMMC()
@@ -44,7 +43,7 @@ bool EventVMMC::isEligibleForTreatment(double t, const State *pState)
     assert(pMan->isMan());   // we assert that a person is from the male class
     double curTime = population.getTime();
     double age = pMan->getAgeAt(curTime); 
-    if (pMan->isMan() && !pMan->isVmmc() && age <= 10.0)   //if person is male & not yet circumsized & age 15 or older
+    if (pMan->isMan() && !pMan->isVmmc() && age >= 15.0)   //if person is male & not yet circumsized & age 15 or older
 	    return true;  // eligible for treatment
     else 
         return false; // not eligible for treatment
@@ -60,9 +59,9 @@ bool EventVMMC::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pR
 
 double EventVMMC::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-	assert(m_VMMCscheduleDist);
+	assert(m_vmmcscheduleDist);
 
-	double dt = m_VMMCscheduleDist->pickNumber();
+	double dt = m_vmmcscheduleDist->pickNumber();
 
 	return dt;
 }
@@ -86,19 +85,19 @@ void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t)
 }
 
 ProbabilityDistribution *EventVMMC::m_vmmcprobDist = 0;
-ProbabilityDistribution *EventVMMC::m_VMMCscheduleDist = 0;
+ProbabilityDistribution *EventVMMC::m_vmmcscheduleDist = 0;
 
 void EventVMMC::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
     bool_t r;
     
-    if (m_VMMCscheduleDist)
+    if (m_vmmcscheduleDist)
 	{
-		delete m_VMMCscheduleDist;
-		m_VMMCscheduleDist = 0;
+		delete m_vmmcscheduleDist;
+		m_vmmcscheduleDist = 0;
 	}
-
-	m_VMMCscheduleDist = getDistributionFromConfig(config, pRndGen, "EventVMMC.m_VMMCscheduleDist");
+    
+	m_vmmcscheduleDist = getDistributionFromConfig(config, pRndGen, "EventVMMC.m_vmmcscheduleDist");
 	
 	if (m_vmmcprobDist)
 	
@@ -113,7 +112,7 @@ void EventVMMC::obtainConfig(ConfigWriter &config)
 {
 	bool_t r;
 
-    addDistributionToConfig(m_VMMCscheduleDist, config, "EventVMMC.m_VMMCscheduleDist");
+    addDistributionToConfig(m_vmmcscheduleDist, config, "EventVMMC.m_vmmcscheduleDist");
 	addDistributionToConfig(m_vmmcprobDist, config, "EventVMMC.m_vmmcprobDist");
 }
 
@@ -122,23 +121,20 @@ ConfigFunctions VMMCConfigFunctions(EventVMMC::processConfig, EventVMMC::obtainC
 JSONConfig VMMCJSONConfig(R"JSON(
 
 	"EventVMMC_dist": { 
-            "depends": null,
-            "params": [ 
-                [ "EventVMMC.m_vmmcprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
-            ],
-            "info": [ 
-                "TODO"
-            ]
-	},
-    "EventVMMC_schedule_dist": { 
-            "depends": null,
-            "params": [ [ 
-                "EventVMMC.m_VMMCscheduleDist.dist", "distTypes", ["fixed", [ ["value", 0.246575 ] ] ] 
-                ] 
-            ],
-            "info": [ 
-                "This parameter is used to specify the VMMC scheduling duration. The default",
-                "is the fixed value of 90/365"
-            ]
-    
-    })JSON");
+    "depends": null,
+    "params": [ 
+        [ "EventVMMC.m_vmmcprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
+    ],
+    "info": [ 
+        "This parameter is used to set the distribution of subject willing to accept VMMC treatment"
+    ]
+}, 
+"EventVMMC_schedule_dist": { 
+    "depends": null,
+    "params": [  
+        [ "EventVMMC.m_vmmcscheduleDist.dist", "distTypes", ["fixed", [ ["value", 0.246575 ] ] ] ] 
+    ],
+    "info": [ 
+        "This parameter is used to specify the VMMC scheduling duration. The default"
+    ]
+})JSON");
