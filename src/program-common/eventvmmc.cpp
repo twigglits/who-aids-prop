@@ -36,17 +36,19 @@ void EventVMMC::writeLogs(const SimpactPopulation &pop, double tNow) const
 
 bool EventVMMC::isEligibleForTreatment(double t, const State *pState)
 {
-    // Person must be male and 15 years or older to be eligible for treatment.
     const SimpactPopulation &population = SIMPACTPOPULATION(pState);
     
     Man *pMan = MAN(getPerson(0));
     assert(pMan->isMan());   // we assert that a person is from the male class
     double curTime = population.getTime();
     double age = pMan->getAgeAt(curTime); 
-    if (pMan->isMan() && !pMan->isVmmc() && age >= 15.0)   //if person is male & not yet circumsized & age 15 or older
-	    return true;  // eligible for treatment
-    else 
-        return false; // not eligible for treatment
+    // cout << "Checking eligibility for person " << pMan->getName() << " with age: " << age << endl;
+    
+    if (pMan->isMan() && !pMan->isVmmc() && age >= 15.0 && age <= 49.0) {
+        // cout << "Person " << pMan->getName() << " eligible with age: " << age << endl;
+        return true;  // eligible for treatment
+    }
+    return false; // not eligible for treatment
 }
 
 bool EventVMMC::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen) {
@@ -68,20 +70,23 @@ double EventVMMC::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen
 
 void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
-	SimpactPopulation &population = SIMPACTPOPULATION(pState);
-	double interventionTime;
-	ConfigSettings interventionConfig;
-	
-	GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
-	Man *pMan = MAN(getPerson(0));
+    SimpactPopulation &population = SIMPACTPOPULATION(pState);
+    double interventionTime;
+    ConfigSettings interventionConfig;
+
+    GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
+    Man *pMan = MAN(getPerson(0));
     assert(pMan->isMan());
+    double curTime = population.getTime();
+    double age = pMan->getAgeAt(curTime);
     assert(interventionTime == t); // make sure we're at the correct time
-	
-	if (isEligibleForTreatment(t, pState) && isWillingToStartTreatment(t, pRndGen) && pMan->isMan()) // && m_VMMC_enabled==true)
+
+    if (isEligibleForTreatment(t, pState) && isWillingToStartTreatment(t, pRndGen) && pMan->isMan()) { // && m_VMMC_enabled==true)
         assert(!pMan->isVmmc());
-        
+        // cout << "Circumcising Person: " << pMan->getName() << " Age: " << age << endl;
         pMan->setVmmc(true);
-		writeEventLogStart(true, "(VMMC_treatment)", t, pMan, 0);
+        writeEventLogStart(true, "(VMMC_treatment)", t, pMan, 0);
+    }
 }
 
 ProbabilityDistribution *EventVMMC::m_vmmcprobDist = 0;
