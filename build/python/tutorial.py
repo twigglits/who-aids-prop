@@ -21,14 +21,13 @@ cfg = { "population.nummen": 1000,
         "population.simtime": 50
       }
 
-# cfg["vmmc.enabled"] = "no"
+cfg["EventVMMC.enabled"] = "true"
 # cfg["EventVMMC.m_vmmcprobDist.dist.type"] = "uniform"
 # cfg["EventVMMC.m_vmmcprobDist.dist.uniform.max"] = 1
 # cfg["EventVMMC.m_vmmcprobDist.dist.uniform.min"] = 0
 # cfg["EventVMMC.m_vmmcprobDist.dist.type"] = "normal"
 # cfg["EventVMMC.m_vmmcprobDist.dist.normal.mu"] = 100
 # cfg["EventVMMC.m_vmmcprobDist.dist.normal.sigma"] = 1
-cfg["EventVMMC.enabled"] = "true"
 
 cfg["EventVMMC.m_vmmcscheduleDist.dist.type"] = "discrete.csv.twocol"
 cfg["EventVMMC.m_vmmcscheduleDist.dist.discrete.csv.twocol.file"] = "/home/jupyter/who-aids-prop/build/python/vmmc_schedule_twocol_1.csv"
