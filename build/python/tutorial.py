@@ -16,9 +16,9 @@ data = {}
 data["csvMatrix"] = myMatrix
 
 cfg = {}
-cfg = { "population.nummen": 500,
-        "population.numwomen": 500,
-        "population.simtime": 30
+cfg = { "population.nummen": 1000,
+        "population.numwomen": 1000,
+        "population.simtime": 50
       }
 
 # cfg["vmmc.enabled"] = "no"
@@ -28,8 +28,10 @@ cfg = { "population.nummen": 500,
 # cfg["EventVMMC.m_vmmcprobDist.dist.type"] = "normal"
 # cfg["EventVMMC.m_vmmcprobDist.dist.normal.mu"] = 100
 # cfg["EventVMMC.m_vmmcprobDist.dist.normal.sigma"] = 1
+cfg["EventVMMC.enabled"] = "true"
+
 cfg["EventVMMC.m_vmmcscheduleDist.dist.type"] = "discrete.csv.twocol"
-cfg["EventVMMC.m_vmmcscheduleDist.dist.discrete.csv.twocol.file"] = "/home/jupyter/who-aids-prop/build/python/vmmc_schedule_twocol.csv"
+cfg["EventVMMC.m_vmmcscheduleDist.dist.discrete.csv.twocol.file"] = "/home/jupyter/who-aids-prop/build/python/vmmc_schedule_twocol_1.csv"
 
 res = simpact.run(cfg, "output",seed=1, dataFiles=data)
 

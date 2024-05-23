@@ -12,6 +12,8 @@
 
 using namespace std;
 
+bool EventVMMC::m_VMMC_enabled = false; // line here exists only for declartion, does not set default to false, that is set in cofig JSON at the bottom
+
 EventVMMC::EventVMMC(Person *pMan) : SimpactEvent(pMan)
 {
 	assert(pMan->isMan());
@@ -68,8 +70,7 @@ double EventVMMC::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen
 	return dt;
 }
 
-void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t)
-{
+void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t) {
     SimpactPopulation &population = SIMPACTPOPULATION(pState);
     double interventionTime;
     ConfigSettings interventionConfig;
@@ -81,65 +82,83 @@ void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t)
     double age = pMan->getAgeAt(curTime);
     assert(interventionTime == t); // make sure we're at the correct time
 
-    if (isEligibleForTreatment(t, pState) && isWillingToStartTreatment(t, pRndGen) && pMan->isMan()) { // && m_VMMC_enabled==true)
-        assert(!pMan->isVmmc());
-        // cout << "Circumcising Person: " << pMan->getName() << " Age: " << age << endl;
-        pMan->setVmmc(true);
-        writeEventLogStart(true, "(VMMC_treatment)", t, pMan, 0);
-    }
+    if (m_VMMC_enabled) {
+        if (isEligibleForTreatment(t, pState) && isWillingToStartTreatment(t, pRndGen) && pMan->isMan()) {
+            assert(!pMan->isVmmc());
+            // std::cout << "Circumcising Person: " << pMan->getName() << " Age: " << age << std::endl; // Debugging statement
+            pMan->setVmmc(true);
+            writeEventLogStart(true, "(VMMC_treatment)", t, pMan, 0);
+        } 
+    } 
 }
 
 ProbabilityDistribution *EventVMMC::m_vmmcprobDist = 0;
 ProbabilityDistribution *EventVMMC::m_vmmcscheduleDist = 0;
 
-void EventVMMC::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
-{
+void EventVMMC::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen) {
     bool_t r;
     
-    if (m_vmmcscheduleDist)
-	{
-		delete m_vmmcscheduleDist;
-		m_vmmcscheduleDist = 0;
-	}
-    
-	m_vmmcscheduleDist = getDistributionFromConfig(config, pRndGen, "EventVMMC.m_vmmcscheduleDist");
-	
-	if (m_vmmcprobDist)
-	
-		delete m_vmmcprobDist;
-		m_vmmcprobDist = 0;
+    // Process VMMC schedule distribution
+    if (m_vmmcscheduleDist) {
+        delete m_vmmcscheduleDist;
+        m_vmmcscheduleDist = 0;
+    }
+    m_vmmcscheduleDist = getDistributionFromConfig(config, pRndGen, "EventVMMC.m_vmmcscheduleDist");
 
-	m_vmmcprobDist = getDistributionFromConfig(config, pRndGen, "EventVMMC.m_vmmcprobDist");
+    // Process VMMC probability distribution
+    if (m_vmmcprobDist) {
+        delete m_vmmcprobDist;
+        m_vmmcprobDist = 0;
+    }
+    m_vmmcprobDist = getDistributionFromConfig(config, pRndGen, "EventVMMC.m_vmmcprobDist");
+
+    // Read the boolean parameter from the config
+    std::string enabledStr;
+    if (!(r = config.getKeyValue("EventVMMC.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false")) {
+        abortWithMessage(r.getErrorString());
+    }
+    m_VMMC_enabled = (enabledStr == "true");
     
+    // Debugging statement
+    std::cout << "VMMC enabled: " << m_VMMC_enabled << std::endl;
 }
 
-void EventVMMC::obtainConfig(ConfigWriter &config)
-{
-	bool_t r;
+void EventVMMC::obtainConfig(ConfigWriter &config) {
+    bool_t r;
 
+    // Add the VMMC enabled parameter
+    if (!(r = config.addKey("EventVMMC.enabled", m_VMMC_enabled ? "true" : "false"))) {
+        abortWithMessage(r.getErrorString());
+    }
+
+    // Add the VMMC schedule distribution to the config
     addDistributionToConfig(m_vmmcscheduleDist, config, "EventVMMC.m_vmmcscheduleDist");
-	addDistributionToConfig(m_vmmcprobDist, config, "EventVMMC.m_vmmcprobDist");
+
+    // Add the VMMC probability distribution to the config
+    addDistributionToConfig(m_vmmcprobDist, config, "EventVMMC.m_vmmcprobDist");
 }
 
 ConfigFunctions VMMCConfigFunctions(EventVMMC::processConfig, EventVMMC::obtainConfig, "EventVMMC");
 
 JSONConfig VMMCJSONConfig(R"JSON(
-
-	"EventVMMC_dist": { 
-    "depends": null,
-    "params": [ 
-        [ "EventVMMC.m_vmmcprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
-    ],
-    "info": [ 
-        "This parameter is used to set the distribution of subject willing to accept VMMC treatment"
-    ]
-}, 
-"EventVMMC_schedule_dist": { 
-    "depends": null,
-    "params": [  
-        [ "EventVMMC.m_vmmcscheduleDist.dist", "distTypes", ["fixed", [ ["value", 0.246575 ] ] ] ] 
-    ],
-    "info": [ 
-        "This parameter is used to specify the VMMC scheduling duration. The default"
-    ]
-})JSON");
+    "EventVMMC": { 
+        "depends": null,
+        "params": [
+            ["EventVMMC.enabled", "true", [ "true", "false"] ],
+            ["EventVMMC.m_vmmcprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
+        ],
+        "info": [ 
+            "This parameter is used to set the distribution of subject willing to accept VMMC treatment",
+            "and to enable or disable the VMMC event."
+        ]
+    },
+    "EventVMMC_schedule_dist": { 
+        "depends": null,
+        "params": [  
+            [ "EventVMMC.m_vmmcscheduleDist.dist", "distTypes", ["fixed", [ ["value", 0.246575 ] ] ] ] 
+        ],
+        "info": [ 
+            "This parameter is used to specify the VMMC scheduling duration. The default is fixed."
+        ]
+    }
+)JSON");
