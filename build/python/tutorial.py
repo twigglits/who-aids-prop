@@ -18,10 +18,18 @@ data["csvMatrix"] = myMatrix
 cfg = {}
 cfg = { "population.nummen": 1000,
         "population.numwomen": 1000,
-        "population.simtime": 50
+        "population.simtime": 50,
+        "population.agedistfile": "/home/jupyter/who-aids-prop/build/python/eswatini_2023.csv",
+        "periodiclogging.interval": 5,
+        "periodiclogging.starttime": 0
       }
 
-cfg["EventVMMC.enabled"] = "true"
+cfg["EventVMMC.enabled"] = "false"
+
+iv1 = { }
+iv1["time"] = 20 #start vmmc 20years after simulation has started
+iv1["EventVMMC.enabled"] = "true"
+
 # cfg["EventVMMC.m_vmmcprobDist.dist.type"] = "uniform"
 # cfg["EventVMMC.m_vmmcprobDist.dist.uniform.max"] = 1
 # cfg["EventVMMC.m_vmmcprobDist.dist.uniform.min"] = 0
@@ -32,7 +40,10 @@ cfg["EventVMMC.enabled"] = "true"
 cfg["EventVMMC.m_vmmcscheduleDist.dist.type"] = "discrete.csv.twocol"
 cfg["EventVMMC.m_vmmcscheduleDist.dist.discrete.csv.twocol.file"] = "/home/jupyter/who-aids-prop/build/python/vmmc_schedule_twocol_1.csv"
 
-res = simpact.run(cfg, "output",seed=1, dataFiles=data)
+res = simpact.run(cfg, "/home/jupyter/who-aids-prop/build/python/output",
+                  seed=1, 
+                  interventionConfig=[iv1],
+                  dataFiles=data)
 
 with open('output.txt', 'w') as f:
     with redirect_stdout(f):
