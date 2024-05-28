@@ -67,8 +67,15 @@ public:
 	// result is negative if no relations formed yet
 	double getLastRelationshipChangeTime() const									{ return m_relations.getLastRelationshipChangeTime(); }
 
+	// set and check for if person is sexually active
 	void setSexuallyActive(double t)												{ m_relations.setSexuallyActive(t); }
 	bool isSexuallyActive() const													{ return m_relations.isSexuallyActive(); }
+
+	// set and check for if person is uses condoms
+	bool m_condom;
+	void setCondomUse(bool f)														{ m_condom = f; }
+	bool isCondomUsing() const														{ return m_condom; }
+
 	double getDebutTime() const														{ return m_relations.getDebutTime(); }
 
 	double getFormationEagernessParameter() const									{ return m_relations.getFormationEagernessParameter(); }
@@ -145,7 +152,6 @@ public:
 	void setPregnant(bool f)							{ m_pregnant = f; }
 	bool isPregnant() const								{ return m_pregnant; }
 private:
-	// in same way that we set preg percentage, do same for men and run simulation. can comment out hazard score, and set to vmmc for testing.
 	bool m_pregnant;
 };
 

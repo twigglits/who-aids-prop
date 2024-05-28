@@ -2,6 +2,7 @@
 #include "eventmortality.h"
 #include "eventaidsmortality.h"
 #include "eventformation.h"
+#include "eventcondom.h"
 #include "eventvmmc.h"
 #include "eventdebut.h"
 #include "eventchronicstage.h"
@@ -154,6 +155,17 @@ bool_t SimpactPopulation::scheduleInitialEvents()
 
 		EventMortality *pEvt = new EventMortality(pPerson);
 		onNewEvent(pEvt);
+	}
+
+	// initialize the population with the condom use factor
+	for (int i = 0 ; i < numPeople ; i++)
+	{
+		Person *pPerson = ppPeople[i];
+		if (pPerson->isSexuallyActive())
+		{
+			EventCondom *pEvt = new EventCondom(pPerson);
+			onNewEvent(pEvt);
+		}
 	}
     
     // VMMC event. This only takes place for men in the population.
