@@ -58,12 +58,12 @@ bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *
     return false;
 }
 
-double EventCondom::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
-{
-	assert(m_condomscheduleDist);
-	double dt = m_condomscheduleDist->pickNumber();
-	return dt;
-}
+// double EventCondom::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
+// {
+// 	assert(m_condomscheduleDist);
+// 	double dt = m_condomscheduleDist->pickNumber();
+// 	return dt;
+// }
 
 void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
     SimpactPopulation &population = SIMPACTPOPULATION(pState);
@@ -87,17 +87,9 @@ void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
 }
 
 ProbabilityDistribution *EventCondom::m_condomprobDist = 0;
-ProbabilityDistribution *EventCondom::m_condomscheduleDist = 0;
 
 void EventCondom::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen) {
     bool_t r;
-    
-    // Process Condom schedule distribution
-    if (m_condomscheduleDist) {
-        delete m_condomscheduleDist;
-        m_condomscheduleDist = 0;
-    }
-    m_condomscheduleDist = getDistributionFromConfig(config, pRndGen, "EventCondom.m_condomscheduleDist");
 
     // Process Condom probability distribution
     if (m_condomprobDist) {
@@ -124,10 +116,7 @@ void EventCondom::obtainConfig(ConfigWriter &config) {
         abortWithMessage(r.getErrorString());
     }
 
-    // Add the VMMC schedule distribution to the config
-    addDistributionToConfig(m_condomscheduleDist, config, "EventCondom.m_condomscheduleDist");
-
-    // Add the VMMC probability distribution to the config
+    // Add the condom probability distribution to the config
     addDistributionToConfig(m_condomprobDist, config, "EventCondom.m_condomprobDist");
 }
 
@@ -141,17 +130,8 @@ JSONConfig CondomJSONConfig(R"JSON(
             ["EventCondom.m_condomprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
         "info": [ 
-            "This parameter is used to set the distribution of subject willing to accept VMMC treatment",
-            "and to enable or disable the VMMC event."
-        ]
-    },
-    "EventCondom_schedule_dist": { 
-        "depends": null,
-        "params": [  
-            [ "EventCondom.m_condomscheduleDist.dist", "distTypes", ["fixed", [ ["value", 0.246575 ] ] ] ] 
-        ],
-        "info": [ 
-            "This parameter is used to specify the VMMC scheduling duration. The default is fixed."
+            "This parameter is used to set the distribution of subject willing to accept Condom treatment",
+            "and to enable or disable the Condom event."
         ]
     }
 )JSON");

@@ -42,9 +42,11 @@ protected:
 	static double s_g1;
 	static double s_g2;
 	static double s_v1;  // for vmmc in heterosexual relationship
+	static double s_k;
 	static double s_tMaxAgeRefDiff;
 	static int getH(const Person *pPerson);
 	static int getV(const Person *pPerson);
+	static int getK(const Person *pPerson1, const Person *pPerson2);
 };
 
 #endif // EVENTHIVTRANSMISSION_H
