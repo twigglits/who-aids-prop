@@ -23,22 +23,24 @@ cfg = { "population.nummen": 1000,
         "periodiclogging.interval": 5,
         "periodiclogging.starttime": 0
       }
-
 cfg["EventVMMC.enabled"] = "false"
+
+# cfg["EventCondom.enabled"] = "false"
 
 iv1 = { }
 iv1["time"] = 20 #start vmmc 20years after simulation has started
-iv1["EventVMMC.enabled"] = "true"
+iv1["EventCondom.enabled"] = "true"
+
+cfg["EventCondom.m_condomprobDist.dist.type"] = "uniform"
+cfg["EventCondom.m_condomprobDist.dist.uniform.max"] = 1
+cfg["EventCondom.m_condomprobDist.dist.uniform.min"] = 0
 
 # cfg["EventVMMC.m_vmmcprobDist.dist.type"] = "uniform"
 # cfg["EventVMMC.m_vmmcprobDist.dist.uniform.max"] = 1
 # cfg["EventVMMC.m_vmmcprobDist.dist.uniform.min"] = 0
-# cfg["EventVMMC.m_vmmcprobDist.dist.type"] = "normal"
-# cfg["EventVMMC.m_vmmcprobDist.dist.normal.mu"] = 100
-# cfg["EventVMMC.m_vmmcprobDist.dist.normal.sigma"] = 1
 
-cfg["EventVMMC.m_vmmcscheduleDist.dist.type"] = "discrete.csv.twocol"
-cfg["EventVMMC.m_vmmcscheduleDist.dist.discrete.csv.twocol.file"] = "/home/jupyter/who-aids-prop/build/python/vmmc_schedule_twocol_1.csv"
+# cfg["EventVMMC.m_vmmcscheduleDist.dist.type"] = "discrete.csv.twocol"
+# cfg["EventVMMC.m_vmmcscheduleDist.dist.discrete.csv.twocol.file"] = "/home/jupyter/who-aids-prop/build/python/vmmc_schedule_twocol_1.csv"
 
 res = simpact.run(cfg, "/home/jupyter/who-aids-prop/build/python/output",
                   seed=1, 

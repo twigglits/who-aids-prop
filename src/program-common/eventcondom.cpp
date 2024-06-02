@@ -81,7 +81,7 @@ void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
             assert(!pPerson->isCondomUsing());
             std::cout << "Condom Use for Person: " << pPerson->getName() << " Age: " << age << std::endl; // Debugging statement
             pPerson->setCondomUse(true);
-            writeEventLogStart(true, "Condom Programming", t, pPerson, 0);
+            writeEventLogStart(true, "(Condom_Programming)", t, pPerson, 0);
         } 
     } 
 }
