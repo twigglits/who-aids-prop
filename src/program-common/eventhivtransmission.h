@@ -25,6 +25,7 @@ public:
     static double getParamC()                                                                      { return s_c; }
 
     static ProbabilityDistribution *m_condomformationdist;
+    static double s_condomFormationThreshold;
 
     static void infectPerson(SimpactPopulation &population, Person *pOrigin, Person *pTarget, double t);
 protected:

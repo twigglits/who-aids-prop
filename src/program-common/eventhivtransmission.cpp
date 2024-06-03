@@ -14,8 +14,8 @@
 #include <iostream>
 
 using namespace std;
-
 // Conception happens between two people, so using this constructor seems natural.
+double EventHIVTransmission::s_condomFormationThreshold = 0.5;
 // Also, when one of the involved persons dies before this is fired, the event is
 // removed automatically.
 EventHIVTransmission::EventHIVTransmission(Person *pPerson1, Person *pPerson2) : SimpactEvent(pPerson1, pPerson2)
@@ -213,7 +213,7 @@ int EventHIVTransmission::getK(const Person *pPerson1, const Person *pPerson2)
 	assert(m_condomformationdist);
     if (pPerson1->isCondomUsing() && pPerson2->isCondomUsing()){
 		double dt = m_condomformationdist->pickNumber();
-		if (dt > 0.5){
+		if (dt > s_condomFormationThreshold){
 			k = true;
 		}else{
 			k = false;
@@ -289,6 +289,7 @@ void EventHIVTransmission::processConfig(ConfigSettings &config, GslRandomNumber
 	    !(r = config.getKeyValue("hivtransmission.param.g2", s_g2)) ||
 		!(r = config.getKeyValue("hivtransmission.param.v1", s_v1)) ||
 		!(r = config.getKeyValue("hivtransmission.param.k", s_k)) ||
+        !(r = config.getKeyValue("hivtransmission.threshold", s_condomFormationThreshold)) ||
 		!(r = config.getKeyValue("hivtransmission.maxageref.diff", s_tMaxAgeRefDiff)) )
 		
 		abortWithMessage(r.getErrorString());
@@ -314,6 +315,7 @@ void EventHIVTransmission::obtainConfig(ConfigWriter &config)
 		!(r = config.addKey("hivtransmission.param.g2", s_g2)) ||
 		!(r = config.addKey("hivtransmission.param.v1", s_v1)) ||
 		!(r = config.addKey("hivtransmission.param.k", s_k)) ||
+        !(r = config.addKey("hivtransmission.threshold", s_condomFormationThreshold)) ||
 		!(r = config.addKey("hivtransmission.maxageref.diff", s_tMaxAgeRefDiff))
 		)
 		
@@ -339,7 +341,8 @@ JSONConfig hivTransmissionJSONConfig(R"JSON(
                 ["hivtransmission.param.g1", 0],
                 ["hivtransmission.param.g2", 0],
                 ["hivtransmission.param.v1", -0.916],
-                ["hivtransmission.param.k", -1.6094],  
+                ["hivtransmission.param.k", -1.6094],
+                ["hivtransmission.threshold", 0.5],
                 ["hivtransmission.m_condomformationdist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
                 ["hivtransmission.maxageref.diff", 1] ],
             "info": [ 

@@ -34,8 +34,8 @@ iv1["EventCondom.enabled"] = "true"
 cfg["EventCondom.m_condomprobDist.dist.type"] = "uniform"
 cfg["EventCondom.m_condomprobDist.dist.uniform.max"] = 1
 cfg["EventCondom.m_condomprobDist.dist.uniform.min"] = 0
-cfg["EventCondom.threshold"] = 0.9
-
+cfg["EventCondom.threshold"] = 0.5      # threshold for individual 
+cfg["hivtransmission.threshold"] = 0.5  # threshold for formation
 cfg["hivtransmission.m_condomformationdist.dist.type"] = "uniform"
 cfg["hivtransmission.m_condomformationdist.dist.uniform.max"] = 1
 cfg["hivtransmission.m_condomformationdist.dist.uniform.min"] = 0
