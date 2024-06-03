@@ -49,6 +49,8 @@ protected:
 	static double s_e1;
 	static double s_e2;
 	static double s_v2;  // for vmmc in heterosexual relationship
+	static double s_k2;
+	static int getK(const Person *pPerson1, const Person *pPerson2);
 };
 
 #endif // EVENTHSV2TRANSMISSION_H

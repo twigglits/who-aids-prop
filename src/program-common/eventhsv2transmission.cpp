@@ -139,7 +139,8 @@ double EventHSV2Transmission::s_c = 0;
 double EventHSV2Transmission::s_d = 0; 
 double EventHSV2Transmission::s_e1 = 0;
 double EventHSV2Transmission::s_e2 = 0;
-double EventHSV2Transmission::s_v2 = -0.916;
+double EventHSV2Transmission::s_v2 = 0;
+double EventHSV2Transmission::s_k2 = 0;
 double EventHSV2Transmission::HazardFunctionHSV2Transmission::s_b = 0;
 
 void EventHSV2Transmission::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
@@ -149,9 +150,10 @@ void EventHSV2Transmission::processConfig(ConfigSettings &config, GslRandomNumbe
     	if (!(r = config.getKeyValue("hsv2transmission.hazard.b", HazardFunctionHSV2Transmission::s_b)) ||
         	!(r = config.getKeyValue("hsv2transmission.hazard.c", s_c)) ||
         	!(r = config.getKeyValue("hsv2transmission.hazard.d", s_d)) ||
-		!(r = config.getKeyValue("hsv2transmission.hazard.e1", s_e1)) ||
-		!(r = config.getKeyValue("hsv2transmission.hazard.e2", s_e2)) ||
-		!(r = config.getKeyValue("hsv2transmission.hazard.v2", s_v2)) ||
+			!(r = config.getKeyValue("hsv2transmission.hazard.e1", s_e1)) ||
+			!(r = config.getKeyValue("hsv2transmission.hazard.e2", s_e2)) ||
+			!(r = config.getKeyValue("hsv2transmission.hazard.v2", s_v2)) ||
+			!(r = config.getKeyValue("hsv2transmission.hazard.k2", s_k2)) ||
         	!(r = config.getKeyValue("hsv2transmission.hazard.t_max", s_tMax))
         )
         abortWithMessage(r.getErrorString());
@@ -167,6 +169,7 @@ void EventHSV2Transmission::obtainConfig(ConfigWriter &config)
 		!(r = config.addKey("hsv2transmission.hazard.e1", s_e1))||
 		!(r = config.addKey("hsv2transmission.hazard.e2", s_e2))||
 		!(r = config.addKey("hsv2transmission.hazard.v2", s_v2))||
+		!(r = config.addKey("hsv2transmission.hazard.k2", s_k2))||
 		!(r = config.addKey("hsv2transmission.hazard.t_max", s_tMax))
 		)
 		abortWithMessage(r.getErrorString());
@@ -222,6 +225,17 @@ int EventHSV2Transmission::getV(const Person *pPerson)
     return v ? 1 : 0;  //converts the true false, to 1 or 0.
 }
 
+int EventHSV2Transmission::getK(const Person *pPerson1, const Person *pPerson2)
+{
+	bool k = false;  // initialize k bool var
+    if (pPerson1->isCondomUsing() && pPerson2->isCondomUsing()){
+		k = true;
+	}else{
+	 	k = false;
+	}
+    return k ? 1 : 0;  //converts the true/false, to 1 or 0.
+}
+
 EventHSV2Transmission::HazardFunctionHSV2Transmission::HazardFunctionHSV2Transmission(const Person *pPerson1, 
                                                                                       const Person *pPerson2)
     : HazardFunctionExp(getA(pPerson1, pPerson2), s_b)
@@ -236,7 +250,7 @@ double EventHSV2Transmission::HazardFunctionHSV2Transmission::getA(const Person 
 {
     assert(pOrigin);
     assert(pTarget);
-    return (pOrigin->hsv2().getHazardAParameter() - s_b*pOrigin->hsv2().getInfectionTime() + s_c*EventHSV2Transmission::getM(pOrigin) + s_d*EventHSV2Transmission::getH(pOrigin) + s_e1*pTarget->hiv().getHazardB0Parameter() + s_e2*pTarget->hsv2().getHazardB2Parameter() + s_v2*getV(pTarget));; //currently unsure how to bring in vmmc property into hazard function
+    return (pOrigin->hsv2().getHazardAParameter() - s_b*pOrigin->hsv2().getInfectionTime() + s_c*EventHSV2Transmission::getM(pOrigin) + s_d*EventHSV2Transmission::getH(pOrigin) + s_e1*pTarget->hiv().getHazardB0Parameter() + s_e2*pTarget->hsv2().getHazardB2Parameter() + s_v2*getV(pTarget) + s_k2*getK(pOrigin, pTarget));; //currently unsure how to bring in vmmc property into hazard function
 }
 
 ConfigFunctions hsv2TransmissionConfigFunctions(EventHSV2Transmission::processConfig, EventHSV2Transmission::obtainConfig, 
@@ -251,7 +265,8 @@ JSONConfig hsv2TransmissionJSONConfig(R"JSON(
 				[ "hsv2transmission.hazard.d", 0 ],
 				[ "hsv2transmission.hazard.e1", 0 ],
 				[ "hsv2transmission.hazard.e2", 0 ],
-				[ "hsv2transmission.hazard.v2", 0 ],
+				[ "hsv2transmission.hazard.v2", -0.916 ],
+				[ "hsv2transmission.hazard.k2", -1.6094 ],
 				[ "hsv2transmission.hazard.t_max", 200 ]
 			],
             "info": [ 
