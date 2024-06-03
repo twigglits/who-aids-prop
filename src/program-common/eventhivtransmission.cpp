@@ -207,8 +207,14 @@ int EventHIVTransmission::getV(const Person *pPerson)
 int EventHIVTransmission::getK(const Person *pPerson1, const Person *pPerson2)
 {
 	bool k = false;  // initialize k bool var
+	assert(m_condomformationdist);
     if (pPerson1->isCondomUsing() && pPerson2->isCondomUsing()){
-		k = true;
+		double dt = m_condomformationdist->pickNumber();
+		if (dt > 0.5){
+			k = true;
+		}else{
+			k = false;
+		}
 	}else{
 	 	k = false;
 	}
@@ -253,6 +259,8 @@ double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &popu
 
 	return std::exp(logh);
 }
+
+ProbabilityDistribution *EventHIVTransmission::m_condomformationdist = 0;
 
 void EventHIVTransmission::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
