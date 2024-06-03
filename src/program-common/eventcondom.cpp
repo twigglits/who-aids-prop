@@ -13,6 +13,7 @@
 using namespace std;
 
 bool EventCondom::m_condom_enabled = false; // line here exists only for declartion, does not set default to false, that is set in cofig JSON at the bottom
+double EventCondom::s_condomThreshold = 0.5; // Initialize with the default threshold value
 
 EventCondom::EventCondom(Person *pPerson) : SimpactEvent(pPerson)
 {
@@ -53,17 +54,10 @@ bool EventCondom::isEligibleForTreatment(double t, const State *pState)
 bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen) {
     assert(m_condomprobDist);
 	double dt = m_condomprobDist->pickNumber();
-    if (dt > 0.5)  //threshold is 0.5
+    if (dt > s_condomThreshold)
         return true;
     return false;
 }
-
-// double EventCondom::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
-// {
-// 	assert(m_condomscheduleDist);
-// 	double dt = m_condomscheduleDist->pickNumber();
-// 	return dt;
-// }
 
 void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
     SimpactPopulation &population = SIMPACTPOPULATION(pState);
@@ -79,7 +73,6 @@ void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
     if (m_condom_enabled) {
         if (isEligibleForTreatment(t, pState) && isWillingToStartTreatment(t, pRndGen)) {
             assert(!pPerson->isCondomUsing());
-            // std::cout << "Condom Use for Person: " << pPerson->getName() << " Age: " << age << std::endl; // Debugging statement
             pPerson->setCondomUse(true);
             writeEventLogStart(true, "(Condom_Programming)", t, pPerson, 0);
         } 
@@ -100,19 +93,18 @@ void EventCondom::processConfig(ConfigSettings &config, GslRandomNumberGenerator
 
     // Read the boolean parameter from the config
     std::string enabledStr;
-    if (!(r = config.getKeyValue("EventCondom.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false")) {
+    if (!(r = config.getKeyValue("EventCondom.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false") ||
+        !(r = config.getKeyValue("EventCondom.threshold", s_condomThreshold))){
         abortWithMessage(r.getErrorString());
     }
     m_condom_enabled = (enabledStr == "true");
-    
-    // Debugging statement
-    // std::cout << "Condom Programming enabled: " << m_condom_enabled << std::endl;
 }
 
 void EventCondom::obtainConfig(ConfigWriter &config) {
     bool_t r;
 
-    if (!(r = config.addKey("EventCondom.enabled", m_condom_enabled ? "true" : "false"))) {
+    if (!(r = config.addKey("EventCondom.enabled", m_condom_enabled ? "true" : "false")) ||
+        !(r = config.addKey("EventCondom.threshold", s_condomThreshold))) {
         abortWithMessage(r.getErrorString());
     }
 
@@ -127,6 +119,7 @@ JSONConfig CondomJSONConfig(R"JSON(
         "depends": null,
         "params": [
             ["EventCondom.enabled", "true", [ "true", "false"] ],
+            ["EventCondom.threshold", 0.5],
             ["EventCondom.m_condomprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
         "info": [ 

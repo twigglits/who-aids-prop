@@ -21,6 +21,8 @@ public:
 	static bool hasNextIntervention();
 	static ProbabilityDistribution *m_condomprobDist;
 	static bool m_condom_enabled;
+    static double s_condomThreshold; // New static variable for the threshold
+
 
 private:
 	bool isEligibleForTreatment(double t, const State *pState);
