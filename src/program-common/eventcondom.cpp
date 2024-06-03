@@ -44,7 +44,7 @@ bool EventCondom::isEligibleForTreatment(double t, const State *pState)
     // cout << "Checking eligibility for person " << pMan->getName() << " with age: " << age << endl;
     
     if (!pPerson->isCondomUsing() && age >= 15.0) {
-        cout << "Person " << pPerson->getName() << " Condom eligible with age: " << age << endl;
+        // cout << "Person " << pPerson->getName() << " Condom eligible with age: " << age << endl;
         return true;  // eligible for condom programming
     }
     return false; // not eligible for condom programming
@@ -79,7 +79,7 @@ void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
     if (m_condom_enabled) {
         if (isEligibleForTreatment(t, pState) && isWillingToStartTreatment(t, pRndGen)) {
             assert(!pPerson->isCondomUsing());
-            std::cout << "Condom Use for Person: " << pPerson->getName() << " Age: " << age << std::endl; // Debugging statement
+            // std::cout << "Condom Use for Person: " << pPerson->getName() << " Age: " << age << std::endl; // Debugging statement
             pPerson->setCondomUse(true);
             writeEventLogStart(true, "(Condom_Programming)", t, pPerson, 0);
         } 
@@ -106,7 +106,7 @@ void EventCondom::processConfig(ConfigSettings &config, GslRandomNumberGenerator
     m_condom_enabled = (enabledStr == "true");
     
     // Debugging statement
-    std::cout << "Condom Programming enabled: " << m_condom_enabled << std::endl;
+    // std::cout << "Condom Programming enabled: " << m_condom_enabled << std::endl;
 }
 
 void EventCondom::obtainConfig(ConfigWriter &config) {

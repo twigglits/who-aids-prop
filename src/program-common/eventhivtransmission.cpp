@@ -5,7 +5,10 @@
 #include "eventdiagnosis.h"
 #include "eventdebut.h"
 #include "jsonconfig.h"
+#include "configsettings.h"
+#include "configsettingslog.h"
 #include "configfunctions.h"
+#include "configdistributionhelper.h"
 #include "util.h"
 #include <cmath>
 #include <iostream>
@@ -265,6 +268,13 @@ ProbabilityDistribution *EventHIVTransmission::m_condomformationdist = 0;
 void EventHIVTransmission::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	bool_t r;
+    
+    // Process VMMC schedule distribution
+    if (m_condomformationdist) {
+        delete m_condomformationdist;
+        m_condomformationdist = 0;
+    }
+    m_condomformationdist = getDistributionFromConfig(config, pRndGen, "hivtransmission.m_condomformationdist");
 
 	if (!(r = config.getKeyValue("hivtransmission.param.a", s_a)) ||
 	    !(r = config.getKeyValue("hivtransmission.param.b", s_b)) ||
@@ -287,6 +297,9 @@ void EventHIVTransmission::processConfig(ConfigSettings &config, GslRandomNumber
 void EventHIVTransmission::obtainConfig(ConfigWriter &config)
 {
 	bool_t r;
+    
+    // Add the VMMC schedule distribution to the config
+    addDistributionToConfig(m_condomformationdist, config, "hivtransmission.m_condomformationdist");
 
 	if (!(r = config.addKey("hivtransmission.param.a", s_a)) ||
 	    !(r = config.addKey("hivtransmission.param.b", s_b)) ||
@@ -313,20 +326,21 @@ ConfigFunctions hivTransmissionConfigFunctions(EventHIVTransmission::processConf
 JSONConfig hivTransmissionJSONConfig(R"JSON(
         "EventHIVTransmission": { 
             "depends": null,
-            "params": [ 
+            "params": [
                 ["hivtransmission.param.a", -1.3997],
                 ["hivtransmission.param.b", -12.0220],
                 ["hivtransmission.param.c", 0.1649],
                 ["hivtransmission.param.d1", 0],
                 ["hivtransmission.param.d2", 0], 
-		     ["hivtransmission.param.e1", 0],
-             	["hivtransmission.param.e2", 0],
+                ["hivtransmission.param.e1", 0],
+                ["hivtransmission.param.e2", 0],
                 ["hivtransmission.param.f1", 0], 
                 ["hivtransmission.param.f2", 0],
-			["hivtransmission.param.g1", 0],
-			["hivtransmission.param.g2", 0],
-			["hivtransmission.param.v1", -0.916],
-			["hivtransmission.param.k", -1.6094],  
+                ["hivtransmission.param.g1", 0],
+                ["hivtransmission.param.g2", 0],
+                ["hivtransmission.param.v1", -0.916],
+                ["hivtransmission.param.k", -1.6094],  
+                ["hivtransmission.m_condomformationdist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
                 ["hivtransmission.maxageref.diff", 1] ],
             "info": [ 
                 "The hazard of transmission is h = exp(a + b * V^(-c) + d1*Pi + d2*Pj + e1*Hi + e2*Hj + g1*b0_j + g2*b1_j + v1*Vi + k*Ki)",
@@ -337,4 +351,3 @@ JSONConfig hivTransmissionJSONConfig(R"JSON(
                 "depending on the AIDS stage."
             ]
         })JSON");
-
