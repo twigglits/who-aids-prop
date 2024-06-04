@@ -269,7 +269,6 @@ void EventHIVTransmission::processConfig(ConfigSettings &config, GslRandomNumber
 {
 	bool_t r;
     
-    // Process VMMC schedule distribution
     if (m_condomformationdist) {
         delete m_condomformationdist;
         m_condomformationdist = 0;

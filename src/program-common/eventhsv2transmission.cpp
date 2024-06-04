@@ -1,3 +1,4 @@
+#include "eventhivtransmission.h"
 #include "eventhsv2transmission.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
@@ -228,8 +229,14 @@ int EventHSV2Transmission::getV(const Person *pPerson)
 int EventHSV2Transmission::getK(const Person *pPerson1, const Person *pPerson2)
 {
 	bool k = false;  // initialize k bool var
+	assert(EventHIVTransmission::m_condomformationdist);
     if (pPerson1->isCondomUsing() && pPerson2->isCondomUsing()){
-		k = true;
+		double dt = EventHIVTransmission::m_condomformationdist->pickNumber();
+		if (dt > EventHIVTransmission::s_condomFormationThreshold){
+			k = true;
+		}else{
+			k = false;
+		}
 	}else{
 	 	k = false;
 	}
