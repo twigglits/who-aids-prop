@@ -111,13 +111,20 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	pPerson1->addRelationship(pPerson2, t);
 	pPerson2->addRelationship(pPerson1, t);
 
-	if (!pPerson1->hiv().isDiagnosed()){  // (Difference between diagnosed vs infected?) Prep only kicks off if a person hasn't already been diagnosed/infected
-		EventPrep *pEvtPrep = new EventPrep(pPerson1);
-	}
+// 	if (pPerson1->isSexuallyActive() && !(pPerson1->hiv().isInfected())){ // (Difference between diagnosed vs infected?) Prep only kicks off if a person hasn't already been diagnosed/infected
+      
+//         std::cout << "BEFORE PREP status pPerson1: " << pPerson1->isPrep() << std::endl;
+// 		EventPrep *pEvtPrep = new EventPrep(pPerson1);
+// 	}
 
-	if (!pPerson2->hiv().isDiagnosed()){  //doing the same for person 2
-		EventPrep *pEvtPrep = new EventPrep(pPerson2);
-	}
+        
+//     if (pPerson2->isSexuallyActive() && !(pPerson2->hiv().isInfected()))
+//     {
+//         std::cout << "BEFORE PREP status pPerson2: " << pPerson2->isPrep() << std::endl;
+// 		EventPrep *pEvtPrep = new EventPrep(pPerson2);
+// 	}
+    
+    // std::cout << "AFTER PREP status: " << pPerson1->isPrep() << " for Person: " << pPerson1->getName() << std::endl;
 	
 	// Need to add a dissolution event
 	EventDissolution *pDissEvent = new EventDissolution(pPerson1, pPerson2, t);
