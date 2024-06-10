@@ -76,6 +76,11 @@ public:
 	void setCondomUse(bool f)														{ m_condom = f; }
 	bool isCondomUsing() const														{ return m_condom; }
 
+	// set and check for if person is doing prep
+	bool m_prep;
+	void setPrep(bool f)															{ m_prep = f; }
+	bool isPrep() const																{ return m_prep; }
+
 	double getDebutTime() const														{ return m_relations.getDebutTime(); }
 
 	double getFormationEagernessParameter() const									{ return m_relations.getFormationEagernessParameter(); }

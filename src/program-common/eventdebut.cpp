@@ -58,7 +58,7 @@ void EventDebut::fire(Algorithm *pAlgorithm, State *pState, double t)
 	{
         if (pPerson->isMan())
 		{
-            population.onNewEvent(pEvtVMMC);  // now we first trigger VMMC event, in VMMC event we trigger intializeFormationEvents
+            population.onNewEvent(pEvtVMMC);  // now we first trigger VMMC event
 		}
 		population.onNewEvent(pEvtCondom);  // Set the condom preference value for each individual
 		population.initializeFormationEvents(pPerson, false, false, t);

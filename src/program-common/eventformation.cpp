@@ -3,6 +3,7 @@
 #include "eventhivtransmission.h"
 #include "eventhsv2transmission.h"
 #include "eventdebut.h"
+#include "eventprep.h"
 #include "simpactpopulation.h"
 #include "simpactevent.h"
 #include "evthazardformationsimple.h"
@@ -110,8 +111,15 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	pPerson1->addRelationship(pPerson2, t);
 	pPerson2->addRelationship(pPerson1, t);
 
-	// Need to add a dissolution event
+	if (!pPerson1->hiv().isDiagnosed()){  // (Difference between diagnosed vs infected?) Prep only kicks off if a person hasn't already been diagnosed/infected
+		EventPrep *pEvtPrep = new EventPrep(pPerson1);
+	}
 
+	if (!pPerson2->hiv().isDiagnosed()){  //doing the same for person 2
+		EventPrep *pEvtPrep = new EventPrep(pPerson2);
+	}
+	
+	// Need to add a dissolution event
 	EventDissolution *pDissEvent = new EventDissolution(pPerson1, pPerson2, t);
 	population.onNewEvent(pDissEvent);
 
