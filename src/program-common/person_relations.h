@@ -52,7 +52,7 @@ public:
 	int getNumberOfPersonsOfInterest() const													{ return (int)m_personsOfInterest.size(); }
 	Person *getPersonOfInterest(int idx) const													{ assert(idx >= 0 && idx < (int)m_personsOfInterest.size()); Person *pPerson = m_personsOfInterest[idx]; assert(pPerson); return pPerson; }
 
-	static void writeToRelationLog(const Person *pMan, const Person *pWoman, double formationTime, double dissolutionTime);
+	static void writeToRelationLog(const Person *pMan, const Person *pWoman, double formationTime, double dissolutionTime, int k);
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
 private:
