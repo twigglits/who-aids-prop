@@ -28,6 +28,7 @@ public:
     static double s_condomFormationThreshold;
 
     static void infectPerson(SimpactPopulation &population, Person *pOrigin, Person *pTarget, double t);
+    static int getK(const Person *pPerson1, const Person *pPerson2);
 protected:
     double calculateInternalTimeInterval(const State *pState, double t0, double dt);
     double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);
@@ -50,7 +51,6 @@ protected:
     static double s_tMaxAgeRefDiff;
     static int getH(const Person *pPerson);
     static int getV(const Person *pPerson);
-    static int getK(const Person *pPerson1, const Person *pPerson2);
 };
 
 #endif // EVENTHIVTRANSMISSION_H
