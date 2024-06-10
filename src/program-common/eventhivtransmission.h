@@ -26,9 +26,12 @@ public:
 
     static ProbabilityDistribution *m_condomformationdist;
     static double s_condomFormationThreshold;
+    
+    static ProbabilityDistribution *m_prepformationdist;
 
     static void infectPerson(SimpactPopulation &population, Person *pOrigin, Person *pTarget, double t);
     static int getK(const Person *pPerson1, const Person *pPerson2);
+    static int getP(const Person *pPerson1, const Person *pPerson2);
 protected:
     double calculateInternalTimeInterval(const State *pState, double t0, double dt);
     double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);
@@ -48,6 +51,7 @@ protected:
     static double s_g2;
     static double s_v1;
     static double s_k;
+    static double s_p;
     static double s_tMaxAgeRefDiff;
     static int getH(const Person *pPerson);
     static int getV(const Person *pPerson);

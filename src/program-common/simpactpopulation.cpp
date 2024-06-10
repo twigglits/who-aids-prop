@@ -4,6 +4,7 @@
 #include "eventformation.h"
 #include "eventcondom.h"
 #include "eventvmmc.h"
+#include "eventprep.h"
 #include "eventdebut.h"
 #include "eventchronicstage.h"
 #include "eventhivseed.h"
@@ -202,8 +203,20 @@ bool_t SimpactPopulation::scheduleInitialEvents()
 		}
 	}
 
-	// For the people who are not sexually active, set a debut event
-
+	
+    
+    // For EventPrep intervention applied to all that are sexually active:
+    for (int i = 0 ; i < numPeople ; i++)
+	{
+		Person *pPerson = ppPeople[i];
+        if (pPerson->isSexuallyActive())
+		{
+        EventPrep *pEvt = new EventPrep(pPerson);
+		onNewEvent(pEvt);
+        }
+	}
+    
+    // For the people who are not sexually active, set a debut event
 	for (int i = 0 ; i < numPeople ; i++)
 	{
 		Person *pPerson = ppPeople[i];
