@@ -16,40 +16,56 @@ data = {}
 data["csvMatrix"] = myMatrix
 
 cfg = {}
-cfg = { "population.nummen": 1000,
-        "population.numwomen": 1000,
+cfg = { "population.nummen": 500,
+        "population.numwomen": 500,
         "population.simtime": 50,
         "population.agedistfile": "/home/jupyter/who-aids-prop/build/python/eswatini_2023.csv",
         "periodiclogging.interval": 1,
-        "periodiclogging.starttime": 0
+        "periodiclogging.starttime": 0,
+        # vmmc
+        "EventVMMC.enabled": "false",
+        "EventVMMC.m_vmmcprobDist.dist.type": "uniform",
+        "EventVMMC.m_vmmcprobDist.dist.uniform.max": 1,
+        "EventVMMC.m_vmmcprobDist.dist.uniform.min": 0,
+        "EventVMMC.m_vmmcscheduleDist.dist.type": "discrete.csv.twocol",
+        "EventVMMC.m_vmmcscheduleDist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/vmmc_schedule_twocol_1.csv",
+        # condom programming
+        "EventCondom.enabled" : "true",
+        "EventCondom.m_condomprobDist.dist.type": "uniform",
+        "EventCondom.m_condomprobDist.dist.uniform.min": 0,
+        "EventCondom.m_condomprobDist.dist.uniform.max": 1,
+        "EventCondom.threshold": 0.01, # threshold for condom preference for an individual 
+        "hivtransmission.threshold": 0.5, # threshold for condom use in formation
+        "hivtransmission.m_condomformationdist.dist.type":"discrete.csv.twocol",
+        "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file":  "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_1.csv",
+        "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.floor": 'yes', #to force distirbution to return exact values and not any value within the bin
+        "hivtransmission.threshold": 0.5 # threshold for condom use in formation
       }
-cfg["EventVMMC.enabled"] = "false"
 
-cfg["EventCondom.enabled"] = "false"
+# iv1 = { }
+# iv1["time"] = 20 #start intervention 20years after simulation has started
+# iv1["EventPrep.enabled"] = "true"
 
 iv1 = { }
 iv1["time"] = 20 #start intervention 20years after simulation has started
 iv1["EventCondom.enabled"] = "true"
 
-cfg["EventCondom.m_condomprobDist.dist.type"] = "uniform"
-cfg["EventCondom.m_condomprobDist.dist.uniform.max"] = 1
-cfg["EventCondom.m_condomprobDist.dist.uniform.min"] = 0
-cfg["EventCondom.threshold"] = 0.5      # threshold for condom preference for an individual 
-cfg["hivtransmission.threshold"] = 0.5  # threshold for condom use in formation
-cfg["hivtransmission.m_condomformationdist.dist.type"] = "discrete.csv.twocol"
-cfg["hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file"] = "/home/jupyter/who-aids-prop/build/python/relationship_condom_use.csv"
-cfg["hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.floor"] = 'yes' #to force distirbution to return exact values and not any value within the bin
+iv2 = {}
+iv2["time"] = 25 
+iv2["hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file"] = "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_2.csv"
 
-# cfg["EventVMMC.m_vmmcprobDist.dist.type"] = "uniform"
-# cfg["EventVMMC.m_vmmcprobDist.dist.uniform.max"] = 1
-# cfg["EventVMMC.m_vmmcprobDist.dist.uniform.min"] = 0
+iv3 = {}
+iv3["time"] = 30 
+iv3["hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file"] = "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_3.csv"
 
-# cfg["EventVMMC.m_vmmcscheduleDist.dist.type"] = "discrete.csv.twocol"
-# cfg["EventVMMC.m_vmmcscheduleDist.dist.discrete.csv.twocol.file"] = "/home/jupyter/who-aids-prop/build/python/vmmc_schedule_twocol_1.csv"
+iv4 = {}
+iv4["time"] = 35 
+iv4["hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file"] = "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_4.csv"
 
+iv = [iv1,iv2,iv3,iv4]
 res = simpact.run(cfg, "/home/jupyter/who-aids-prop/build/python/output",
                   seed=42, 
-                  interventionConfig=[iv1],
+                  interventionConfig=iv,
                   dataFiles=data)
 
 with open('output.txt', 'w') as f:
