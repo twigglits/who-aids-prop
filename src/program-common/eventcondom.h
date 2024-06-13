@@ -20,6 +20,7 @@ public:
 	static void obtainConfig(ConfigWriter &config);
 	static bool hasNextIntervention();
 	static ProbabilityDistribution *m_condomprobDist;
+	static ProbabilityDistribution *m_condomscheduleDist;
 	static bool m_condom_enabled;
     static double s_condomThreshold; // New static variable for the threshold
 
@@ -27,6 +28,8 @@ public:
 private:
 	bool isEligibleForTreatment(double t, const State *pState);
 	bool isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen);
+
+	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState, bool initializationPhase);
 
 	static std::list<double> m_interventionTimes;
 	static std::list<ConfigSettings> m_interventionSettings;

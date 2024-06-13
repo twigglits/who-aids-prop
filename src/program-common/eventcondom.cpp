@@ -59,6 +59,16 @@ bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *
     return false;
 }
 
+double EventCondom::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState, bool initializationPhase)
+{
+        double dt = 0;
+        assert(m_condomscheduleDist);
+        // if not in initialization phase
+        if (!initializationPhase)
+            double dt = m_condomscheduleDist->pickNumber();
+        return dt;
+}
+
 void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
     SimpactPopulation &population = SIMPACTPOPULATION(pState);
     double interventionTime;
@@ -80,6 +90,7 @@ void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
 }
 
 ProbabilityDistribution *EventCondom::m_condomprobDist = 0;
+ProbabilityDistribution *EventCondom::m_condomscheduleDist = 0;
 
 void EventCondom::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen) {
     bool_t r;

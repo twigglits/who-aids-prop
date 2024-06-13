@@ -30,11 +30,11 @@ cfg = { "population.nummen": 500,
         "EventVMMC.m_vmmcscheduleDist.dist.type": "discrete.csv.twocol",
         "EventVMMC.m_vmmcscheduleDist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/vmmc_schedule_twocol_1.csv",
         # condom programming
-        "EventCondom.enabled" : "false",
+        "EventCondom.enabled" : "true",
         "EventCondom.m_condomprobDist.dist.type": "uniform",
         "EventCondom.m_condomprobDist.dist.uniform.min": 0,
         "EventCondom.m_condomprobDist.dist.uniform.max": 1,
-        "EventCondom.threshold": 0.5, # threshold for condom preference for an individual 
+        "EventCondom.threshold": 0.01, # threshold for condom preference for an individual 
         "hivtransmission.threshold": 0.5, # threshold for condom use in formation
         "hivtransmission.m_condomformationdist.dist.type":"discrete.csv.twocol",
         "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file":  "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_1.csv",
@@ -49,7 +49,6 @@ cfg = { "population.nummen": 500,
 iv1 = { }
 iv1["time"] = 20 #start intervention 20years after simulation has started
 iv1["EventCondom.enabled"] = "true"
-# iv1["hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file"] = "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_1.csv"
 
 iv2 = {}
 iv2["time"] = 25 
