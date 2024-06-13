@@ -1,6 +1,7 @@
 #include "eventprep.h"
 #include "gslrandomnumbergenerator.h"
 #include "configdistributionhelper.h"
+#include "eventprepdrop.h"
 #include "util.h"
 #include "configsettings.h"
 #include "eventdropout.h"
@@ -96,9 +97,10 @@ void EventPrep::fire(Algorithm *pAlgorithm, State *pState, double t) {
             pPerson->setPrep(true);
             writeEventLogStart(true, "Prep_treatment", t, pPerson, 0);
             std::cout << "After PREP status: " << pPerson->isPrep() << " for: " << pPerson->getName() << " Age: " << age << std::endl;
+
             // Dropout event becomes possible
-		    // EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson, t);
-		    // population.onNewEvent(pEvtPrepDrop);
+		    EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson, t);
+		    population.onNewEvent(pEvtPrepDrop);
         } 
     } 
 }
