@@ -111,18 +111,15 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	pPerson1->addRelationship(pPerson2, t);
 	pPerson2->addRelationship(pPerson1, t);
 
-	if (pPerson1->isSexuallyActive() && !(pPerson1->hiv().isInfected())){ // (Difference between diagnosed vs infected?) Prep only kicks off if a person hasn't already been diagnosed/infected
-        std::cout << "BEFORE PREP status pPerson1: " << pPerson1->isPrep() << std::endl;
-		EventPrep *pEvtPrep = new EventPrep(pPerson1);		// we instantiate but don't do onEvent
+	if (pPerson1->isSexuallyActive() && !(pPerson1->hiv().isInfected()) && !(pPerson1->isPrep())){ // (Difference between diagnosed vs infected?) Prep only kicks off if a person hasn't already been diagnosed/infected
+		EventPrep *pEvtPrep = new EventPrep(pPerson1);
 		population.onNewEvent(pEvtPrep);
 	}
 
-	if (pPerson2->isSexuallyActive() && !(pPerson2->hiv().isInfected())){ // (Difference between diagnosed vs infected?) Prep only kicks off if a person hasn't already been diagnosed/infected
-        std::cout << "BEFORE PREP status pPerson2: " << pPerson2->isPrep() << std::endl;
+	if (pPerson2->isSexuallyActive() && !(pPerson2->hiv().isInfected()) && !(pPerson2->isPrep())){ // (Difference between diagnosed vs infected?) Prep only kicks off if a person hasn't already been diagnosed/infected
 		EventPrep *pEvtPrep = new EventPrep(pPerson2);
 		population.onNewEvent(pEvtPrep);		
 	}
-	
 	// Need to add a dissolution event
 	EventDissolution *pDissEvent = new EventDissolution(pPerson1, pPerson2, t);
 	population.onNewEvent(pDissEvent);

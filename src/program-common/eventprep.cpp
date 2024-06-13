@@ -13,7 +13,7 @@
 
 using namespace std;
 
-bool EventPrep::m_prep_enabled = false;
+bool EventPrep::m_prep_enabled = true;
 
 EventPrep::EventPrep(Person *pPerson, bool scheduleImmediately) : SimpactEvent(pPerson)
 {
