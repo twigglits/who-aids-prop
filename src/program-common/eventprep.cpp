@@ -93,8 +93,8 @@ void EventPrep::fire(Algorithm *pAlgorithm, State *pState, double t) {
     if (m_prep_enabled) {
         if (isEligibleForTreatment(t, pState) && isWillingToStartTreatment(t, pRndGen)) {
             std::cout << "Before PREP status: " << pPerson->isPrep() << " for: " << pPerson->getName() << " Age: " << age << std::endl;
-            writeEventLogStart(true, "Prep_treatment", t, pPerson, 0);
             pPerson->setPrep(true);
+            writeEventLogStart(true, "Prep_treatment", t, pPerson, 0);
             std::cout << "After PREP status: " << pPerson->isPrep() << " for: " << pPerson->getName() << " Age: " << age << std::endl;
             // Dropout event becomes possible
 		    // EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson, t);
