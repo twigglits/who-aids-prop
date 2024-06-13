@@ -3,7 +3,7 @@
 #include "configdistributionhelper.h"
 #include "util.h"
 #include "configsettings.h"
-#include "eventdropout.h"
+#include "eventprepdrop.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
 #include "configsettingslog.h"
@@ -97,8 +97,8 @@ void EventPrep::fire(Algorithm *pAlgorithm, State *pState, double t) {
             writeEventLogStart(true, "Prep_treatment", t, pPerson, 0);
             std::cout << "After PREP status: " << pPerson->isPrep() << " for: " << pPerson->getName() << " Age: " << age << std::endl;
             // Dropout event becomes possible
-		    // EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson, t);
-		    // population.onNewEvent(pEvtPrepDrop);
+		    EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson, t);
+		    population.onNewEvent(pEvtPrepDrop);
         } 
     } 
 }
