@@ -103,6 +103,12 @@ void EventCondom::processConfig(ConfigSettings &config, GslRandomNumberGenerator
     }
     m_condomprobDist = getDistributionFromConfig(config, pRndGen, "EventCondom.m_condomprobDist");
 
+    if (m_condomscheduleDist) {
+        delete m_condomscheduleDist;
+        m_condomscheduleDist = 0;
+    }
+    m_condomscheduleDist = getDistributionFromConfig(config, pRndGen, "EventCondom.m_condomscheduleDist");
+
     // Read the boolean parameter from the config
     std::string enabledStr;
     if (!(r = config.getKeyValue("EventCondom.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false") ||
@@ -122,6 +128,8 @@ void EventCondom::obtainConfig(ConfigWriter &config) {
 
     // Add the condom probability distribution to the config
     addDistributionToConfig(m_condomprobDist, config, "EventCondom.m_condomprobDist");
+    addDistributionToConfig(m_condomprobDist, config, "EventCondom.m_condomscheduleDist");
+
 }
 
 ConfigFunctions CondomConfigFunctions(EventCondom::processConfig, EventCondom::obtainConfig, "EventCondom");
