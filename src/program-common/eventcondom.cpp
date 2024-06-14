@@ -61,12 +61,13 @@ bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *
 
 double EventCondom::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState, double t)
 {
-        double dt = 0;
-        // assert(m_condomscheduleDist);
-        // if not in initialization phase
-        // if (!initializationPhase)
-        //     double dt = 0; // m_condomscheduleDist->pickNumber();
-        return dt;
+        // double dt = 0.0;
+        assert(m_condomscheduleDist);
+
+	    double dt = m_condomscheduleDist->pickNumber();
+
+	    return dt;
+        
 }
 
 void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
@@ -131,7 +132,8 @@ JSONConfig CondomJSONConfig(R"JSON(
         "params": [
             ["EventCondom.enabled", "true", [ "true", "false"] ],
             ["EventCondom.threshold", 0.5],
-            ["EventCondom.m_condomprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
+            ["EventCondom.m_condomprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
+            ["EventCondom.m_condomscheduleDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
         ],
         "info": [ 
             "This parameter is used to set the distribution of subject willing to accept Condom treatment",
