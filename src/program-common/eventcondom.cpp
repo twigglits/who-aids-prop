@@ -61,7 +61,7 @@ bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *
 
 double EventCondom::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState, double t)
 {
-        double dt = t;
+        double dt = 0;
         // assert(m_condomscheduleDist);
         // if not in initialization phase
         // if (!initializationPhase)
