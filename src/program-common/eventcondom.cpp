@@ -133,7 +133,7 @@ JSONConfig CondomJSONConfig(R"JSON(
             ["EventCondom.enabled", "true", [ "true", "false"] ],
             ["EventCondom.threshold", 0.5],
             ["EventCondom.m_condomprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
-            ["EventCondom.m_condomprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
+            ["EventCondom.m_condomscheduleDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
         "info": [ 
             "This parameter is used to set the distribution of subject willing to accept Condom treatment",
