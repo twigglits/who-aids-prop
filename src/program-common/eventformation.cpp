@@ -3,6 +3,7 @@
 #include "eventhivtransmission.h"
 #include "eventhsv2transmission.h"
 #include "eventdebut.h"
+#include "eventcondom.h"
 #include "simpactpopulation.h"
 #include "simpactevent.h"
 #include "evthazardformationsimple.h"
@@ -110,9 +111,21 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	pPerson1->addRelationship(pPerson2, t);
 	pPerson2->addRelationship(pPerson1, t);
 
-	// Need to add a dissolution event
+	EventCondom *pEvtCondom1 = new EventCondom(pPerson1, t);
+	EventCondom *pEvtCondom2 = new EventCondom(pPerson2, t);
 
+	population.onNewEvent(pEvtCondom1);
+	population.onNewEvent(pEvtCondom2);
+
+	// Need to add a dissolution event
 	EventDissolution *pDissEvent = new EventDissolution(pPerson1, pPerson2, t);
+
+	EventCondom *pEvtCondom3 = new EventCondom(pPerson1, t);	  //TODO change out to different event where we reset condom pref
+	EventCondom *pEvtCondom4 = new EventCondom(pPerson2, t);
+
+	population.onNewEvent(pEvtCondom3);
+	population.onNewEvent(pEvtCondom4);
+
 	population.onNewEvent(pDissEvent);
 
 	// In case it's a man/woman relationship, conception is possible

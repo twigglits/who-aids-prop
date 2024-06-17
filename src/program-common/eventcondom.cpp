@@ -15,9 +15,9 @@ using namespace std;
 bool EventCondom::m_condom_enabled = false; // line here exists only for declartion, does not set default to false, that is set in cofig JSON at the bottom
 double EventCondom::s_condomThreshold = 0.5; // Initialize with the default threshold value
 
-EventCondom::EventCondom(Person *pPerson) : SimpactEvent(pPerson)
+EventCondom::EventCondom(Person *pPerson, double formationTime) : SimpactEvent(pPerson)
 {
-	assert(!pPerson->isCondomUsing());
+    assert(pPerson->isSexuallyActive());
 }
 
 EventCondom::~EventCondom()
@@ -42,13 +42,17 @@ bool EventCondom::isEligibleForTreatment(double t, const State *pState)
     Person *pPerson = getPerson(0);
     double curTime = population.getTime();
     double age = pPerson->getAgeAt(curTime); 
-    // cout << "Checking eligibility for person " << pMan->getName() << " with age: " << age << endl;
+    cout << "Checking eligibility for person " << pPerson->getName() << " with age: " << age << endl;
     
-    if (!pPerson->isCondomUsing() && age >= 15.0) {
-        // cout << "Person " << pPerson->getName() << " Condom eligible with age: " << age << endl;
+    if (pPerson->isSexuallyActive() && pPerson->getNumberOfRelationships() > 0) {
+        cout << "Person " << pPerson->getName() << " Condom eligible with age: " << age << endl;
         return true;  // eligible for condom programming
+    }else if (pPerson->getNumberOfRelationships() == 0)
+    {
+        cout << "Person " << pPerson->getName() << " Condom NOT eligible with age: " << age << endl;
+        return false;
     }
-    return false; // not eligible for condom programming
+    return false;
 }
 
 bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen) {
@@ -61,7 +65,6 @@ bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *
 
 double EventCondom::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState, double t)
 {
-        // double dt = 0.0;
         assert(m_condomscheduleDist);
 
 	    double dt = m_condomscheduleDist->pickNumber();
@@ -86,9 +89,18 @@ void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
             assert(!pPerson->isCondomUsing());
             pPerson->setCondomUse(true);
             writeEventLogStart(true, "(Condom_Programming)", t, pPerson, 0);
-        } 
+        }else if (isEligibleForTreatment(t, pState) && !(isWillingToStartTreatment(t, pRndGen)))
+        {
+            writeEventLogStart(true, "(Condom_Programming_not_willing_to_treat)", t, pPerson, 0);
+        }
+        } else if (!isEligibleForTreatment(t, pState))
+        {
+            assert(pPerson->isCondomUsing());
+            pPerson->setCondomUse(false);
+            writeEventLogStart(true, "(Condom_Drop_Out)", t, pPerson, 0);
+        }
     } 
-}
+
 
 ProbabilityDistribution *EventCondom::m_condomprobDist = 0;
 ProbabilityDistribution *EventCondom::m_condomscheduleDist = 0;

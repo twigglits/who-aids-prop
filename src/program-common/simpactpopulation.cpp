@@ -158,15 +158,15 @@ bool_t SimpactPopulation::scheduleInitialEvents()
 	}
 
 	// initialize the population with the condom use factor
-	for (int i = 0 ; i < numPeople ; i++)
-	{
-		Person *pPerson = ppPeople[i];
-		if (pPerson->isSexuallyActive())
-		{
-			EventCondom *pEvt = new EventCondom(pPerson);
-			onNewEvent(pEvt);
-		}
-	}
+	// for (int i = 0 ; i < numPeople ; i++)
+	// {
+	// 	Person *pPerson = ppPeople[i];
+	// 	if (pPerson->isSexuallyActive())
+	// 	{
+	// 		EventCondom *pEvt = new EventCondom(pPerson);
+	// 		onNewEvent(pEvt);
+	// 	}
+	// }
     
     // VMMC event. This only takes place for men in the population.
 	for (int i = 0 ; i < numMen ; i++)
