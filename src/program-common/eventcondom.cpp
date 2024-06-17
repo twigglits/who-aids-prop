@@ -15,7 +15,7 @@ using namespace std;
 bool EventCondom::m_condom_enabled = false; // line here exists only for declartion, does not set default to false, that is set in cofig JSON at the bottom
 double EventCondom::s_condomThreshold = 0.5; // Initialize with the default threshold value
 
-EventCondom::EventCondom(Person *pPerson, double formationTime) : SimpactEvent(pPerson)
+EventCondom::EventCondom(Person *pPerson) : SimpactEvent(pPerson)
 {
     assert(pPerson->isSexuallyActive());
 }
@@ -93,14 +93,14 @@ void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
         {
             writeEventLogStart(true, "(Condom_Programming_not_willing_to_treat)", t, pPerson, 0);
         }
-        } else if (!isEligibleForTreatment(t, pState))
+        else if (!isEligibleForTreatment(t, pState))
         {
             assert(pPerson->isCondomUsing());
             pPerson->setCondomUse(false);
             writeEventLogStart(true, "(Condom_Drop_Out)", t, pPerson, 0);
         }
-    } 
-
+    }
+} 
 
 ProbabilityDistribution *EventCondom::m_condomprobDist = 0;
 ProbabilityDistribution *EventCondom::m_condomscheduleDist = 0;

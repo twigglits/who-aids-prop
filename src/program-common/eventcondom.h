@@ -8,7 +8,7 @@
 class EventCondom : public SimpactEvent
 {
 public:
-	EventCondom(Person *pPerson, double formationTime);
+	EventCondom(Person *pPerson);
 	~EventCondom();
 
 	std::string getDescription(double tNow) const;
