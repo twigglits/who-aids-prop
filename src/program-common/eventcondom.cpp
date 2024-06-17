@@ -89,15 +89,9 @@ void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
             assert(!pPerson->isCondomUsing());
             pPerson->setCondomUse(true);
             writeEventLogStart(true, "(Condom_Programming)", t, pPerson, 0);
-        }else if (isEligibleForTreatment(t, pState) && !(isWillingToStartTreatment(t, pRndGen)))
+        }else if (isEligibleForTreatment(t, pState) && !isWillingToStartTreatment(t, pRndGen))
         {
             writeEventLogStart(true, "(Condom_Programming_not_willing_to_treat)", t, pPerson, 0);
-        }
-        else if (!isEligibleForTreatment(t, pState))
-        {
-            assert(pPerson->isCondomUsing());
-            pPerson->setCondomUse(false);
-            writeEventLogStart(true, "(Condom_Drop_Out)", t, pPerson, 0);
         }
     }
 } 
