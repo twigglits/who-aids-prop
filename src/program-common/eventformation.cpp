@@ -4,6 +4,7 @@
 #include "eventhsv2transmission.h"
 #include "eventdebut.h"
 #include "eventprep.h"
+#include "eventcondom.h"
 #include "simpactpopulation.h"
 #include "simpactevent.h"
 #include "evthazardformationsimple.h"
@@ -108,20 +109,29 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);
 
+	EventCondom *pEvtCondom1 = new EventCondom(pPerson1);
+	EventCondom *pEvtCondom2 = new EventCondom(pPerson2);
+
+	EventPrep *pEvtPrep1 = new EventPrep(pPerson1);
+	EventPrep *pEvtPrep2 = new EventPrep(pPerson2);
+
+	population.onNewEvent(pEvtCondom1);
+	population.onNewEvent(pEvtCondom2);
+
 	pPerson1->addRelationship(pPerson2, t);
 	pPerson2->addRelationship(pPerson1, t);
 
 	if (pPerson1->isSexuallyActive() && !(pPerson1->hiv().isInfected()) && !(pPerson1->isPrep())){ // (Difference between diagnosed vs infected?) Prep only kicks off if a person hasn't already been diagnosed/infected
-		EventPrep *pEvtPrep = new EventPrep(pPerson1);
-		population.onNewEvent(pEvtPrep);
+		population.onNewEvent(pEvtPrep1);
 	}
 
 	if (pPerson2->isSexuallyActive() && !(pPerson2->hiv().isInfected()) && !(pPerson2->isPrep())){ // (Difference between diagnosed vs infected?) Prep only kicks off if a person hasn't already been diagnosed/infected
-		EventPrep *pEvtPrep = new EventPrep(pPerson2);
-		population.onNewEvent(pEvtPrep);		
+		population.onNewEvent(pEvtPrep2);		
 	}
+
 	// Need to add a dissolution event
 	EventDissolution *pDissEvent = new EventDissolution(pPerson1, pPerson2, t);
+
 	population.onNewEvent(pDissEvent);
 
 	// In case it's a man/woman relationship, conception is possible

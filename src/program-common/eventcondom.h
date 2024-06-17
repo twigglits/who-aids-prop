@@ -29,7 +29,7 @@ private:
 	bool isEligibleForTreatment(double t, const State *pState);
 	bool isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen);
 
-	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState, bool initializationPhase);
+	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState, double t);
 
 	static std::list<double> m_interventionTimes;
 	static std::list<ConfigSettings> m_interventionSettings;

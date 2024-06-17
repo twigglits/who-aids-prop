@@ -17,7 +17,7 @@ double EventCondom::s_condomThreshold = 0.5; // Initialize with the default thre
 
 EventCondom::EventCondom(Person *pPerson) : SimpactEvent(pPerson)
 {
-	assert(!pPerson->isCondomUsing());
+    assert(pPerson->isSexuallyActive());
 }
 
 EventCondom::~EventCondom()
@@ -42,13 +42,17 @@ bool EventCondom::isEligibleForTreatment(double t, const State *pState)
     Person *pPerson = getPerson(0);
     double curTime = population.getTime();
     double age = pPerson->getAgeAt(curTime); 
-    // cout << "Checking eligibility for person " << pMan->getName() << " with age: " << age << endl;
+    cout << "Checking eligibility for person " << pPerson->getName() << " with age: " << age << endl;
     
-    if (!pPerson->isCondomUsing() && age >= 15.0) {
-        // cout << "Person " << pPerson->getName() << " Condom eligible with age: " << age << endl;
+    if (pPerson->isSexuallyActive() && pPerson->getNumberOfRelationships() > 0) {
+        cout << "Person " << pPerson->getName() << " Condom eligible with age: " << age << endl;
         return true;  // eligible for condom programming
+    }else if (pPerson->getNumberOfRelationships() == 0)
+    {
+        cout << "Person " << pPerson->getName() << " Condom NOT eligible with age: " << age << endl;
+        return false;
     }
-    return false; // not eligible for condom programming
+    return false;
 }
 
 bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen) {
@@ -59,14 +63,14 @@ bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *
     return false;
 }
 
-double EventCondom::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState, bool initializationPhase)
+double EventCondom::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState, double t)
 {
-        double dt = 0;
         assert(m_condomscheduleDist);
-        // if not in initialization phase
-        if (!initializationPhase)
-            double dt = m_condomscheduleDist->pickNumber();
-        return dt;
+
+	    double dt = m_condomscheduleDist->pickNumber();
+
+	    return dt;
+        
 }
 
 void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
@@ -85,9 +89,12 @@ void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
             assert(!pPerson->isCondomUsing());
             pPerson->setCondomUse(true);
             writeEventLogStart(true, "(Condom_Programming)", t, pPerson, 0);
-        } 
-    } 
-}
+        }else if (isEligibleForTreatment(t, pState) && !isWillingToStartTreatment(t, pRndGen))
+        {
+            writeEventLogStart(true, "(Condom_Programming_not_willing_to_treat)", t, pPerson, 0);
+        }
+    }
+} 
 
 ProbabilityDistribution *EventCondom::m_condomprobDist = 0;
 ProbabilityDistribution *EventCondom::m_condomscheduleDist = 0;
@@ -101,6 +108,12 @@ void EventCondom::processConfig(ConfigSettings &config, GslRandomNumberGenerator
         m_condomprobDist = 0;
     }
     m_condomprobDist = getDistributionFromConfig(config, pRndGen, "EventCondom.m_condomprobDist");
+
+    if (m_condomscheduleDist) {
+        delete m_condomscheduleDist;
+        m_condomscheduleDist = 0;
+    }
+    m_condomscheduleDist = getDistributionFromConfig(config, pRndGen, "EventCondom.m_condomscheduleDist");
 
     // Read the boolean parameter from the config
     std::string enabledStr;
@@ -121,6 +134,8 @@ void EventCondom::obtainConfig(ConfigWriter &config) {
 
     // Add the condom probability distribution to the config
     addDistributionToConfig(m_condomprobDist, config, "EventCondom.m_condomprobDist");
+    addDistributionToConfig(m_condomprobDist, config, "EventCondom.m_condomscheduleDist");
+
 }
 
 ConfigFunctions CondomConfigFunctions(EventCondom::processConfig, EventCondom::obtainConfig, "EventCondom");
@@ -131,7 +146,8 @@ JSONConfig CondomJSONConfig(R"JSON(
         "params": [
             ["EventCondom.enabled", "true", [ "true", "false"] ],
             ["EventCondom.threshold", 0.5],
-            ["EventCondom.m_condomprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
+            ["EventCondom.m_condomprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
+            ["EventCondom.m_condomscheduleDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
         "info": [ 
             "This parameter is used to set the distribution of subject willing to accept Condom treatment",

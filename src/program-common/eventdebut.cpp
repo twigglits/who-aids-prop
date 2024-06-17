@@ -5,7 +5,6 @@
 #include "configfunctions.h"
 #include "util.h"
 #include "eventvmmc.h"
-#include "eventcondom.h"
 #include <iostream>
 
 EventDebut::EventDebut(Person *pPerson) : SimpactEvent(pPerson)
@@ -50,7 +49,7 @@ void EventDebut::fire(Algorithm *pAlgorithm, State *pState, double t)
 	assert(getNumberOfPersons() == 1);
 	Person *pPerson = getPerson(0);
 	EventVMMC *pEvtVMMC = new EventVMMC(pPerson);  // initialize VMMC class here
-	EventCondom *pEvtCondom = new EventCondom(pPerson);		// initialize Condom class here
+	// EventCondom *pEvtCondom = new EventCondom(pPerson);		// initialize Condom class here
 	pPerson->setSexuallyActive(t);
 
 	// No relationships will be scheduled if the person is already in the final AIDS stage
@@ -60,7 +59,7 @@ void EventDebut::fire(Algorithm *pAlgorithm, State *pState, double t)
 		{
             population.onNewEvent(pEvtVMMC);  // now we first trigger VMMC event
 		}
-		population.onNewEvent(pEvtCondom);  // Set the condom preference value for each individual
+		// population.onNewEvent(pEvtCondom);  // Set the condom preference value for each individual
 		population.initializeFormationEvents(pPerson, false, false, t);
 	}
 }
