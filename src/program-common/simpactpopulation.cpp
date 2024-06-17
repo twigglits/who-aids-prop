@@ -202,19 +202,6 @@ bool_t SimpactPopulation::scheduleInitialEvents()
 				initializeFormationEvents(pMan, true, false, 0); // Only do MSM stuff, relationships with women are already done
 		}
 	}
-
-	
-    
-    // For EventPrep intervention applied to all that are sexually active:
-	for (int i = 0 ; i < numPeople ; i++)
-	{
-		Person *pPerson = ppPeople[i];
-        if (pPerson->isSexuallyActive() && !(pPerson->hiv().isInfected()))
-        {
-        EventPrep *pEvt = new EventPrep(pPerson);
-        onNewEvent(pEvt);
-        }
-	}
     
     // For the people who are not sexually active, set a debut event
 	for (int i = 0 ; i < numPeople ; i++)
