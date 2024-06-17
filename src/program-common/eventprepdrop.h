@@ -28,7 +28,7 @@ private:
 
 	// double m_treatmentStartTime;
 
-	static ProbabilityDistribution *s_prepDropDistribution;
+	static ProbabilityDistribution *m_prepDropDistribution;
 };
 
 #endif // EVENTPREPDROP_H

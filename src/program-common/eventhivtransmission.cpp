@@ -1,4 +1,5 @@
 #include "eventhivtransmission.h"
+#include "eventprepdrop.h"
 #include "eventmortality.h"
 #include "eventaidsmortality.h"
 #include "eventchronicstage.h"
@@ -147,8 +148,16 @@ void EventHIVTransmission::fire(Algorithm *pAlgorithm, State *pState, double t)
 	// Person 1 should be infected but not in the final aids stage, person 2 should not be infected yet
 	assert(pPerson1->hiv().isInfected() && pPerson1->hiv().getInfectionStage() != Person_HIV::AIDSFinal);
 	assert(!pPerson2->hiv().isInfected());
-
+	
 	infectPerson(population, pPerson1, pPerson2, t);
+	
+	if (pPerson1->hiv().isInfected()){
+		EventPrepDrop *pEvtPrepDrop1 = new EventPrepDrop(pPerson1, t);
+	}
+
+	if (pPerson2->hiv().isInfected()){
+		EventPrepDrop *pEvtPrepDrop2 = new EventPrepDrop(pPerson2, t);
+	}
 }
 
 double EventHIVTransmission::s_a = 0;

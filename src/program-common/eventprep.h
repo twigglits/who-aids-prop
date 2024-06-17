@@ -10,7 +10,7 @@ class PieceWiseLinearFunction;
 class EventPrep : public SimpactEvent
 {
 public:
-	EventPrep(Person *pPerson, bool scheduleImmediately = false);
+	EventPrep(Person *pPerson1, Person *pPerson2, bool scheduleImmediately = false);
 	~EventPrep();
 
 	std::string getDescription(double tNow) const;
@@ -25,8 +25,10 @@ public:
 	static ProbabilityDistribution *m_prepprobDist;
 
 private:
-	bool isEligibleForTreatment(double t, const State *pState);
-	bool isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen);
+	bool isEligibleForTreatmentP1(double t, const State *pState);
+	bool isEligibleForTreatmentP2(double t, const State *pState);
+	bool isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *pRndGen);
+	bool isWillingToStartTreatmentP2(double t, GslRandomNumberGenerator *pRndGen);
     bool m_scheduleImmediately;
 
     double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);

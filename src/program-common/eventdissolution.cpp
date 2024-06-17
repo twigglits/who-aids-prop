@@ -1,5 +1,6 @@
 #include "eventdissolution.h"
 #include "eventformation.h"
+#include "eventprepdrop.h"
 #include "evthazarddissolution.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
@@ -65,6 +66,12 @@ void EventDissolution::fire(Algorithm *pAlgorithm, State *pState, double t)
 		EventFormation *pFormationEvent = new EventFormation(pPerson1, pPerson2, t, t);
 		population.onNewEvent(pFormationEvent);
 	}
+
+	EventPrepDrop *pEvtPrepDrop1 = new EventPrepDrop(pPerson1, t);
+	EventPrepDrop *pEvtPrepDrop2 = new EventPrepDrop(pPerson2, t);
+
+	population.onNewEvent(pEvtPrepDrop1);
+	population.onNewEvent(pEvtPrepDrop2);
 }
 
 double EventDissolution::calculateInternalTimeInterval(const State *pState, double t0, double dt)
