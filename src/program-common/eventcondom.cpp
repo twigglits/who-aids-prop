@@ -18,6 +18,7 @@ double EventCondom::s_condomThreshold = 0.5; // Initialize with the default thre
 EventCondom::EventCondom(Person *pPerson) : SimpactEvent(pPerson)
 {
     assert(pPerson->isSexuallyActive());
+    assert(!pPerson->isCondomUsing());
 }
 
 EventCondom::~EventCondom()
@@ -44,15 +45,13 @@ bool EventCondom::isEligibleForTreatment(double t, const State *pState)
     double age = pPerson->getAgeAt(curTime); 
     cout << "Checking eligibility for person " << pPerson->getName() << " with age: " << age << endl;
     
-    if (pPerson->isSexuallyActive() && pPerson->getNumberOfRelationships() > 0) {
+    if (pPerson->isSexuallyActive()) {
         cout << "Person " << pPerson->getName() << " Condom eligible with age: " << age << endl;
         return true;  // eligible for condom programming
-    }else if (pPerson->getNumberOfRelationships() == 0)
-    {
+    }else {        
         cout << "Person " << pPerson->getName() << " Condom NOT eligible with age: " << age << endl;
         return false;
     }
-    return false;
 }
 
 bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen) {
