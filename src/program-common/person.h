@@ -67,8 +67,15 @@ public:
 	// result is negative if no relations formed yet
 	double getLastRelationshipChangeTime() const									{ return m_relations.getLastRelationshipChangeTime(); }
 
+	// set and check for if person is sexually active
 	void setSexuallyActive(double t)												{ m_relations.setSexuallyActive(t); }
 	bool isSexuallyActive() const													{ return m_relations.isSexuallyActive(); }
+
+	// set and check for if person is uses condoms
+	bool m_condom;
+	void setCondomUse(bool f)														{ m_condom = f; }
+	bool isCondomUsing() const														{ return m_condom; }
+
 	double getDebutTime() const														{ return m_relations.getDebutTime(); }
 
 	double getFormationEagernessParameter() const									{ return m_relations.getFormationEagernessParameter(); }
@@ -128,7 +135,13 @@ class Man : public Person
 public:
 	Man(double dateOfBirth);
 	~Man();
+	
+	void setVmmc(bool f) 								{ m_vmmc = f; }
+	bool isVmmc() const								{ return m_vmmc; }  
+private:
+	bool m_vmmc;
 };
+	
 
 class Woman : public Person
 {
@@ -177,4 +190,3 @@ inline double Person::getDistanceTo(Person *pPerson)
 }
 
 #endif // PERSON_H
-

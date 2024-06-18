@@ -2,6 +2,7 @@
 #include "populationdistributioncsv.h"
 #include "person.h"
 #include "person_relations.h"
+#include "eventhivtransmission.h"
 #include "simpactpopulation.h"
 #include "configsettings.h"
 #include "inverseerfi.h"
@@ -175,9 +176,11 @@ void logOnGoingRelationships(SimpactPopulation &pop)
 				writeToLog = true;
 			else if (pPartner->isMan() && pMan->getPersonID() < pPartner->getPersonID())
 				writeToLog = true;
-
+            
+            int k = EventHIVTransmission::getK(pMan, pPartner);
+            
 			if (writeToLog)
-				Person_Relations::writeToRelationLog(pMan, pPartner, formationTime, infinity); // infinity for not dissolved yet
+				Person_Relations::writeToRelationLog(pMan, pPartner, formationTime, infinity, k); // infinity for not dissolved yet
 		}
 
 #ifndef NDEBUG

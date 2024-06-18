@@ -1,4 +1,5 @@
-set(SOURCES_SIMPACT
+set(
+	SOURCES_SIMPACT
 	personimpl.cpp
 	start.cpp
 	../program-common/coarsemap.cpp
@@ -14,6 +15,8 @@ set(SOURCES_SIMPACT
 	../program-common/eventformation.cpp
 	../program-common/eventdissolution.cpp
 	../program-common/eventdebut.cpp
+	../program-common/eventvmmc.cpp
+	../program-common/eventcondom.cpp
 	../program-common/eventhivtransmission.cpp
 	../program-common/eventhsv2transmission.cpp
 	../program-common/eventchronicstage.cpp
@@ -53,5 +56,4 @@ set(SOURCES_SIMPACT
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/../program-common/")
 add_simpact_executable(simpact-cyan ${SOURCES_SIMPACT})
 install_simpact_executable(simpact-cyan)
-
-
+cmake_minimum_required(VERSION 3.16.3)

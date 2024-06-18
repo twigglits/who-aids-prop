@@ -3,6 +3,7 @@
 #define EVENTDEBUT_H
 
 #include "simpactevent.h"
+#include "eventvmmc.h"
 
 class ConfigSettings;
 

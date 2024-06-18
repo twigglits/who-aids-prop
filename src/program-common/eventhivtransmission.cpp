@@ -5,14 +5,17 @@
 #include "eventdiagnosis.h"
 #include "eventdebut.h"
 #include "jsonconfig.h"
+#include "configsettings.h"
+#include "configsettingslog.h"
 #include "configfunctions.h"
+#include "configdistributionhelper.h"
 #include "util.h"
 #include <cmath>
 #include <iostream>
 
 using namespace std;
-
 // Conception happens between two people, so using this constructor seems natural.
+double EventHIVTransmission::s_condomFormationThreshold = 0.5;
 // Also, when one of the involved persons dies before this is fired, the event is
 // removed automatically.
 EventHIVTransmission::EventHIVTransmission(Person *pPerson1, Person *pPerson2) : SimpactEvent(pPerson1, pPerson2)
@@ -159,12 +162,15 @@ double EventHIVTransmission::s_f1 = 0;
 double EventHIVTransmission::s_f2 = 0;
 double EventHIVTransmission::s_g1 = 0;
 double EventHIVTransmission::s_g2 = 0;
+double EventHIVTransmission::s_v1 = 0;
+double EventHIVTransmission::s_k = 0;
 double EventHIVTransmission::s_tMaxAgeRefDiff = -1;
 
 double EventHIVTransmission::calculateInternalTimeInterval(const State *pState, double t0, double dt)
 {
 	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	double h = calculateHazardFactor(population, t0);
+	Person *pPerson = getPerson(0);
 	return dt*h;
 }
 
@@ -186,7 +192,37 @@ int EventHIVTransmission::getH(const Person *pPerson)
  	if (H1 == true)
    		H = 1;
 	return H;
-} 
+}
+
+int EventHIVTransmission::getV(const Person *pPerson)
+{
+	if (!pPerson->isMan()) {
+        return 0; // If not a man, VMMC status does not apply; return 0
+    }
+	// Cast the Person instance to a Man
+    const Man *man = dynamic_cast<const Man *>(pPerson);
+	// Call the isVmmc() method on the Man instance
+    bool v = man->isVmmc();
+    // Return 1 if the man is circumsized, 0 otherwise
+    return v ? 1 : 0;  //converts the true false, to 1 or 0.
+}
+
+int EventHIVTransmission::getK(const Person *pPerson1, const Person *pPerson2)
+{
+	bool k = false;  // initialize k bool var
+	assert(m_condomformationdist);
+    if (pPerson1->isCondomUsing() && pPerson2->isCondomUsing()){
+		double dt = m_condomformationdist->pickNumber();
+		if (dt > s_condomFormationThreshold){
+			k = true;
+		}else{
+			k = false;
+		}
+	}else{
+	 	k = false;
+	}
+    return k ? 1 : 0;  //converts the true/false, to 1 or 0.
+}
 
 double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &population, double t0)
 {
@@ -205,7 +241,8 @@ double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &popu
 	assert(s_b != 0);
 	assert(s_c != 0);
 
-	double logh = s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter();
+	//here we multiply by number of relationships,  so here we getparam H from person class
+	double logh = (s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter() + s_v1*getV(pPerson2) + s_k*getK(pPerson1, pPerson2));  //need to add in logic where if both s_v1 and sv2 are not 0. then we use combination factor.
 
 	if (s_f1 != 0 && pPerson2->isWoman())
 	{
@@ -226,9 +263,17 @@ double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &popu
 	return std::exp(logh);
 }
 
+ProbabilityDistribution *EventHIVTransmission::m_condomformationdist = 0;
+
 void EventHIVTransmission::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	bool_t r;
+    
+    if (m_condomformationdist) {
+        delete m_condomformationdist;
+        m_condomformationdist = 0;
+    }
+    m_condomformationdist = getDistributionFromConfig(config, pRndGen, "hivtransmission.m_condomformationdist");
 
 	if (!(r = config.getKeyValue("hivtransmission.param.a", s_a)) ||
 	    !(r = config.getKeyValue("hivtransmission.param.b", s_b)) ||
@@ -241,6 +286,9 @@ void EventHIVTransmission::processConfig(ConfigSettings &config, GslRandomNumber
 	    !(r = config.getKeyValue("hivtransmission.param.f2", s_f2)) ||
 	    !(r = config.getKeyValue("hivtransmission.param.g1", s_g1)) ||
 	    !(r = config.getKeyValue("hivtransmission.param.g2", s_g2)) ||
+		!(r = config.getKeyValue("hivtransmission.param.v1", s_v1)) ||
+		!(r = config.getKeyValue("hivtransmission.param.k", s_k)) ||
+        !(r = config.getKeyValue("hivtransmission.threshold", s_condomFormationThreshold)) ||
 		!(r = config.getKeyValue("hivtransmission.maxageref.diff", s_tMaxAgeRefDiff)) )
 		
 		abortWithMessage(r.getErrorString());
@@ -249,6 +297,9 @@ void EventHIVTransmission::processConfig(ConfigSettings &config, GslRandomNumber
 void EventHIVTransmission::obtainConfig(ConfigWriter &config)
 {
 	bool_t r;
+    
+    // Add the VMMC schedule distribution to the config
+    addDistributionToConfig(m_condomformationdist, config, "hivtransmission.m_condomformationdist");
 
 	if (!(r = config.addKey("hivtransmission.param.a", s_a)) ||
 	    !(r = config.addKey("hivtransmission.param.b", s_b)) ||
@@ -261,6 +312,9 @@ void EventHIVTransmission::obtainConfig(ConfigWriter &config)
 		!(r = config.addKey("hivtransmission.param.f2", s_f2)) ||
 		!(r = config.addKey("hivtransmission.param.g1", s_g1)) ||
 		!(r = config.addKey("hivtransmission.param.g2", s_g2)) ||
+		!(r = config.addKey("hivtransmission.param.v1", s_v1)) ||
+		!(r = config.addKey("hivtransmission.param.k", s_k)) ||
+        !(r = config.addKey("hivtransmission.threshold", s_condomFormationThreshold)) ||
 		!(r = config.addKey("hivtransmission.maxageref.diff", s_tMaxAgeRefDiff))
 		)
 		
@@ -273,21 +327,25 @@ ConfigFunctions hivTransmissionConfigFunctions(EventHIVTransmission::processConf
 JSONConfig hivTransmissionJSONConfig(R"JSON(
         "EventHIVTransmission": { 
             "depends": null,
-            "params": [ 
+            "params": [
                 ["hivtransmission.param.a", -1.3997],
                 ["hivtransmission.param.b", -12.0220],
                 ["hivtransmission.param.c", 0.1649],
                 ["hivtransmission.param.d1", 0],
                 ["hivtransmission.param.d2", 0], 
-		     ["hivtransmission.param.e1", 0],
-             	["hivtransmission.param.e2", 0],
+                ["hivtransmission.param.e1", 0],
+                ["hivtransmission.param.e2", 0],
                 ["hivtransmission.param.f1", 0], 
                 ["hivtransmission.param.f2", 0],
-			["hivtransmission.param.g1", 0],
-			["hivtransmission.param.g2", 0],
+                ["hivtransmission.param.g1", 0],
+                ["hivtransmission.param.g2", 0],
+                ["hivtransmission.param.v1", -0.916],
+                ["hivtransmission.param.k", -1.6094],
+                ["hivtransmission.threshold", 0.5],
+                ["hivtransmission.m_condomformationdist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
                 ["hivtransmission.maxageref.diff", 1] ],
             "info": [ 
-                "The hazard of transmission is h = exp(a + b * V^(-c) + d1*Pi + d2*Pj + e1*Hi + e2*Hj + g1*b0_j + g2*b1_j), ",
+                "The hazard of transmission is h = exp(a + b * V^(-c) + d1*Pi + d2*Pj + e1*Hi + e2*Hj + g1*b0_j + g2*b1_j + v1*Vi + k*Ki)",
                 "in case the uninfected partner is a man, or",
                 "h = exp(a + b * V^(-c) + d1*Pi + d2*Pj +e1*Hi + e2*Hj + f1*exp(f2(A(try)-Ad))+ g1*b0_j + g2*b1_j)",
                 "in case the uninfected partner is a woman. The value of V is the viral",
@@ -295,4 +353,3 @@ JSONConfig hivTransmissionJSONConfig(R"JSON(
                 "depending on the AIDS stage."
             ]
         })JSON");
-

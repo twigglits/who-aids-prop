@@ -25,6 +25,8 @@ set(SOURCES_SIMPACT
 	../program-common/eventchronicstage.cpp
 	../program-common/eventseedbase.cpp
 	../program-common/eventhivseed.cpp
+	../program-common/eventcondom.cpp
+    ../program-common/eventvmmc.cpp
 	../program-common/eventhsv2seed.cpp
 	../program-common/eventintervention.cpp
 	../program-common/eventaidsstage.cpp

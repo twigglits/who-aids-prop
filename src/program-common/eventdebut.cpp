@@ -4,6 +4,8 @@
 #include "jsonconfig.h"
 #include "configfunctions.h"
 #include "util.h"
+#include "eventvmmc.h"
+#include "eventcondom.h"
 #include <iostream>
 
 EventDebut::EventDebut(Person *pPerson) : SimpactEvent(pPerson)
@@ -25,7 +27,7 @@ double EventDebut::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGe
 	assert(m_debutAge > 0);
 
 	double tEvt = pPerson->getDateOfBirth() + m_debutAge;
-	double dt = tEvt - population.getTime();
+	double dt = tEvt - population.getTime();   
 
 	return dt;
 }
@@ -46,15 +48,21 @@ void EventDebut::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	assert(getNumberOfPersons() == 1);
-
 	Person *pPerson = getPerson(0);
-	assert(pPerson != 0);
-
+	EventVMMC *pEvtVMMC = new EventVMMC(pPerson);  // initialize VMMC class here
+	EventCondom *pEvtCondom = new EventCondom(pPerson);		// initialize Condom class here
 	pPerson->setSexuallyActive(t);
 
 	// No relationships will be scheduled if the person is already in the final AIDS stage
 	if (pPerson->hiv().getInfectionStage() != Person_HIV::AIDSFinal)
+	{
+        if (pPerson->isMan())
+		{
+            population.onNewEvent(pEvtVMMC);  // now we first trigger VMMC event, in VMMC event we trigger intializeFormationEvents
+		}
+		population.onNewEvent(pEvtCondom);  // Set the condom preference value for each individual
 		population.initializeFormationEvents(pPerson, false, false, t);
+	}
 }
 
 double EventDebut::m_debutAge = -1;
@@ -86,4 +94,3 @@ JSONConfig debutJSONConfig(R"JSON(
                 "relationships"
             ]
         })JSON");
-

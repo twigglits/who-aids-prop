@@ -54,7 +54,6 @@ bool EventMonitoring::isWillingToStartTreatment(double t, GslRandomNumberGenerat
 {
 	Person *pPerson = getPerson(0);
 
-	// Coin toss
 	double x = pRndGen->pickRandomDouble();
 	if (x < pPerson->hiv().getARTAcceptanceThreshold())
 		return true;

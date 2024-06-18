@@ -1,4 +1,5 @@
 #include "person_relations.h"
+#include "eventhivtransmission.h"
 #include "person.h"
 #include "probabilitydistribution.h"
 #include "probabilitydistribution2d.h"
@@ -193,12 +194,13 @@ void Person_Relations::removeRelationship(Person *pPerson, double t, bool deathB
 		   
 	if (writeToLog)
 	{
+        int k = EventHIVTransmission::getK(pPerson1, pPerson2);
+        
 		SimpactEvent::writeEventLogStart(false, "(relationshipended)", t, pPerson1, pPerson2);
-
 		double formationTime = relation.getFormationTime();
 		LogEvent.print(",formationtime,%10.10f,relationage,%10.10f", formationTime, t-formationTime);
-
-		writeToRelationLog(pPerson1, pPerson2, formationTime, t);
+        
+		writeToRelationLog(pPerson1, pPerson2, formationTime, t, k);
 	}
 }
 
@@ -245,17 +247,17 @@ void Person_Relations::removePersonOfInterest(Person *pPerson)
 	abortWithMessage("Specified person of interest " + pPerson->getName() + " was not found in list of " + m_pSelf->getName());
 }
 
-void Person_Relations::writeToRelationLog(const Person *pMan, const Person *pWomanOrMan2, double formationTime, double dissolutionTime)
+void Person_Relations::writeToRelationLog(const Person *pMan, const Person *pWomanOrMan2, double formationTime, double dissolutionTime, int k)
 {
 	assert(pMan->isMan());
 	//assert(pWoman->isWoman()); 
 
 	// Write to relationship log
 	// male id, female id, formation time, dissolution time, age gap (age man-age woman)
-	LogRelation.print("%d,%d,%10.10f,%10.10f,%10.10f,%d", 
+	LogRelation.print("%d,%d,%10.10f,%10.10f,%10.10f,%d,%d", 
 			  (int)pMan->getPersonID(), (int)pWomanOrMan2->getPersonID(),
 			  formationTime, dissolutionTime, 
-			  pWomanOrMan2->getDateOfBirth()-pMan->getDateOfBirth(), (pMan->isMan() && pWomanOrMan2->isMan())?1:0);
+			  pWomanOrMan2->getDateOfBirth()-pMan->getDateOfBirth(), (pMan->isMan() && pWomanOrMan2->isMan())?1:0,k);
 }
 
 void Person_Relations::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)

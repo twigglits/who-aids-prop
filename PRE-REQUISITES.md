@@ -72,6 +72,7 @@ Now we have to:
 ```bash
 cmake ..
 make -j 4
+ln -s /home/jupyter/who-aids-prop/build/simpact-cyan-release /usr/local/bin/simpact-cyan-release
 ./simpact-cyan-release
 ```
 
@@ -96,3 +97,8 @@ After compilation we can execute our C++ program like this:
 ```bash
 ./over
 ```
+
+# 3. Adding class inherentice to genders-specific entities 
+
+The gender of an individual is defined in the `/who-aids-prop/src/program-common/person.cpp` directory. Here we need to add in logic
+for seeding a population with VMMC for males.
