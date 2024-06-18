@@ -18,6 +18,7 @@ double EventCondom::s_condomThreshold = 0.5; // Initialize with the default thre
 EventCondom::EventCondom(Person *pPerson) : SimpactEvent(pPerson)
 {
     assert(pPerson->isSexuallyActive());
+    assert(!pPerson->isCondomUsing());
 }
 
 EventCondom::~EventCondom()
