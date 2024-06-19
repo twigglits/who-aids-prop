@@ -234,20 +234,11 @@ int EventHIVTransmission::getK(const Person *pPerson1, const Person *pPerson2)
     return k ? 1 : 0;  //converts the true/false, to 1 or 0.
 }
 
-int EventHIVTransmission::getP(const Person *pPerson1, const Person *pPerson2)
+int EventHIVTransmission::getP(const Person *pPerson2)
 {
-	bool p = false;  // initialize k bool var
-    if (pPerson1->isPrep() || pPerson2->isPrep()){
-		double dt = m_prepformationdist->pickNumber();
-		if (dt > 0.0){
-			p = true;
-		}else{
-			p = false;
-		}
-	}else{
-	 	p = false;
-	}
-    return p ? 1 : 0;  //converts the true/false, to 1 or 0.
+	bool p = false;  // initialize p bool var
+    p = pPerson2->isPrep();
+    return p ? 1 : 0;  //converts the true false, to 1 or 0.
 }
 
 double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &population, double t0)
@@ -268,7 +259,7 @@ double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &popu
 	assert(s_c != 0);
 
 	//here we multiply by number of relationships,  so here we getparam H from person class
-	double logh = (s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter() + s_v1*getV(pPerson2) + s_k*getK(pPerson1, pPerson2) + s_p*getP(pPerson1, pPerson2));  //need to add in logic where if both s_v1 and sv2 are not 0. then we use combination factor.
+	double logh = (s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter() + s_v1*getV(pPerson2) + s_k*getK(pPerson1, pPerson2) + s_p*getP(pPerson2));  //need to add in logic where if both s_v1 and sv2 are not 0. then we use combination factor.
 
 	if (s_f1 != 0 && pPerson2->isWoman())
 	{
@@ -290,7 +281,6 @@ double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &popu
 }
 
 ProbabilityDistribution *EventHIVTransmission::m_condomformationdist = 0;
-ProbabilityDistribution *EventHIVTransmission::m_prepformationdist = 0;
 
 void EventHIVTransmission::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
@@ -301,12 +291,6 @@ void EventHIVTransmission::processConfig(ConfigSettings &config, GslRandomNumber
         m_condomformationdist = 0;
     }
     
-    if (m_prepformationdist) {
-        delete m_prepformationdist;
-        m_prepformationdist = 0;
-    }
-    
-    m_prepformationdist = getDistributionFromConfig(config, pRndGen, "hivtransmission.m_prepformationdist");
     m_condomformationdist = getDistributionFromConfig(config, pRndGen, "hivtransmission.m_condomformationdist");
     
 
@@ -334,8 +318,6 @@ void EventHIVTransmission::obtainConfig(ConfigWriter &config)
 {
 	bool_t r;
     
-    // Add the VMMC schedule distribution to the config
-    addDistributionToConfig(m_prepformationdist, config, "hivtransmission.m_prepformationdist");
     addDistributionToConfig(m_condomformationdist, config, "hivtransmission.m_condomformationdist");
 
 	if (!(r = config.addKey("hivtransmission.param.a", s_a)) ||
@@ -381,7 +363,6 @@ JSONConfig hivTransmissionJSONConfig(R"JSON(
                 ["hivtransmission.param.k", -1.6094],
                 ["hivtransmission.param.p", -1.6094],
                 ["hivtransmission.threshold", 0.5],
-                ["hivtransmission.m_prepformationdist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
                 ["hivtransmission.m_condomformationdist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
                 ["hivtransmission.maxageref.diff", 1] ],
             "info": [ 

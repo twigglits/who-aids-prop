@@ -11,6 +11,8 @@
 
 using namespace std;
 
+double EventPrepDrop::s_prepdropThreshold = 0.2;
+
 EventPrepDrop::EventPrepDrop(Person *pPerson, double t) : SimpactEvent(pPerson)
 {
     assert(pPerson->isPrep());
@@ -34,7 +36,7 @@ void EventPrepDrop::writeLogs(const SimpactPopulation &pop, double tNow) const
 bool EventPrepDrop::dropOutFraction(double t, GslRandomNumberGenerator *pRndGen) {
     assert(m_prepDropDistribution);
 	double dt = m_prepDropDistribution->pickNumber();
-    if (dt > 0.2){
+    if (dt > s_prepdropThreshold){
         return true;
     }
     return false;
@@ -67,13 +69,21 @@ ProbabilityDistribution *EventPrepDrop::m_prepDropDistribution = 0;
 
 void EventPrepDrop::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
+    bool_t r;
 	delete m_prepDropDistribution;
-	m_prepDropDistribution = getDistributionFromConfig(config, pRndGen, "prepdrop.interval");
+	m_prepDropDistribution = getDistributionFromConfig(config, pRndGen, "EventPrepDrop.interval");
+
+    if (!(r = config.getKeyValue("EventPrepDrop.threshold", s_prepdropThreshold))){
+        abortWithMessage(r.getErrorString());}
 }
 
 void EventPrepDrop::obtainConfig(ConfigWriter &config)
 {
-	addDistributionToConfig(m_prepDropDistribution, config, "prepdrop.interval");
+    bool_t r;
+    if (!(r = config.addKey("EventPrepDrop.threshold", s_prepdropThreshold))) {
+        abortWithMessage(r.getErrorString());
+    }
+	addDistributionToConfig(m_prepDropDistribution, config, "EventPrepDrop.interval");
 }
 
 ConfigFunctions prepdropConfigFunctions(EventPrepDrop::processConfig, EventPrepDrop::obtainConfig, "EventPrepDrop");
@@ -82,7 +92,8 @@ JSONConfig prepdropJSONConfig(R"JSON(
         "EventPrepDrop_Timing": {
             "depends": null,
             "params": [ 
-                [ "prepdrop.interval.dist", "distTypes", [ "uniform", [ [ "min", 0.25  ], [ "max", 10.0 ] ] ] ]
+                ["EventPrepDrop.threshold", 0.2],
+                [ "EventPrepDrop.interval.dist", "distTypes", [ "uniform", [ [ "min", 0.25  ], [ "max", 10.0 ] ] ] ]
             ],
             "info": [
                 "Distribution to schedule dropout of prep intervention."

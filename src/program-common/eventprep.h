@@ -23,6 +23,7 @@ public:
 	static bool hasNextIntervention();
     static bool m_prep_enabled;
 	static ProbabilityDistribution *m_prepprobDist;
+	static double s_prepThreshold;
 
 private:
 	bool isEligibleForTreatmentP1(double t, const State *pState);

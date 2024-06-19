@@ -14,6 +14,7 @@
 using namespace std;
 
 bool EventPrep::m_prep_enabled = true;
+double EventPrep::s_prepThreshold = 0.5;
 
 EventPrep::EventPrep(Person *pPerson1, Person *pPerson2, bool scheduleImmediately) : SimpactEvent(pPerson1, pPerson2)
 {
@@ -69,9 +70,9 @@ bool EventPrep::isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *
 
     Person *pPerson1 = getPerson(0);
 
-    if (pPerson1->getFormationEagernessParameter() && pPerson1->getFormationEagernessParameter() > 0.5){
+    if (pPerson1->getFormationEagernessParameter() && pPerson1->getFormationEagernessParameter() > s_prepThreshold){
         return true;
-    }else if (pPerson1->getFormationEagernessParameterMSM() && pPerson1->getFormationEagernessParameterMSM() > 0.5)
+    }else if (pPerson1->getFormationEagernessParameterMSM() && pPerson1->getFormationEagernessParameterMSM() > s_prepThreshold)
     {
         return true;
     }else
@@ -84,9 +85,9 @@ bool EventPrep::isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *
 bool EventPrep::isWillingToStartTreatmentP2(double t, GslRandomNumberGenerator *pRndGen) {
     Person *pPerson2 = getPerson(1);
 
-    if (pPerson2->getFormationEagernessParameter() && pPerson2->getFormationEagernessParameter() > 0.5){
+    if (pPerson2->getFormationEagernessParameter() && pPerson2->getFormationEagernessParameter() > s_prepThreshold){
         return true;
-    }else if (pPerson2->getFormationEagernessParameterMSM() && pPerson2->getFormationEagernessParameterMSM() > 0.5)
+    }else if (pPerson2->getFormationEagernessParameterMSM() && pPerson2->getFormationEagernessParameterMSM() > s_prepThreshold)
     {
         return true;
     } else
@@ -174,7 +175,8 @@ void EventPrep::processConfig(ConfigSettings &config, GslRandomNumberGenerator *
 
     // Read the boolean parameter from the config
     std::string enabledStr;
-    if (!(r = config.getKeyValue("EventPrep.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false")) {
+    if (!(r = config.getKeyValue("EventPrep.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false") ||
+        !(r = config.getKeyValue("EventPrep.threshold", s_prepThreshold))){
         abortWithMessage(r.getErrorString());
     }
     m_prep_enabled = (enabledStr == "true");
@@ -185,7 +187,8 @@ void EventPrep::obtainConfig(ConfigWriter &config) {
     bool_t r;
 
     // Add the VMMC enabled parameter
-    if (!(r = config.addKey("EventPrep.enabled", m_prep_enabled ? "true" : "false"))) {
+    if (!(r = config.addKey("EventPrep.enabled", m_prep_enabled ? "true" : "false")) ||
+        !(r = config.addKey("EventPrep.threshold", s_prepThreshold))) {
         abortWithMessage(r.getErrorString());
     }
 
@@ -203,6 +206,7 @@ JSONConfig PrepJSONConfig(R"JSON(
         "depends": null,
         "params": [
             ["EventPrep.enabled", "true", [ "true", "false"] ],
+            ["EventPrep.threshold", 0.5],
             ["EventPrep.m_prepprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
         "info": [ 

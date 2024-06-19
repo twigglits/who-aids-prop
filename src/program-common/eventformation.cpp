@@ -122,16 +122,14 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	pPerson1->addRelationship(pPerson2, t);
 	pPerson2->addRelationship(pPerson1, t);
 
-	if (!pPerson1->hiv().isInfected() && !pPerson1->isPrep() && pPerson2->hiv().isInfected()){
-		population.onNewEvent(pEvtPrep1);
-	}
-
 	if (!pPerson2->hiv().isInfected() && !pPerson2->isPrep() && pPerson1->hiv().isInfected()){
 		population.onNewEvent(pEvtPrep2);
 	}
 
 	EventDissolution *pDissEvent = new EventDissolution(pPerson1, pPerson2, t);
 	population.onNewEvent(pDissEvent);
+
+
 
 	// In case it's a man/woman relationship, conception is possible
 

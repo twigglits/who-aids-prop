@@ -31,7 +31,7 @@ public:
 
     static void infectPerson(SimpactPopulation &population, Person *pOrigin, Person *pTarget, double t);
     static int getK(const Person *pPerson1, const Person *pPerson2);
-    static int getP(const Person *pPerson1, const Person *pPerson2);
+    static int getP(const Person *pPerson2);
 protected:
     double calculateInternalTimeInterval(const State *pState, double t0, double dt);
     double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);

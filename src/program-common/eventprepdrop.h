@@ -21,6 +21,7 @@ public:
 
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
+	static double s_prepdropThreshold;
 private:
 	// double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
 	double calculateInternalTimeInterval(const State *pState, double t0, double dt);
