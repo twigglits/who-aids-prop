@@ -90,7 +90,7 @@ void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
             writeEventLogStart(true, "(Condom_Programming)", t, pPerson, 0);
         }else if (isEligibleForTreatment(t, pState) && !isWillingToStartTreatment(t, pRndGen))
         {
-            writeEventLogStart(true, "(Condom_Programming_not_willing)", t, pPerson, 0);
+            writeEventLogStart(true, "(Condom_Programming_not_willing_to_treat)", t, pPerson, 0);
         }
     }
 } 
