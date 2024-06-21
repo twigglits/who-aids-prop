@@ -134,7 +134,7 @@ void EventPrep::fire(Algorithm *pAlgorithm, State *pState, double t) {
         {
             pPerson1->setPrep(true);
             writeEventLogStart(true, "Prep_treatment_P1", t, pPerson1, 0);
-            std::cout << "After PREP_P1 status: " << pPerson1->isPrep() << " for P1: " << pPerson1->getName() << " Age: " << age1 << std::endl;
+            // std::cout << "After PREP_P1 status: " << pPerson1->isPrep() << " for P1: " << pPerson1->getName() << " Age: " << age1 << std::endl;
             // Dropout event becomes possible
 		    EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson1, t);  // needs to be smaller percentage than those that took up prep
 		    population.onNewEvent(pEvtPrepDrop);
@@ -144,7 +144,7 @@ void EventPrep::fire(Algorithm *pAlgorithm, State *pState, double t) {
         {
             pPerson2->setPrep(true);
             writeEventLogStart(true, "Prep_treatment_P2", t, pPerson2, 0);
-            std::cout << "After PREP status: " << pPerson2->isPrep() << " for: " << pPerson2->getName() << " Age: " << age2 << std::endl;
+            // std::cout << "After PREP status: " << pPerson2->isPrep() << " for: " << pPerson2->getName() << " Age: " << age2 << std::endl;
             // Dropout event becomes possible
 		    EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson2, t);  // needs to be smaller percentage than those that took up prep
 		    population.onNewEvent(pEvtPrepDrop);

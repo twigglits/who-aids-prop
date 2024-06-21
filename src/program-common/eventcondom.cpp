@@ -43,13 +43,13 @@ bool EventCondom::isEligibleForTreatment(double t, const State *pState)
     Person *pPerson = getPerson(0);
     double curTime = population.getTime();
     double age = pPerson->getAgeAt(curTime); 
-    cout << "Checking eligibility for person " << pPerson->getName() << " with age: " << age << endl;
+    // cout << "Checking eligibility for person " << pPerson->getName() << " with age: " << age << endl;
     
     if (pPerson->isSexuallyActive()) {
         cout << "Person " << pPerson->getName() << " Condom eligible with age: " << age << endl;
         return true;  // eligible for condom programming
     }else {        
-        cout << "Person " << pPerson->getName() << " Condom NOT eligible with age: " << age << endl;
+        // cout << "Person " << pPerson->getName() << " Condom NOT eligible with age: " << age << endl;
         return false;
     }
 }
