@@ -113,24 +113,21 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	EventCondom *pEvtCondom1 = new EventCondom(pPerson1);
 	EventCondom *pEvtCondom2 = new EventCondom(pPerson2);
 
-	EventPrep *pEvtPrep1 = new EventPrep(pPerson1, pPerson2);
-	EventPrep *pEvtPrep2 = new EventPrep(pPerson1, pPerson2);
-
 	population.onNewEvent(pEvtCondom1);
 	population.onNewEvent(pEvtCondom2);
 
 	pPerson1->addRelationship(pPerson2, t);
 	pPerson2->addRelationship(pPerson1, t);
 
-	if (!pPerson1->hiv().isInfected() && !pPerson1->isPrep() && pPerson2->hiv().isInfected()){
-		population.onNewEvent(pEvtPrep1);
-		std::cout << "Firing Prep Intervention P1 from formation fire: " << pPerson1->getName() << std::endl; // Debugging statement
-	}
+	// if (!pPerson1->hiv().isInfected() && !pPerson1->isPrep() && pPerson2->hiv().isInfected()){
+	// 	population.onNewEvent(pEvtPrep1);
+	// 	std::cout << "Firing Prep Intervention P1 from formation fire: " << pPerson1->getName() << std::endl; // Debugging statement
+	// }
 
-	if (!pPerson2->hiv().isInfected() && !pPerson2->isPrep() && pPerson1->hiv().isInfected()){
-		std::cout << "Firing Prep Intervention P2 from formation fire: " << pPerson2->getName() << std::endl; // Debugging statement
-		population.onNewEvent(pEvtPrep2);
-	}
+	// if (!pPerson2->hiv().isInfected()){
+	// 	std::cout << "Firing Prep Intervention P2 from formation fire: " << pPerson2->getName() << std::endl; // Debugging statement
+	// 	population.onNewEvent(pEvtPrep2);
+	// }
 
 	EventDissolution *pDissEvent = new EventDissolution(pPerson1, pPerson2, t);
 	population.onNewEvent(pDissEvent);
@@ -157,6 +154,10 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	{
 		if (!pPerson2->hiv().isInfected())
 		{
+            EventPrep *pEvtPrep = new EventPrep(pPerson1, pPerson2);
+            // std::cout << "Firing Prep Intervention P1 from formation fire: " << pPerson1->getName() << std::endl; // Debugging statement
+            population.onNewEvent(pEvtPrep);
+            
 			EventHIVTransmission *pEvtTrans = new EventHIVTransmission(pPerson1, pPerson2);
 			population.onNewEvent(pEvtTrans);
 		}
@@ -165,6 +166,10 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	{
 		if (pPerson2->hiv().isInfected())
 		{
+            EventPrep *pEvtPrep = new EventPrep(pPerson1, pPerson2);
+            // std::cout << "Firing Prep Intervention P2 from formation fire: " << pPerson2->getName() << std::endl; // Debugging statement
+            population.onNewEvent(pEvtPrep);
+            
 			EventHIVTransmission *pEvtTrans = new EventHIVTransmission(pPerson2, pPerson1);
 			population.onNewEvent(pEvtTrans);
 		} 

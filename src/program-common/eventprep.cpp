@@ -18,9 +18,9 @@ double EventPrep::s_prepThreshold = 0.5;
 
 EventPrep::EventPrep(Person *pPerson1, Person *pPerson2, bool scheduleImmediately) : SimpactEvent(pPerson1, pPerson2)
 {
-    m_scheduleImmediately = scheduleImmediately;
-    assert(pPerson1->hasRelationshipWith(pPerson2));
-    assert(pPerson2->hasRelationshipWith(pPerson1));
+    // m_scheduleImmediately = scheduleImmediately;
+    // assert(pPerson1->hasRelationshipWith(pPerson2));
+    // assert(pPerson2->hasRelationshipWith(pPerson1));
 }
 
 EventPrep::~EventPrep()
@@ -46,8 +46,10 @@ bool EventPrep::isEligibleForTreatmentP1(double t, const State *pState)
     Person *pPerson2 = getPerson(1);
 
     if (!pPerson1->hiv().isInfected() && !pPerson1->isPrep() && pPerson2->hiv().isInfected()){  //we check that a person is in a relationship
+        // std::cout << "P1 eligible: " << pPerson2->getName() << std::endl;
         return true;
     }else{
+        // std::cout << "P1 NOT ELIGIBLE: " << pPerson2->getName() << std::endl;
         return false;
     }
 }
@@ -60,58 +62,37 @@ bool EventPrep::isEligibleForTreatmentP2(double t, const State *pState)
     Person *pPerson2 = getPerson(1);
 
     if (!pPerson2->hiv().isInfected() && !pPerson2->isPrep() && pPerson1->hiv().isInfected()){  //we check that a person is in a relationship
+        // std::cout << "P2 eligible: " << pPerson2->getName() << std::endl;
         return true;
     }else{
+        // std::cout << "P2 NOT ELIGIBLE: " << pPerson2->getName() << std::endl;
         return false;
     }
 }
 
 bool EventPrep::isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *pRndGen) {
-
-    Person *pPerson1 = getPerson(0);
-
-    if (pPerson1->getFormationEagernessParameter() && pPerson1->getFormationEagernessParameter() > s_prepThreshold){
+    //Person *pPerson1 = getPerson(0);
+    assert(m_prepprobDist);
+    double dt = m_prepprobDist->pickNumber();
+    if (dt > s_prepThreshold )
         return true;
-    }else if (pPerson1->getFormationEagernessParameterMSM() && pPerson1->getFormationEagernessParameterMSM() > s_prepThreshold)
-    {
-        return true;
-    }else
-    {
-        return false;
-    }
-    
+    return false;
 }
 
 bool EventPrep::isWillingToStartTreatmentP2(double t, GslRandomNumberGenerator *pRndGen) {
-    Person *pPerson2 = getPerson(1);
-
-    if (pPerson2->getFormationEagernessParameter() && pPerson2->getFormationEagernessParameter() > s_prepThreshold){
+    //Person *pPerson2 = getPerson(1);
+    assert(m_prepprobDist);
+    double dt = m_prepprobDist->pickNumber();
+    if (dt > s_prepThreshold )
         return true;
-    }else if (pPerson2->getFormationEagernessParameterMSM() && pPerson2->getFormationEagernessParameterMSM() > s_prepThreshold)
-    {
-        return true;
-    } else
-    {
-        return false;
-    }
+    return false;
     
 }
 
 double EventPrep::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-    double dt = 0;
-	if (m_scheduleImmediately)
-	{
-		double hour = 1.0/(365.0*24.0); // an hour in a unit of a year
-		return hour * pRndGen->pickRandomDouble();
-	}else if (m_prepscheduleDist)
-    {
-        dt = m_prepscheduleDist->pickNumber();
-	    return dt;
-    }else{
-        dt = 0.1;
-        return dt;
-    }
+    double dt = 1.0;
+    return dt;
 }
 
 
@@ -128,29 +109,28 @@ void EventPrep::fire(Algorithm *pAlgorithm, State *pState, double t) {
     double age2 = pPerson2->getAgeAt(curTime);
     assert(interventionTime == t); // make sure we're at the correct time
 
-    if (m_prep_enabled) {
+    // if (m_prep_enabled) {
 
-        if (isEligibleForTreatmentP1(t, pState) && isWillingToStartTreatmentP1(t, pRndGen)) 
-        {
-            pPerson1->setPrep(true);
-            writeEventLogStart(true, "Prep_treatment_P1", t, pPerson1, 0);
-            std::cout << "After PREP_P1 status: " << pPerson1->isPrep() << " for P1: " << pPerson1->getName() << " Age: " << age1 << std::endl;
-            // Dropout event becomes possible
-            std::cout << "Circumcising Person: " << pPerson1->getName() << std::endl; // Debugging statement
-		    EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson1, t);  // needs to be smaller percentage than those that took up prep
-		    population.onNewEvent(pEvtPrepDrop);
-        }
+    if (isEligibleForTreatmentP1(t, pState) && isWillingToStartTreatmentP1(t, pRndGen)) 
+    {
+    pPerson1->setPrep(true);
+    writeEventLogStart(true, "Prep_treatment_P1", t, pPerson1, 0);
+    // std::cout << "After PREP_P1 status: " << pPerson1->isPrep() << " for P1: " << pPerson1->getName() << " Age: " << age1 << std::endl;
+    // Dropout event becomes possible
+	EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson1, t);  // needs to be smaller percentage than those that took up prep
+	population.onNewEvent(pEvtPrepDrop);
+    }
 
-        if (isEligibleForTreatmentP2(t, pState) && isWillingToStartTreatmentP2(t, pRndGen)) 
-        {
-            pPerson2->setPrep(true);
-            writeEventLogStart(true, "Prep_treatment_P2", t, pPerson2, 0);
-            std::cout << "After PREP status: " << pPerson2->isPrep() << " for: " << pPerson2->getName() << " Age: " << age2 << std::endl;
-            // Dropout event becomes possible
-		    EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson2, t);  // needs to be smaller percentage than those that took up prep
-		    population.onNewEvent(pEvtPrepDrop);
-        } 
+    if (isEligibleForTreatmentP2(t, pState) && isWillingToStartTreatmentP2(t, pRndGen)) 
+    {
+        pPerson2->setPrep(true);
+        writeEventLogStart(true, "Prep_treatment_P2", t, pPerson2, 0);
+        // std::cout << "After PREP_P2 status: " << pPerson2->isPrep() << " for: " << pPerson2->getName() << " Age: " << age2 << std::endl;
+        // Dropout event becomes possible
+		EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson2, t);  // needs to be smaller percentage than those that took up prep
+		population.onNewEvent(pEvtPrepDrop);
     } 
+    // } 
 }
 
 ProbabilityDistribution *EventPrep::m_prepprobDist = 0;
