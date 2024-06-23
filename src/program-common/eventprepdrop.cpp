@@ -30,7 +30,7 @@ string EventPrepDrop::getDescription(double tNow) const
 void EventPrepDrop::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	Person *pPerson = getPerson(0);
-	writeEventLogStart(true, "prepdrop", tNow, pPerson, 0);
+	// writeEventLogStart(true, "prepdrop", tNow, pPerson, 0);
 }
 
 bool EventPrepDrop::dropOutFraction(double t, GslRandomNumberGenerator *pRndGen) {

@@ -122,7 +122,13 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	pPerson1->addRelationship(pPerson2, t);
 	pPerson2->addRelationship(pPerson1, t);
 
+	if (!pPerson1->hiv().isInfected() && !pPerson1->isPrep() && pPerson2->hiv().isInfected()){
+		population.onNewEvent(pEvtPrep1);
+		std::cout << "Firing Prep Intervention P1 from formation fire: " << pPerson1->getName() << std::endl; // Debugging statement
+	}
+
 	if (!pPerson2->hiv().isInfected() && !pPerson2->isPrep() && pPerson1->hiv().isInfected()){
+		std::cout << "Firing Prep Intervention P2 from formation fire: " << pPerson2->getName() << std::endl; // Debugging statement
 		population.onNewEvent(pEvtPrep2);
 	}
 
