@@ -115,20 +115,22 @@ void EventVMMC::processConfig(ConfigSettings &config, GslRandomNumberGenerator *
 
     // Read the boolean parameter from the config
     std::string enabledStr;
-    if (!(r = config.getKeyValue("EventVMMC.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false")) {
+    if (!(r = config.getKeyValue("EventVMMC.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false") ||
+        !(r = config.getKeyValue("EventVMMC.threshold", s_vmmcThreshold))){
         abortWithMessage(r.getErrorString());
     }
     m_VMMC_enabled = (enabledStr == "true");
     
     // Debugging statement
-    std::cout << "VMMC enabled: " << m_VMMC_enabled << std::endl;
+    // std::cout << "VMMC enabled: " << m_VMMC_enabled << std::endl;
 }
 
 void EventVMMC::obtainConfig(ConfigWriter &config) {
     bool_t r;
 
     // Add the VMMC enabled parameter
-    if (!(r = config.addKey("EventVMMC.enabled", m_VMMC_enabled ? "true" : "false"))) {
+    if (!(r = config.addKey("EventVMMC.enabled", m_VMMC_enabled ? "true" : "false")) ||
+        !(r = config.addKey("EventCondom.threshold", s_vmmcThreshold))) {
         abortWithMessage(r.getErrorString());
     }
 
@@ -146,6 +148,7 @@ JSONConfig VMMCJSONConfig(R"JSON(
         "depends": null,
         "params": [
             ["EventVMMC.enabled", "true", [ "true", "false"] ],
+            ["EventVMMC.threshold", 0.5],
             ["EventVMMC.m_vmmcprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
         "info": [ 
