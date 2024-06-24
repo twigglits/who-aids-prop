@@ -130,7 +130,7 @@ void EventVMMC::obtainConfig(ConfigWriter &config) {
 
     // Add the VMMC enabled parameter
     if (!(r = config.addKey("EventVMMC.enabled", m_VMMC_enabled ? "true" : "false")) ||
-        !(r = config.addKey("EventCondom.threshold", s_vmmcThreshold))) {
+        !(r = config.addKey("EventVMMC.threshold", s_vmmcThreshold))) {
         abortWithMessage(r.getErrorString());
     }
 
