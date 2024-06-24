@@ -27,6 +27,7 @@ public:
     static ProbabilityDistribution *m_pVMMC;
 	static bool m_VMMC_enabled; // Add this line
     // static void setEnabled(bool enabled) { m_enabled = enabled; } // Add this method to set the flag
+	static double s_vmmcThreshold;
 
 private:
 	bool isEligibleForTreatment(double t, const State *pState);

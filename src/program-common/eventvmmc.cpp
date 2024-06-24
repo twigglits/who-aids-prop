@@ -12,6 +12,7 @@
 
 using namespace std;
 
+double EventVMMC::s_vmmcThreshold = 0.5;
 bool EventVMMC::m_VMMC_enabled = false; // line here exists only for declartion, does not set default to false, that is set in cofig JSON at the bottom
 
 EventVMMC::EventVMMC(Person *pMan) : SimpactEvent(pMan)
@@ -56,7 +57,7 @@ bool EventVMMC::isEligibleForTreatment(double t, const State *pState)
 bool EventVMMC::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen) {
     assert(m_vmmcprobDist);
 	double dt = m_vmmcprobDist->pickNumber();
-    if (dt > 0.5)  //threshold is 0.5
+    if (dt > s_vmmcThreshold)  //threshold is 0.5
         return true;
     return false;
 }
