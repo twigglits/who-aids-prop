@@ -19,6 +19,7 @@ cfg = {
     "periodiclogging.starttime": 0,
     # vmmc
     "EventVMMC.enabled": "false",
+    "EventVMMC.threshold":0.5,
     "EventVMMC.m_vmmcprobDist.dist.type": "uniform",
     "EventVMMC.m_vmmcprobDist.dist.uniform.max": 1,
     "EventVMMC.m_vmmcprobDist.dist.uniform.min": 0,
@@ -34,10 +35,16 @@ cfg = {
     "hivtransmission.m_condomformationdist.dist.type":"discrete.csv.twocol",
     "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_1.csv",
     "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.floor": 'yes', # to force distribution to return exact values and not any value within the bin
-    "hivtransmission.threshold": 0.5 # threshold for condom use in formation
+    "hivtransmission.threshold": 0.5, # threshold for condom use in formation
+    # prep
+    "EventPrep.enabled": "false"
 }
 
-cfg["EventVMMC.enabled"] = "false"
+# iv1 = { }
+# iv1["time"] = 20 #start intervention 20years after simulation has started
+# iv1["EventPrep.enabled"] = "true"
+
+prep_intro = {"time": 30.1, "EventPrep.enabled": "true"}
 
 vmmc_intro = { "time": 20, "EventVMMC.enabled": "true" }
 
@@ -49,7 +56,7 @@ condom_intro3 = { "time": 30, "hivtransmission.m_condomformationdist.dist.discre
 
 condom_intro4 = { "time": 35, "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_4.csv" }
 
-all_int = [vmmc_intro, condom_intro1, condom_intro2, condom_intro3, condom_intro4]
+all_int = [prep_intro, vmmc_intro, condom_intro1, condom_intro2, condom_intro3, condom_intro4]
 
 # Ensure the interventions are sorted by time
 all_int.sort(key=lambda x: x["time"])
