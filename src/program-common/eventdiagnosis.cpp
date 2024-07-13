@@ -78,7 +78,7 @@ double EventDiagnosis::calculateInternalTimeInterval(const State *pState, double
 	double tMax = getTMax(pPerson);
 
 	HazardFunctionDiagnosis h0(pPerson, s_baseline, s_ageFactor, s_genderFactor, s_diagPartnersFactor,
-			           s_isDiagnosedFactor, s_beta, s_HSV2factor);
+			           s_isDiagnosedFactor, s_beta, s_HSV2factor, s_eagernessFactor);
 	TimeLimitedHazardFunction h(h0, tMax);
 
 	return h.calculateInternalTimeInterval(t0, dt);
@@ -90,7 +90,7 @@ double EventDiagnosis::solveForRealTimeInterval(const State *pState, double Tdif
 	double tMax = getTMax(pPerson);
 
 	HazardFunctionDiagnosis h0(pPerson, s_baseline, s_ageFactor, s_genderFactor, s_diagPartnersFactor,
-			           s_isDiagnosedFactor, s_beta, s_HSV2factor);
+			           s_isDiagnosedFactor, s_beta, s_HSV2factor, s_eagernessFactor);
 	TimeLimitedHazardFunction h(h0, tMax);
 
 	return h.solveForRealTimeInterval(t0, Tdiff);
@@ -113,6 +113,7 @@ double EventDiagnosis::s_isDiagnosedFactor = 0;
 double EventDiagnosis::s_beta = 0;
 double EventDiagnosis::s_HSV2factor = 0;
 double EventDiagnosis::s_tMax = 0;
+double EventDiagnosis::s_eagernessFactor = 0;
 
 
 void EventDiagnosis::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
@@ -126,7 +127,8 @@ void EventDiagnosis::processConfig(ConfigSettings &config, GslRandomNumberGenera
 	    !(r = config.getKeyValue("diagnosis.isdiagnosedfactor", s_isDiagnosedFactor)) ||
 	    !(r = config.getKeyValue("diagnosis.beta", s_beta)) ||
 	    !(r = config.getKeyValue("diagnosis.t_max", s_tMax))||
-	    !(r = config.getKeyValue("diagnosis.HSV2factor", s_HSV2factor))
+	    !(r = config.getKeyValue("diagnosis.HSV2factor", s_HSV2factor)) ||
+		!(r = config.getKeyValue("diagnosis.eagernessfactor", s_eagernessFactor))
 	   )
 		abortWithMessage(r.getErrorString());
 }
@@ -142,7 +144,8 @@ void EventDiagnosis::obtainConfig(ConfigWriter &config)
 	    !(r = config.addKey("diagnosis.isdiagnosedfactor", s_isDiagnosedFactor)) ||
 	    !(r = config.addKey("diagnosis.beta", s_beta)) ||
 	    !(r = config.addKey("diagnosis.t_max", s_tMax)) ||
-	    !(r = config.addKey("diagnosis.HSV2factor", s_HSV2factor))
+	    !(r = config.addKey("diagnosis.HSV2factor", s_HSV2factor)) ||
+		!(r = config.addKey("diagnosis.eagernessfactor", s_eagernessFactor))
 	   )
 		abortWithMessage(r.getErrorString());
 }
@@ -157,10 +160,10 @@ void EventDiagnosis::obtainConfig(ConfigWriter &config)
 //  B = ageFactor + beta
 HazardFunctionDiagnosis::HazardFunctionDiagnosis(Person *pPerson, double baseline, double ageFactor,
 		                                                 double genderFactor, double diagPartnersFactor,
-							         double isDiagnosedFactor, double beta, double HSV2factor)
+							         double isDiagnosedFactor, double beta, double HSV2factor, double eagernessFactor)
 	: m_baseline(baseline), m_ageFactor(ageFactor), m_genderFactor(genderFactor),
 	  m_diagPartnersFactor(diagPartnersFactor), m_isDiagnosedFactor(isDiagnosedFactor),
-	  m_beta(beta), m_HSV2factor(HSV2factor)
+	  m_beta(beta), m_HSV2factor(HSV2factor), m_eagernessFactor(eagernessFactor)
 {
 	assert(pPerson != 0);
 	m_pPerson = pPerson;
@@ -171,8 +174,9 @@ HazardFunctionDiagnosis::HazardFunctionDiagnosis(Person *pPerson, double baselin
 	int D = pPerson->getNumberOfDiagnosedPartners();
 	int hasBeenDiagnosed = (pPerson->hiv().isDiagnosed())?1:0;
 	int HSV2 = (pPerson->hsv2().isInfected())?1:0;
+	double E = (pPerson->getFormationEagernessParameter());
 
-	double A = baseline - ageFactor*tb + genderFactor*G + diagPartnersFactor*D + isDiagnosedFactor*hasBeenDiagnosed - beta*tinf + HSV2factor*HSV2;
+	double A = baseline - ageFactor*tb + genderFactor*G + diagPartnersFactor*D + isDiagnosedFactor*hasBeenDiagnosed - beta*tinf + HSV2factor*HSV2 - eagernessFactor*E;
 	double B = ageFactor + beta;
 
 	setAB(A, B);
@@ -187,11 +191,12 @@ double HazardFunctionDiagnosis::evaluate(double t)
 	int D = m_pPerson->getNumberOfDiagnosedPartners();
 	int hasBeenDiagnosed = (m_pPerson->hiv().isDiagnosed())?1:0;
 	int HSV2 = (m_pPerson->hsv2().isInfected()) ?1:0;
+	double E = (m_pPerson->getFormationEagernessParameter());
 
 	double age = (t-tb);
 
 	return std::exp(m_baseline + m_ageFactor*age + m_genderFactor*G + m_diagPartnersFactor*D +
-			m_isDiagnosedFactor*hasBeenDiagnosed + m_beta*(t-tinf)+ m_HSV2factor*HSV2);
+			m_isDiagnosedFactor*hasBeenDiagnosed + m_beta*(t-tinf)+ m_HSV2factor*HSV2 + m_eagernessFactor*E);
 }
 
 ConfigFunctions diagnosisConfigFunctions(EventDiagnosis::processConfig, EventDiagnosis::obtainConfig, "EventDiagnosis");
@@ -207,6 +212,7 @@ JSONConfig diagnosisJSONConfig(R"JSON(
                 [ "diagnosis.isdiagnosedfactor", 0 ],
                 [ "diagnosis.beta", 0 ],
 		     [ "diagnosis.HSV2factor", 0 ],
+			 [ "diagnosis.eagernessfactor", 0 ],
                 [ "diagnosis.t_max", 200 ]	
             ],
             "info": [
@@ -215,7 +221,7 @@ JSONConfig diagnosisJSONConfig(R"JSON(
                 "",
                 " h = exp(baseline + agefactor*A(t) + genderfactor*G ",
                 "         + diagpartnersfactor*ND + isdiagnosedfactor*D",
-                "         + beta*t + HSV2factor*HSV2)",
+                "         + beta*t + HSV2factor*HSV2 + eagernessfactor*E)",
                 "",
                 "Here, A(t) is the age of the person, G is the gender (0 for a man, 1 for a",
                 "woman), ND is the number of diagnosed partners and D is a flag (0 or 1)",

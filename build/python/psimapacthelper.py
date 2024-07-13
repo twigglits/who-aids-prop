@@ -315,6 +315,7 @@ def input_params_creator(
         person_agegap_woman_dist_normal_mu=0,  # 2.5
         person_agegap_man_dist_normal_sigma=1,
         person_agegap_woman_dist_normal_sigma=1,
+        formation_hazard_agegapry_baseline = 2,
         formation_hazard_agegapry_numrel_man=-0.5,
         formation_hazard_agegapry_numrel_woman=-0.5,
         formation_hazard_agegapry_gap_factor_man_exp=-0.35,  # -0.15#-0.5
@@ -394,6 +395,7 @@ def input_params_creator(
     input_params["person.agegap.woman.dist.normal.mu"] = person_agegap_woman_dist_normal_mu
     input_params["person.agegap.man.dist.normal.sigma"] = person_agegap_man_dist_normal_sigma
     input_params["person.agegap.woman.dist.normal.sigma"] = person_agegap_woman_dist_normal_sigma
+    input_params["formation.hazard.agegapry.baseline"] = formation_hazard_agegapry_baseline
     input_params["formation.hazard.agegapry.numrel_man"] = formation_hazard_agegapry_numrel_man
     input_params["formation.hazard.agegapry.numrel_diff"] = formation_hazard_agegapry_numrel_diff
     input_params["formation.hazard.agegapry.numrel_woman"] = formation_hazard_agegapry_numrel_woman
@@ -691,6 +693,120 @@ def prevalence_calculator(datalist, agegroup, timepoint):
             'popsize': [df_alive_infect.shape[0]],
             'sum_cases': [df_alive_infect['Infected'].sum()],
             'pointprevalence': [df_alive_infect['Infected'].sum() / df_alive_infect.shape[0]]
+        })
+
+        # Calculate confidence intervals for overall prevalence
+
+        lower_bounds = []
+        upper_bounds = []
+        
+        for index, row in prevalence_all_df.iterrows():
+            if not np.isnan(row['sum_cases']) and not np.isnan(row['popsize']) and row['popsize'] >= 1:
+                result = binomtest(int(row['sum_cases']), int(row['popsize']))
+                ci = result.proportion_ci(confidence_level=0.95)
+                lower_bounds.append(ci.low)
+                upper_bounds.append(ci.high)
+            else:
+                lower_bounds.append(np.nan)
+                upper_bounds.append(np.nan)
+
+        prevalence_all_df['pointprevalence.95.ll'] = lower_bounds
+        prevalence_all_df['pointprevalence.95.ul'] = upper_bounds
+
+        # Combine stratified and overall prevalence data frames
+        prevalence_df = pd.concat([prevalence_df, prevalence_all_df], ignore_index=True)
+
+    else:
+        # In case there are no observations in the specified age group
+        prevalence_df = pd.DataFrame({
+            'Gender': [np.nan, np.nan, np.nan],
+            'popsize': [np.nan, np.nan, np.nan],
+            'sum_cases': [np.nan, np.nan, np.nan],
+            'pointprevalence': [np.nan, np.nan, np.nan],
+            'pointprevalence.95.ll': [np.nan, np.nan, np.nan],
+            'pointprevalence.95.ul': [np.nan, np.nan, np.nan]
+        })
+
+    return prevalence_df
+
+def prevalence_obs_calculator(datalist, agegroup, timepoint):
+    """
+    Calculate HIV prevalence, overall and stratified.
+
+    Produces a data frame that contains the overall and gender-stratified HIV prevalence
+    at a specified point in simulation time and for a specific age group.
+
+    Parameters:
+    datalist (dict): The dictionary object produced by readthedata.
+    agegroup (list): Boundaries of the age group (lower bound <= age < upper bound)
+                     that should be retained. Should be expressed as a list of two integers.
+                     e.g., [15, 30].
+    timepoint (int): Point in simulation time at which HIV prevalence should be calculated.
+
+    Returns:
+    pandas.DataFrame: A data frame with prevalence estimate and surrounding confidence
+                      bounds, for the specified time point and age group, overall, and
+                      stratified by gender.
+
+    Examples:
+    cfg = {}
+    modeloutput = RSimpactCyan.simpact.run(configParams=cfg, destDir="temp")
+    dl = readthedata(modeloutput)
+    prev_df = prevalence_calculator(datalist=dl, agegroup=[15, 30], timepoint=30)
+    prev_df
+    """
+
+    # Subset data to include only those alive and infected at the specified timepoint
+    df_alive_infect = alive_diagnosed(datalist=datalist, timepoint=timepoint)
+
+    # Retain only those who are in the specified age groups
+    df_alive_infect = df_alive_infect[
+        (timepoint - df_alive_infect['TOB'] >= agegroup[0]) &
+        (timepoint - df_alive_infect['TOB'] < agegroup[1])
+    ]
+
+    if not df_alive_infect.empty:
+        # Create summary table of prevalence by gender
+        prevalence_df = df_alive_infect.groupby('Gender').agg(
+            popsize=('TOB', 'size'),  # Total observations for each gender
+            sum_cases=('Diagnosed', 'sum')  # Total cases diagnosed for each gender
+        ).reset_index()
+
+        # Check for missing genders
+        missing_genders = [gender for gender in [0, 1] if gender not in prevalence_df['Gender'].values]
+
+        # Add missing genders with NaN values
+        for gender in missing_genders:
+            prevalence_df = pd.concat([prevalence_df, pd.DataFrame({'Gender': [gender], 'popsize': [np.nan], 'sum_cases': [np.nan]})], ignore_index=True)
+
+        # Sort by Gender for readability
+        prevalence_df = prevalence_df.sort_values(by='Gender').reset_index(drop=True)
+
+        # Calculate point prevalence and confidence intervals
+        prevalence_df['pointprevalence'] = prevalence_df['sum_cases'] / prevalence_df['popsize']
+
+        lower_bounds_1 = []
+        upper_bounds_2 = []
+        
+        for index, row in prevalence_df.iterrows():
+            if not np.isnan(row['sum_cases']) and not np.isnan(row['popsize']) and row['popsize'] >= 1:
+                result = binomtest(int(row['sum_cases']), int(row['popsize']))
+                ci = result.proportion_ci(confidence_level=0.95)
+                lower_bounds_1.append(ci.low)
+                upper_bounds_2.append(ci.high)
+            else:
+                lower_bounds_1.append(np.nan)
+                upper_bounds_2.append(np.nan)
+
+        prevalence_df['pointprevalence.95.ll'] = lower_bounds_1
+        prevalence_df['pointprevalence.95.ul'] = upper_bounds_2
+
+        # Calculate overall prevalence
+        prevalence_all_df = pd.DataFrame({
+            'Gender': ['Total'],
+            'popsize': [df_alive_infect.shape[0]],
+            'sum_cases': [df_alive_infect['Diagnosed'].sum()],
+            'pointprevalence': [df_alive_infect['Diagnosed'].sum() / df_alive_infect.shape[0]]
         })
 
         # Calculate confidence intervals for overall prevalence
@@ -1507,28 +1623,37 @@ def alive_diagnosed(datalist, timepoint):
 
     return df_alive
 
-def AIDS_deaths_calculator(datalist, agegroup, timepoint):
-    # Use personlog from the datalist
-    df = datalist['ptable']
+def AIDS_deaths_calculator(datalist, agegroup, timewindow):
+    # Extract age group boundaries
+    lwr_agegroup = agegroup[0]
+    upr_agegroup = agegroup[1]
+
+    # Extract time window boundaries
+    lwr_timewindow = timewindow[0]
+    upr_timewindow = timewindow[1]
+
+    df = datalist['etable']
+    df = df[df.eventname == 'aidsmortality']
+
+    # Keep those deaths within the timewindow 
+    aids_deaths = df[
+                (df['eventtime'].astype(float) <= upr_timewindow) &            
+                (df['eventtime'].astype(float) >= lwr_timewindow)                
+            ].copy()
 
 
-    df_dead = df[
-            (df['TOD'].astype(float) <= timepoint) 
-        ].copy()
+    # Keep those deaths of people within the agegroup 
+    aids_deaths = aids_deaths[
+                (aids_deaths['p1age'].astype(float) < upr_agegroup) &            
+                (aids_deaths['p1age'].astype(float) >= lwr_agegroup)                
+            ].copy()
 
-    AIDS_dead = df_dead[df_dead['AIDSDeath'] == 1].reset_index(drop=True)
-
-    # Retain only those who are in the specified age groups
-    AIDS_dead = AIDS_dead[
-    (timepoint - AIDS_dead['TOB'] >= agegroup[0]) &
-    (timepoint - AIDS_dead['TOB'] < agegroup[1])
-    ]
-
-    if not AIDS_dead.empty:
+    if not aids_deaths.empty:
         # Create summary table of prevalence by gender
-        AIDS_dead_df = AIDS_dead.groupby('Gender').agg(
-            sum_AIDSDeath=('AIDSDeath', 'sum')  # Total cases for each gender
+        AIDS_dead_df = aids_deaths.groupby('p1gender').agg(
+            sum_AIDSDeath=('eventname', 'size')  # Total cases for each gender
         ).reset_index()
+        AIDS_dead_df.rename(columns={'p1gender':'Gender'}, inplace=True)
 
         # Check for missing genders
         missing_genders = [gender for gender in [0, 1] if gender not in AIDS_dead_df['Gender'].values]
@@ -1543,7 +1668,7 @@ def AIDS_deaths_calculator(datalist, agegroup, timepoint):
         # Calculate overall deaths
         AIDS_dead_all_df = pd.DataFrame({
             'Gender': ['Total'],
-            'sum_AIDSDeath': [AIDS_dead['AIDSDeath'].sum()]
+            'sum_AIDSDeath': [aids_deaths['eventname'].size]
         })
 
         # Combine stratified and overall prevalence data frames
@@ -1558,6 +1683,13 @@ def AIDS_deaths_calculator(datalist, agegroup, timepoint):
 
     return AIDS_dead_df
 
+# Function to retain the correct record
+def retain_record(group):
+    if False in group['vl_suppr'].values:
+        return group[group['vl_suppr'] == False].iloc[0]
+    else:
+        return group.iloc[0]
+    
 def VL_suppression_calculator(datalist, agegroup, timepoint, vl_cutoff=1000, site="All"):
     """
     Calculate viral suppression fraction.
@@ -1606,17 +1738,24 @@ def VL_suppression_calculator(datalist, agegroup, timepoint, vl_cutoff=1000, sit
     # Get the most recent viral load (VL) for each person
     vl_df = datalist['vltable'][['Time', 'ID', 'Log10VL']]
     vl_df = vl_df[vl_df['Time'] <= timepoint]
-    vl_df = vl_df.sort_values(by=['ID', 'Time']).groupby('ID').last().reset_index()
     
     # Merge VL status into raw_df
     raw_df = pd.merge(raw_df, vl_df, on='ID', how='left')
+
+    # look at VL after treatment started for all the records of a person
+    raw_df_after_treatment = raw_df[raw_df['TStart'] <= raw_df['Time']].copy()
+    raw_df_after_treatment.loc[:, 'vl_suppr'] = raw_df_after_treatment['Log10VL'] < np.log10(vl_cutoff)
+
+    # keep record that shows not virally supressed if its there
+    # Drop duplicates by ID and Gender while prioritizing vl_suppr == False
+    df_sorted = raw_df_after_treatment.sort_values(by='vl_suppr')
+    raw_df_after_treatment_ = df_sorted.drop_duplicates(subset=['ID', 'Gender'], keep='first')
+
+    # raw_df_after_treatment_ = raw_df_after_treatment.groupby(['ID', 'Gender']).apply(retain_record).reset_index(drop=True)
     
-    if not raw_df.empty and raw_df['onART'].sum() > 0:
-        raw_df['Gender'] = raw_df['Gender'].astype(str)
-        raw_df['vl_suppr'] = raw_df['Log10VL'] < np.log10(vl_cutoff)
-        
+    if not raw_df_after_treatment_.empty and raw_df_after_treatment_['onART'].sum() > 0:      
         # Calculate VL suppression fraction by gender
-        VL_suppression_df = raw_df.groupby('Gender').agg(
+        VL_suppression_df = raw_df_after_treatment_.groupby('Gender').agg(
             sum_onART=('onART', 'sum'),
             sum_vl_suppr=('vl_suppr', 'sum')
         ).reset_index()
@@ -1644,9 +1783,9 @@ def VL_suppression_calculator(datalist, agegroup, timepoint, vl_cutoff=1000, sit
         # Calculate overall VL suppression fraction
         VL_suppression_all_df = pd.DataFrame({
                     'Gender': ['Total'],
-                    'sum_onART': [raw_df['onART'].sum()],
-                    'sum_vl_suppr': [raw_df['vl_suppr'].sum()],
-                    'vl_suppr_frac': [raw_df['vl_suppr'].sum() / raw_df['onART'].sum()]
+                    'sum_onART': [raw_df_after_treatment_['onART'].sum()],
+                    'sum_vl_suppr': [raw_df_after_treatment_['vl_suppr'].sum()],
+                    'vl_suppr_frac': [raw_df_after_treatment_['vl_suppr'].sum() / raw_df_after_treatment_['onART'].sum()]
                 })
 
         lower_bounds_vl_all = []
