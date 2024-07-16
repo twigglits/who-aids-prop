@@ -31,6 +31,7 @@ private:
 	// TODO: use access functions
 	static double m_C;
 	static double m_k;
+	static double m_art_e;
 };
 
 inline double EventAIDSMortality::getExpectedSurvivalTime(const Person *pPerson)
@@ -38,9 +39,10 @@ inline double EventAIDSMortality::getExpectedSurvivalTime(const Person *pPerson)
 	assert(pPerson);
 	double Vsp = pPerson->hiv().getSetPointViralLoad();
 	double log10Offset = pPerson->getSurvivalTimeLog10Offset();
+	double a_e = pPerson->hiv().hasLoweredViralLoad()*m_art_e; // ARV effect
 	assert(Vsp > 0);
 
-	double tSurvival = m_C/std::pow(Vsp, -m_k) * std::pow(10.0, log10Offset);
+	double tSurvival = m_C/std::pow(Vsp, -m_k) * std::pow(10.0, log10Offset) + a_e;
 	assert(tSurvival > 0);
 
 	return tSurvival;

@@ -44,6 +44,7 @@ double EventAIDSMortality::getNewInternalTimeDifference(GslRandomNumberGenerator
 
 double EventAIDSMortality::m_C = 0;
 double EventAIDSMortality::m_k = 0;
+double EventAIDSMortality::m_art_e = 0;
 
 double EventAIDSMortality::calculateInternalTimeInterval(const State *pState, double t0, double dt)
 {
@@ -100,7 +101,8 @@ void EventAIDSMortality::processConfig(ConfigSettings &config, GslRandomNumberGe
 	bool_t r;
 
 	if (!(r = config.getKeyValue("mortality.aids.survtime.C", m_C, 0)) ||
-	    !(r = config.getKeyValue("mortality.aids.survtime.k", m_k)))
+	    !(r = config.getKeyValue("mortality.aids.survtime.k", m_k)) ||
+		!(r = config.getKeyValue("mortality.aids.survtime.art_e", m_art_e)))
 		abortWithMessage(r.getErrorString());
 }
 
@@ -109,7 +111,8 @@ void EventAIDSMortality::obtainConfig(ConfigWriter &config)
 	bool_t r;
 
 	if (!(r = config.addKey("mortality.aids.survtime.C", m_C)) ||
-	    !(r = config.addKey("mortality.aids.survtime.k", m_k)) )
+	    !(r = config.addKey("mortality.aids.survtime.k", m_k)) ||
+		!(r = config.addKey("mortality.aids.survtime.art_e", m_art_e))) 
 		abortWithMessage(r.getErrorString());
 }
 
@@ -120,9 +123,10 @@ JSONConfig aidsMortalityConfig(R"JSON(
             "depends": null,
             "params": [ 
                 ["mortality.aids.survtime.C", 1325.0],
-                ["mortality.aids.survtime.k", -0.49] ],
+                ["mortality.aids.survtime.k", -0.49],
+				["mortality.aids.survtime.art_e", 10] ],
             "info": [ 
                 "Parameters for the calculation of the survival time from the",
-                "set-point viral load: t_surv = C/Vsp^(-k)"
+                "set-point viral load: t_surv = C/Vsp^(-k) + art_e"
             ]
         })JSON");
