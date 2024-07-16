@@ -45,7 +45,7 @@ bool EventPrep::isEligibleForTreatmentP1(double t, const State *pState)
     Person *pPerson1 = getPerson(0);
     Person *pPerson2 = getPerson(1);
 
-    if (!pPerson1->hiv().isInfected() && !pPerson1->isPrep() && pPerson2->hiv().isInfected()){  //we check that a person is in a relationship
+    if (!pPerson1->hiv().isInfected() && !pPerson1->isPrep()){  //&& pPerson2->hiv().isInfected()  we check that a person is in a relationship
         // std::cout << "P1 eligible: " << pPerson2->getName() << std::endl;
         return true;
     }else{
@@ -61,7 +61,7 @@ bool EventPrep::isEligibleForTreatmentP2(double t, const State *pState)
     Person *pPerson1 = getPerson(0);
     Person *pPerson2 = getPerson(1);
 
-    if (!pPerson2->hiv().isInfected() && !pPerson2->isPrep() && pPerson1->hiv().isInfected()){  //we check that a person is in a relationship
+    if (!pPerson2->hiv().isInfected() && !pPerson2->isPrep()){  //&& pPerson1->hiv().isInfected() we check that a person is in a relationship
         // std::cout << "P2 eligible: " << pPerson2->getName() << std::endl;
         return true;
     }else{

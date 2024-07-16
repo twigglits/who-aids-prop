@@ -14,9 +14,10 @@ cfg = {
     "population.nummen": 500,
     "population.numwomen": 500,
     "population.simtime": 50,
-    "population.agedistfile": "/home/jupyter/who-aids-prop/build/python/eswatini_2023.csv",
+    "population.agedistfile": "/home/jupyter/who-aids-prop/build/python/agedist.csv",
     "periodiclogging.interval": 1,
     "periodiclogging.starttime": 0,
+    "mortality.aids.survtime.art_e": 10,
     # vmmc
     "EventVMMC.enabled": "false",
     "EventVMMC.threshold":0.5,
@@ -44,28 +45,33 @@ cfg = {
 # iv1["time"] = 20 #start intervention 20years after simulation has started
 # iv1["EventPrep.enabled"] = "true"
 
-prep_intro = {"time": 30.1, "EventPrep.enabled": "true"}
+art_intro = {
+        "time": 20, #around 2000
+        "diagnosis.baseline": -0.8,
+        "monitoring.cd4.threshold": 100}
 
-vmmc_intro = { "time": 20, "EventVMMC.enabled": "true" }
+# prep_intro = {"time": 30.1, "EventPrep.enabled": "true"}
 
-condom_intro1 = { "time": 20.2, "EventCondom.enabled": "true" }
+# vmmc_intro = { "time": 20, "EventVMMC.enabled": "true" }
 
-condom_intro2 = { "time": 25, "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_2.csv" }
+# condom_intro1 = { "time": 20.2, "EventCondom.enabled": "true" }
 
-condom_intro3 = { "time": 30, "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_3.csv" }
+# condom_intro2 = { "time": 25, "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_2.csv" }
 
-condom_intro4 = { "time": 35, "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_4.csv" }
+# condom_intro3 = { "time": 30, "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_3.csv" }
 
-all_int = [prep_intro, vmmc_intro, condom_intro1, condom_intro2, condom_intro3, condom_intro4]
+# condom_intro4 = { "time": 35, "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_4.csv" }
+
+# all_int = [art_intro, prep_intro, vmmc_intro, condom_intro1, condom_intro2, condom_intro3, condom_intro4]
 
 # Ensure the interventions are sorted by time
-all_int.sort(key=lambda x: x["time"])
+# all_int.sort(key=lambda x: x["time"])
 
 # logging.info(f{"all_int})
 
-res = simpact.run(cfg, "/home/jupyter/who-aids-prop/build/python/output",
+res = simpact.run(cfg, "/home/jupyter/who-aids-prop/build/python/data",
                   seed=42, 
-                  interventionConfig=all_int, # pass all_int directly, not [all_int]
+                  interventionConfig=[art_intro], # pass all_int directly, not [all_int]
                   dataFiles=data)
 
 with open('output.txt', 'w') as f:

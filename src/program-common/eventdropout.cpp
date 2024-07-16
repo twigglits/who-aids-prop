@@ -42,7 +42,7 @@ void EventDropout::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 	// Viral load goes back to the pre-treatment state
 	pPerson->hiv().resetViralLoad(t);
-	cout << "Dropout Event: person: " << pPerson->getName() << " is on ARV(hasloweredViralLoad): " << pPerson->hiv().hasLoweredViralLoad() << endl;
+	// cout << "Dropout Event: person: " << pPerson->getName() << " is on ARV(hasloweredViralLoad): " << pPerson->hiv().hasLoweredViralLoad() << endl;
 
 	// HIV diagnosis event must be scheduled again so the person can possibly start treatment again
 	EventDiagnosis *pEvtDiag = new EventDiagnosis(pPerson);

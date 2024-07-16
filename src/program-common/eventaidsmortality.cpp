@@ -124,7 +124,7 @@ JSONConfig aidsMortalityConfig(R"JSON(
             "params": [ 
                 ["mortality.aids.survtime.C", 1325.0],
                 ["mortality.aids.survtime.k", -0.49],
-				["mortality.aids.survtime.art_e", 10] ],
+				["mortality.aids.survtime.art_e", 10.0] ],
             "info": [ 
                 "Parameters for the calculation of the survival time from the",
                 "set-point viral load: t_surv = C/Vsp^(-k) + art_e"
