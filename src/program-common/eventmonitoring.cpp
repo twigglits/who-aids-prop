@@ -78,6 +78,7 @@ void EventMonitoring::fire(Algorithm *pAlgorithm, State *pState, double t)
 		// Person is starting treatment, no further HIV test events will follow
 		pPerson->hiv().lowerViralLoad(s_treatmentVLLogFrac, t);
 
+		cout << "Montoring Fire Event: person: " << pPerson->getName() << " is on ARV(hasloweredViralLoad): " << pPerson->hiv().hasLoweredViralLoad() << endl;
 		// Dropout event becomes possible
 		EventDropout *pEvtDropout = new EventDropout(pPerson, t);
 		population.onNewEvent(pEvtDropout);
