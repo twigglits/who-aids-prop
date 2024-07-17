@@ -19,7 +19,7 @@ void AIDSTimeOfDeathUtility::changeTimeOfDeath(double currentTime, const Person 
 {
 	assert(pPerson && pPerson->hiv().isInfected());
 	double survivalTime = EventAIDSMortality::getExpectedSurvivalTime(pPerson);
-	double art = EventAIDSMortality::m_art_e;
+	// double art = EventAIDSMortality::m_art_e;
 	double newHazard = 1.0/survivalTime;
 
 	if (m_internalTimeRemaining < 0) // First call
@@ -42,5 +42,5 @@ void AIDSTimeOfDeathUtility::changeTimeOfDeath(double currentTime, const Person 
 
 
 
-	m_timeOfDeath = currentTime + m_internalTimeRemaining/newHazard + (art*pPerson->hiv().hasLoweredViralLoad());
+	m_timeOfDeath = currentTime + m_internalTimeRemaining/newHazard; // + (art*pPerson->hiv().hasLoweredViralLoad());
 }

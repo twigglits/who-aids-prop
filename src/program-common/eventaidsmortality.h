@@ -42,7 +42,7 @@ inline double EventAIDSMortality::getExpectedSurvivalTime(const Person *pPerson)
 	// double a_e = pPerson->hiv().hasLoweredViralLoad()*m_art_e; // ARV effect
 	assert(Vsp > 0);
 
-	double tSurvival = m_C/std::pow(Vsp, -m_k) * std::pow(10.0, log10Offset); //a_e;
+	double tSurvival = m_C/std::pow(Vsp, -m_k) * std::pow(10.0, log10Offset) + a_e;
 	assert(tSurvival > 0);
 
 	return tSurvival;
