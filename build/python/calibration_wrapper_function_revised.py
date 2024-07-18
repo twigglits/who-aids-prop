@@ -15,7 +15,7 @@ def calibration_wrapper_function(parameters = None):
     # Creating cfg list -------------------------------------------------------
     cfg_list = psh.input_params_creator(
     population_eyecap_fraction=0.2,
-    population_simtime=45,  # Until 1 January 2051
+    population_simtime=21,  # Until 1 January 2025
     population_nummen=1000,
     population_numwomen=1000,
     population_msm="no",
@@ -51,6 +51,7 @@ def calibration_wrapper_function(parameters = None):
             
     cfg_list["population.agedistfile"] = "/home/jupyter/who-aids-prop/build/python/agedist.csv"
     cfg_list['diagnosis.eagernessfactor'] = np.log(1.025)
+    cfg_list["mortality.aids.survtime.art_e"] = 10
     
     # vmmc
     cfg_list["EventVMMC.enabled"] = "false"
@@ -73,8 +74,8 @@ def calibration_wrapper_function(parameters = None):
     cfg_list["hivtransmission.threshold"] = 0.3
 
     # prep
-    cfg_list["EventPrep.enabled"] = "false"
-    cfg_list["EventPrep.threshold"] = 0.5 # threshold for willingness to start prep
+    cfg_list["EventPrep.enabled"] = "false" #current code can't switch prep off
+    cfg_list["EventPrep.threshold"] = 1 # threshold for willingness to start prep. Nobody starts
     cfg_list['EventPrep.m_prepprobDist.dist.type'] ='uniform' # willingness to start prep
     cfg_list['EventPrep.m_prepprobDist.dist.uniform.min'] = 0
     cfg_list['EventPrep.m_prepprobDist.dist.uniform.max'] = 1
@@ -102,7 +103,7 @@ def calibration_wrapper_function(parameters = None):
     cfg_list["person.cd4.end.dist.lognormal.sigma"] = math.sqrt(math.log(1 + var_cd4_end / mu_cd4_end ** 2))
     
     # Binormalsymmetric distribution parameters for SPVL
-    cfg_list["person.vsp.model.logdist2d.dist2d.binormalsymm.mean"] = 4
+    cfg_list["person.vsp.model.logdist2d.dist2d.binormalsymm.mean"] = 3.95
     cfg_list["person.vsp.model.logdist2d.dist2d.binormalsymm.sigma"] = 1
     cfg_list["person.vsp.model.logdist2d.dist2d.binormalsymm.rho"] = 0.33
     cfg_list["person.vsp.model.logdist2d.dist2d.binormalsymm.min"] = 2
@@ -112,7 +113,7 @@ def calibration_wrapper_function(parameters = None):
     cfg_list["formation.hazard.agegapry.baseline"] = 3.325157223
     cfg_list["mortality.aids.survtime.C"] = 65
     cfg_list["mortality.aids.survtime.k"] = -0.2
-    cfg_list["monitoring.fraction.log_viralload"] = 0.5
+    cfg_list["monitoring.fraction.log_viralload"] = 0.35#0.5
 
     cfg_list["person.survtime.logoffset.dist.type"] = "normal"
     cfg_list["person.survtime.logoffset.dist.normal.mu"] = 0
@@ -171,8 +172,7 @@ def calibration_wrapper_function(parameters = None):
         "time": 20, #around 2000
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'], #-1,
         "monitoring.cd4.threshold": 100,
-        #"formation.hazard.agegapry.baseline": 3.2,
-        #"conception.alpha_base": -3.0
+        "conception.alpha_base": round(parameters['conception_alpha_base'],8) - 0.1,
         "formation.hazard.agegapry.baseline": cfg_list["formation.hazard.agegapry.baseline"] + 0.5
     }
 
@@ -186,6 +186,7 @@ def calibration_wrapper_function(parameters = None):
         "time": 23, #around 2003
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'], #-0.6,
         "monitoring.cd4.threshold": 200,
+        "conception.alpha_base": round(parameters['conception_alpha_base'],8) - 0.15,
         "formation.hazard.agegapry.baseline": cfg_list["formation.hazard.agegapry.baseline"] + 0.7
     }
 
@@ -199,23 +200,23 @@ def calibration_wrapper_function(parameters = None):
         "time": 30, # 2010
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3'],#-0.2,
         "monitoring.cd4.threshold": 350,
-        "monitoring.fraction.log_viralload": 0.45
+        "monitoring.fraction.log_viralload": 0.3#0.45
     }
 
     art_intro4 = {
         "time": 33.5, #around 2013
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'], #-0.1,
         "monitoring.cd4.threshold": 500,
-        "monitoring.fraction.log_viralload": 0.45,
+        "monitoring.fraction.log_viralload": 0.3,#0.4, #0.35
         "person.art.accept.threshold.dist.fixed.value": 0.95
     }
 
     art_intro5 = {
         "time": 36.75, #around oct 2016
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'] + parameters['diagnosis_baseline_t5'],#-0.01,
-        "monitoring.cd4.threshold":100000, #'inf'
-        "monitoring.fraction.log_viralload": 0.4,
-        #"conception.alpha_base": -3.1
+        "monitoring.cd4.threshold":100000, 
+        "monitoring.fraction.log_viralload": 0.25,#0.3, #0.4, 0.2
+        "conception.alpha_base": round(parameters['conception_alpha_base'],8) - 0.2,
     }
 
 
@@ -261,7 +262,9 @@ def calibration_wrapper_function(parameters = None):
     # prep
     prep_intro1 = {
             "time":37, #around 2017
-            "EventPrep.enabled": "true"
+            "EventPrep.enabled": "true",
+            "EventPrep.threshold":0.87 # threshold for willingness to start prep. coverage is 13%
+        
         }
 
 
@@ -269,7 +272,8 @@ def calibration_wrapper_function(parameters = None):
     #               vmmc_intro1, vmmc_intro2, vmmc_intro3, prep_intro1]
 
     ART_factual = [hiv_testing, art_intro, art_intro1, art_intro2, art_intro3, art_intro4, art_intro5,
-                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1, vmmc_intro2, vmmc_intro3]
+                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1, vmmc_intro2, vmmc_intro3,
+                  prep_intro1]
 
     # running the simulation --------------------------------------------------
     identifier = str(seedid)

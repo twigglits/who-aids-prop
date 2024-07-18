@@ -38,5 +38,5 @@ def simpact_parallel(model=calibration_wrapper_function,
 if __name__ == "__main__":
     result = simpact_parallel(input_csv='Calibration/data/posterior_distributions.csv', 
                               n_cluster=32, 
-                              repeat=2)
+                              repeat=1)
     print(result)

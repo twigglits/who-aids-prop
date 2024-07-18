@@ -67,7 +67,7 @@ def readthedata(modeloutput):
     # Reading the CSV files into DataFrames
     ptable = pd.read_csv(personfile, low_memory=False)
     vltable = pd.read_csv(viralloadfile)
-    rtable = pd.read_csv(relationfile)
+    rtable = pd.read_csv(relationfile, low_memory=False)
     etable = pd.read_csv(eventfile, low_memory=False, header=None, names=list(range(14)))
     ttable = pd.read_csv(treatmentfile)
     itable = pd.read_csv(inputparamfile)
