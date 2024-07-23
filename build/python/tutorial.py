@@ -41,6 +41,17 @@ cfg = {
     "EventPrep.enabled": "false"
 }
 
+# no testing before time 20
+cfg["monitoring.cd4.threshold"] = 1
+cfg["person.art.accept.threshold.dist.fixed.value"] = 0.75
+cfg["diagnosis.baseline"] = -99999
+cfg["periodiclogging.interval"] = 0.25
+#cfg["dropout.interval.dist.exponential.lambda"] = 0.1
+
+cfg["mortality.aids.survtime.C"] = 65
+cfg["mortality.aids.survtime.k"] = -0.2
+cfg["monitoring.fraction.log_viralload"] = 0.3
+
 # iv1 = { }
 # iv1["time"] = 20 #start intervention 20years after simulation has started
 # iv1["EventPrep.enabled"] = "true"
