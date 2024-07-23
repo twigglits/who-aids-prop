@@ -29,6 +29,7 @@ private:
 
 	static double s_treatmentVLLogFrac;
 	static double s_cd4Threshold;
+	static ProbabilityDistribution *m_artDist;
 	static PieceWiseLinearFunction *s_pRecheckInterval;
 };
 

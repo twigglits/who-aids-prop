@@ -64,11 +64,16 @@ bool EventMonitoring::isWillingToStartTreatment(double t, GslRandomNumberGenerat
 void EventMonitoring::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
-	GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
+	GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();  // to be passed from config
 	Person *pPerson = getPerson(0);
 
 	assert(pPerson->hiv().isInfected());
 	assert(!pPerson->hiv().hasLoweredViralLoad());
+	assert(m_artDist);
+
+    double x = m_artDist->pickNumber();
+	s_treatmentVLLogFrac = x;
+
 	assert(s_treatmentVLLogFrac >= 0 && s_treatmentVLLogFrac <= 1.0);
 
 	if (isEligibleForTreatment(t) && isWillingToStartTreatment(t, pRndGen))
@@ -116,10 +121,18 @@ double EventMonitoring::getNewInternalTimeDifference(GslRandomNumberGenerator *p
 double EventMonitoring::s_treatmentVLLogFrac = -1;
 double EventMonitoring::s_cd4Threshold = -1;
 PieceWiseLinearFunction *EventMonitoring::s_pRecheckInterval = 0;
+ProbabilityDistribution *EventMonitoring::m_artDist = 0;
 
 void EventMonitoring::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
 	bool_t r;
+
+    if (m_artDist) {
+        delete m_artDist;
+        m_artDist = 0;
+    }
+    m_artDist = getDistributionFromConfig(config, pRndGen, "monitoring.m_artDist");
+
 
 	if (!(r = config.getKeyValue("monitoring.cd4.threshold", s_cd4Threshold, 0)) ||
 	    !(r = config.getKeyValue("monitoring.fraction.log_viralload", s_treatmentVLLogFrac, 0, 1)))
@@ -159,6 +172,8 @@ void EventMonitoring::obtainConfig(ConfigWriter &config)
 {
 	assert(s_pRecheckInterval);
 
+	addDistributionToConfig(m_artDist, config, "monitoring.m_artDist");
+
 	const vector<Point2D> &points = s_pRecheckInterval->getPoints();
 	vector<double> intervalX, intervalY;
 
@@ -187,6 +202,7 @@ JSONConfig monitoringJSONConfig(R"JSON(
             "params": [
                 [ "monitoring.cd4.threshold", 350.0 ],
                 [ "monitoring.fraction.log_viralload", 0.7 ]
+				["monitoring.m_artDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
             ],
             "info": [
                 "When a person is diagnosed (or 're-diagnosed' after a dropout), monitoring",
