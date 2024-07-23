@@ -201,7 +201,7 @@ JSONConfig monitoringJSONConfig(R"JSON(
             "depends": null,
             "params": [
                 [ "monitoring.cd4.threshold", 350.0 ],
-                [ "monitoring.fraction.log_viralload", 0.7 ]
+                [ "monitoring.fraction.log_viralload", 0.7 ],
 				["monitoring.m_artDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
             ],
             "info": [
