@@ -42,7 +42,7 @@ def calibration_wrapper_function(parameters = None):
     dissolution_alpha_0=-2.50494307,#-0.05,
     debut_debutage=15,
     conception_alpha_base=-2.9,#-1.868525049,#
-    dropout_interval_dist_type="exponential",
+    dropout_interval_dist_type='fixed',#"exponential",
     person_eagerness_man_dist_gamma_a=0.679322802,
     person_eagerness_woman_dist_gamma_a=0.679322802,
     person_eagerness_man_dist_gamma_b=47.03264158,
@@ -52,7 +52,7 @@ def calibration_wrapper_function(parameters = None):
             
     cfg_list["population.agedistfile"] = "/home/jupyter/who-aids-prop/build/python/agedist.csv"
     cfg_list['diagnosis.eagernessfactor'] = np.log(1.025)
-    cfg_list["mortality.aids.survtime.art_e"] = 10
+    cfg_list["mortality.aids.survtime.art_e"] = 10 #art survival time effect
     
     # vmmc
     cfg_list["EventVMMC.enabled"] = "false"
@@ -104,7 +104,7 @@ def calibration_wrapper_function(parameters = None):
     cfg_list["person.cd4.end.dist.lognormal.sigma"] = math.sqrt(math.log(1 + var_cd4_end / mu_cd4_end ** 2))
     
     # Binormalsymmetric distribution parameters for SPVL
-    cfg_list["person.vsp.model.logdist2d.dist2d.binormalsymm.mean"] = 3.95
+    cfg_list["person.vsp.model.logdist2d.dist2d.binormalsymm.mean"] = 4
     cfg_list["person.vsp.model.logdist2d.dist2d.binormalsymm.sigma"] = 1
     cfg_list["person.vsp.model.logdist2d.dist2d.binormalsymm.rho"] = 0.33
     cfg_list["person.vsp.model.logdist2d.dist2d.binormalsymm.min"] = 2
@@ -114,7 +114,12 @@ def calibration_wrapper_function(parameters = None):
     cfg_list["formation.hazard.agegapry.baseline"] = 3.325157223
     cfg_list["mortality.aids.survtime.C"] = 65
     cfg_list["mortality.aids.survtime.k"] = -0.2
-    cfg_list["monitoring.fraction.log_viralload"] = 0.35#0.5
+    # cfg_list["monitoring.fraction.log_viralload"] = 0.35#0.5
+    cfg_list["monitoring.m_artDist.dist.type"] = "normal"
+    cfg_list["monitoring.m_artDist.dist.normal.min"] = 0.15
+    cfg_list["monitoring.m_artDist.dist.normal.max"] = 0.75
+    cfg_list["monitoring.m_artDist.dist.normal.mu"] = 0.45
+    cfg_list["monitoring.m_artDist.dist.normal.sigma"] = 0.2
 
     cfg_list["person.survtime.logoffset.dist.type"] = "normal"
     cfg_list["person.survtime.logoffset.dist.normal.mu"] = 0
@@ -127,7 +132,8 @@ def calibration_wrapper_function(parameters = None):
     cfg_list["person.art.accept.threshold.dist.fixed.value"] = 0.85
     cfg_list["diagnosis.baseline"] = -99999
     cfg_list["periodiclogging.interval"] = 0.25
-    cfg_list["dropout.interval.dist.exponential.lambda"] = 0.01
+    cfg_list["dropout.interval.dist.fixed.value"] = 500 #cfg_list["dropout.interval.dist.exponential.lambda"] = 0.1
+
 
     # # Assuming cfg_list["population.simtime"] and cfg_list["population.nummen"] are defined elsewhere
     # cfg_list["population.maxevents"] = float(cfg_list["population.simtime"]) * float(cfg_list["population.nummen"]) * 100
@@ -203,14 +209,15 @@ def calibration_wrapper_function(parameters = None):
         "time": 30, # 2010
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3'],#-0.2,
         "monitoring.cd4.threshold": 350,
-        "monitoring.fraction.log_viralload": 0.3#0.45
+        "monitoring.m_artDist.dist.normal.mu": 0.35,
+        "monitoring.m_artDist.dist.normal.min": 0.15,
+        "monitoring.m_artDist.dist.normal.max":0.55
     }
 
     art_intro4 = {
         "time": 33.5, #around 2013
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'], #-0.1,
         "monitoring.cd4.threshold": 500,
-        "monitoring.fraction.log_viralload": 0.3,#0.4, #0.35
         "person.art.accept.threshold.dist.fixed.value": 0.95
     }
 
@@ -218,7 +225,10 @@ def calibration_wrapper_function(parameters = None):
         "time": 36.75, #around oct 2016
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'] + parameters['diagnosis_baseline_t5'],#-0.01,
         "monitoring.cd4.threshold":100000, 
-        "monitoring.fraction.log_viralload": 0.25,#0.3, #0.4, 0.2
+        "monitoring.m_artDist.dist.normal.mu": 0.3,
+        "monitoring.m_artDist.dist.normal.min": 0.1,
+        "monitoring.m_artDist.dist.normal.max":0.5,
+        "mortality.aids.survtime.art_e": 15,
         "conception.alpha_base": round(parameters['conception_alpha_base'],8) - 0.2,
     }
 
@@ -271,9 +281,6 @@ def calibration_wrapper_function(parameters = None):
         }
 
 
-    # ART_factual = [hiv_testing, art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
-    #               vmmc_intro1, vmmc_intro2, vmmc_intro3, prep_intro1]
-
     ART_factual = [hiv_testing, art_intro, art_intro1, art_intro2, art_intro3, art_intro4, art_intro5,
                   condom_intro1, condom_intro2, condom_intro3, vmmc_intro1, vmmc_intro2, vmmc_intro3,
                   prep_intro1]
@@ -291,7 +298,6 @@ def calibration_wrapper_function(parameters = None):
     results = simpact.run(
         config=cfg_list,
         destDir=destDir,
-        #agedist=age_distr,
         interventionConfig=ART_factual,
         seed=seedid,
         identifierFormat=f'seed {identifier}',

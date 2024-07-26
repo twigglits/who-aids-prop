@@ -109,8 +109,8 @@ def weighted_distance(x, x_0):
 abc = pyabc.ABCSMC(models=calibration_wrapper_function, 
                    parameter_priors=prior, 
                    distance_function=distance_adaptive, #weighted_distance
-                   sampler=MulticoreEvalParallelSampler(n_procs=32),
-                   population_size=50) 
+                   sampler=MulticoreEvalParallelSampler(n_procs=95),
+                   population_size=100) 
 
 
 # target stats
@@ -150,8 +150,11 @@ target_stats = {
      'prev_18_15_49': 0.222,
      'prev_19_15_49': 0.236,
      'prev_20_15_49': 0.246,
-    'prev_f_20_15_49': 0.26,
-    'prev_m_20_15_49': 0.22,
+     'prev_30_15_49': 0.279,
+     'prev_35_15_49': 0.299,
+     'prev_40_15_49': 0.276,
+     'prev_f_20_15_49': 0.26,
+     'prev_m_20_15_49': 0.22,
      'inc_10_15_49': 0.0783,
      'inc_11_15_49': 0.1515,
      'inc_12_15_49': 0.2555,
@@ -162,7 +165,11 @@ target_stats = {
      'inc_17_15_49': 0.478,
      'inc_18_15_49': 0.437,
      'inc_19_15_49': 0.4174,
-     'inc_20_15_49': 0.3913
+     'inc_20_15_49': 0.3913,
+     'inc_30_15_49': 0.286,
+     'inc_35_15_49': 0.239,
+     'inc_40_15_49': 0.098
+    
 }
 
 # path to save output
@@ -174,7 +181,7 @@ if os.path.exists(db_path):
 
 abc.new("sqlite:///" + db_path, target_stats)
 
-history = abc.run(minimum_epsilon=0.1,max_nr_populations= 10) 
+history = abc.run(minimum_epsilon=0.1,max_nr_populations= 20) 
 
 posterior_params, weights = history.get_distribution()
 

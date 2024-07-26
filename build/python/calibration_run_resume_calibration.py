@@ -109,7 +109,7 @@ def weighted_distance(x, x_0):
 abc_continued = pyabc.ABCSMC(models=calibration_wrapper_function, 
                    parameter_priors=prior, 
                    distance_function=distance_adaptive, #weighted_distance
-                   sampler=MulticoreEvalParallelSampler(n_procs=32),
+                   sampler=MulticoreEvalParallelSampler(n_procs=96),
                    population_size=15) 
 
 
