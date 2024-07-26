@@ -44,15 +44,15 @@ double EventAIDSMortality::getNewInternalTimeDifference(GslRandomNumberGenerator
 	return m_eventHelper.getNewInternalTimeDifference(pRndGen, pState);
 }
 
-double EventAIDSMortality::getArtDistributionValue(){
+double EventAIDSMortality::getArtDistributionValue(const Person *pPerson){
 	assert(m_art_e);
 	double dt = m_art_e->pickNumber();
+	cout << "Person " << pPerson->getName() << " Art Years: " << dt << endl;
 	return dt;
 }
 
 double EventAIDSMortality::m_C = 0;
 double EventAIDSMortality::m_k = 0;
-// double EventAIDSMortality::m_art_e = 0;
 ProbabilityDistribution *EventAIDSMortality::m_art_e = 0;
 
 double EventAIDSMortality::calculateInternalTimeInterval(const State *pState, double t0, double dt)

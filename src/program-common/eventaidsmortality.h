@@ -21,7 +21,7 @@ public:
 
 	static double getExpectedSurvivalTime(const Person *pPerson);
 	static ProbabilityDistribution *m_art_e;
-	static double getArtDistributionValue();
+	static double getArtDistributionValue(const Person *pPerson);
 private:
 	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
 	double calculateInternalTimeInterval(const State *pState, double t0, double dt);
