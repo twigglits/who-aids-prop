@@ -1,6 +1,8 @@
 #include "eventaidsmortality.h"
 #include "gslrandomnumbergenerator.h"
+#include "configdistributionhelper.h"
 #include "jsonconfig.h"
+#include "configsettings.h"
 #include "configfunctions.h"
 #include "util.h"
 #include <iostream>
@@ -42,9 +44,16 @@ double EventAIDSMortality::getNewInternalTimeDifference(GslRandomNumberGenerator
 	return m_eventHelper.getNewInternalTimeDifference(pRndGen, pState);
 }
 
+double EventAIDSMortality::getArtDistributionValue(){
+	assert(m_art_e);
+	double dt = m_art_e->pickNumber();
+	return dt;
+}
+
 double EventAIDSMortality::m_C = 0;
 double EventAIDSMortality::m_k = 0;
-double EventAIDSMortality::m_art_e = 0;
+// double EventAIDSMortality::m_art_e = 0;
+ProbabilityDistribution *EventAIDSMortality::m_art_e = 0;
 
 double EventAIDSMortality::calculateInternalTimeInterval(const State *pState, double t0, double dt)
 {
@@ -100,9 +109,15 @@ void EventAIDSMortality::processConfig(ConfigSettings &config, GslRandomNumberGe
 {
 	bool_t r;
 
+    if (m_art_e) {
+        delete m_art_e;
+        m_art_e = 0;
+    }
+    m_art_e = getDistributionFromConfig(config, pRndGen, "mortality.aids.survtime.art_e");
+
 	if (!(r = config.getKeyValue("mortality.aids.survtime.C", m_C, 0)) ||
-	    !(r = config.getKeyValue("mortality.aids.survtime.k", m_k)) ||
-		!(r = config.getKeyValue("mortality.aids.survtime.art_e", m_art_e)))
+	    !(r = config.getKeyValue("mortality.aids.survtime.k", m_k))) // ||
+		// !(r = config.getKeyValue("mortality.aids.survtime.art_e", m_art_e)))
 		abortWithMessage(r.getErrorString());
 }
 
@@ -111,9 +126,11 @@ void EventAIDSMortality::obtainConfig(ConfigWriter &config)
 	bool_t r;
 
 	if (!(r = config.addKey("mortality.aids.survtime.C", m_C)) ||
-	    !(r = config.addKey("mortality.aids.survtime.k", m_k)) ||
-		!(r = config.addKey("mortality.aids.survtime.art_e", m_art_e))) 
+	    !(r = config.addKey("mortality.aids.survtime.k", m_k))) //||
+		// !(r = config.addKey("mortality.aids.survtime.art_e", m_art_e))) 
 		abortWithMessage(r.getErrorString());
+
+	addDistributionToConfig(m_art_e, config, "mortality.aids.survtime.art_e");
 }
 
 ConfigFunctions aidsMortalityConfigFunctions(EventAIDSMortality::processConfig, EventAIDSMortality::obtainConfig, "EventAIDSMortality");
@@ -124,7 +141,8 @@ JSONConfig aidsMortalityConfig(R"JSON(
             "params": [ 
                 ["mortality.aids.survtime.C", 1325.0],
                 ["mortality.aids.survtime.k", -0.49],
-				["mortality.aids.survtime.art_e", 10.0] ],
+				["mortality.aids.survtime.art_e.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
+			],
             "info": [ 
                 "Parameters for the calculation of the survival time from the",
                 "set-point viral load: t_surv = C/Vsp^(-k) + art_e"

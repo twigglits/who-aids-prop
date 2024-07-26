@@ -20,7 +20,8 @@ public:
 	static void obtainConfig(ConfigWriter &config);
 
 	static double getExpectedSurvivalTime(const Person *pPerson);
-	static double m_art_e;
+	static ProbabilityDistribution *m_art_e;
+	static double getArtDistributionValue();
 private:
 	double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
 	double calculateInternalTimeInterval(const State *pState, double t0, double dt);
@@ -39,7 +40,7 @@ inline double EventAIDSMortality::getExpectedSurvivalTime(const Person *pPerson)
 	assert(pPerson);
 	double Vsp = pPerson->hiv().getSetPointViralLoad();
 	double log10Offset = pPerson->getSurvivalTimeLog10Offset();
-	double a_e = pPerson->hiv().hasLoweredViralLoad()*m_art_e; // ARV effect
+	// double a_e = pPerson->hiv().hasLoweredViralLoad()*m_art_e->pickNumber(); // ARV effect
 	assert(Vsp > 0);
 
 	double tSurvival = m_C/std::pow(Vsp, -m_k) * std::pow(10.0, log10Offset); // + a_e;
