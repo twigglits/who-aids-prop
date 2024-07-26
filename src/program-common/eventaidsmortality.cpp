@@ -47,7 +47,7 @@ double EventAIDSMortality::getNewInternalTimeDifference(GslRandomNumberGenerator
 double EventAIDSMortality::getArtDistributionValue(const Person *pPerson){
 	assert(m_art_e);
 	double dt = m_art_e->pickNumber();
-	cout << "Person " << pPerson->getName() << " Art Years: " << dt << endl;
+	// cout << "Person " << pPerson->getName() << " Art Years: " << dt << endl;
 	return dt;
 }
 
