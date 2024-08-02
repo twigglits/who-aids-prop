@@ -506,13 +506,26 @@ def pop_growth_calculator(datalist, timewindow):
     end_popsize = datalist['ltable'].loc[datalist['ltable']['Time'] == timewindow[1], 'PopSize'].values[0]
 
     if timewindow[0] == 0:
-        start_popsize = datalist['itable']['population.nummen'] + datalist['itable']['population.numwomen']
+        start_popsize = (datalist['itable']['population.nummen'] + datalist['itable']['population.numwomen']).values[0]
     else:
         start_popsize = datalist['ltable'].loc[datalist['ltable']['Time'] == timewindow[0], 'PopSize'].values[0]
 
     growth_rate = np.log(end_popsize / start_popsize) / np.diff(timewindow)
 
     return float(growth_rate[0])
+
+def pop_size_calculator(datalist, timepoint):
+    """
+    Calculate population size relative to start size.
+
+    Examples:
+    >>> data = readthedata()
+    >>> pop_size_calculator(datalist=data, timepoint = 20)
+    """
+    popsize = datalist['ltable'].loc[datalist['ltable']['Time'] == timepoint, 'PopSize'].values[0]
+    start_popsize = (datalist['itable']['population.nummen'] + datalist['itable']['population.numwomen']).values[0]
+
+    return float(popsize/start_popsize)
 
 def proportion_diagnosed_calculator(datalist, agegroup, timepoint):
     # Subset data to include only those alive and infected at the specified timepoint

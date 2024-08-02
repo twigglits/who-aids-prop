@@ -52,7 +52,9 @@ def calibration_wrapper_function(parameters = None):
             
     cfg_list["population.agedistfile"] = "/home/jupyter/who-aids-prop/build/python/agedist.csv"
     cfg_list['diagnosis.eagernessfactor'] = np.log(1.025)
-    cfg_list["mortality.aids.survtime.art_e"] = 10 #art survival time effect
+    cfg_list["mortality.aids.survtime.art_e.dist.type"] = "uniform"
+    cfg_list["mortality.aids.survtime.art_e.dist.uniform.min"] = 0
+    cfg_list["mortality.aids.survtime.art_e.dist.uniform.max"] = 10
     
     # vmmc
     cfg_list["EventVMMC.enabled"] = "false"
@@ -209,7 +211,9 @@ def calibration_wrapper_function(parameters = None):
         "monitoring.cd4.threshold": 350,
         "monitoring.m_artDist.dist.normal.mu": 0.35,
         "monitoring.m_artDist.dist.normal.min": 0.15,
-        "monitoring.m_artDist.dist.normal.max":0.55
+        "monitoring.m_artDist.dist.normal.max":0.55,
+        "mortality.aids.survtime.art_e.dist.uniform.min":5,
+        "mortality.aids.survtime.art_e.dist.uniform.max":15
     }
 
     art_intro4 = {
@@ -226,8 +230,9 @@ def calibration_wrapper_function(parameters = None):
         "monitoring.m_artDist.dist.normal.mu": 0.3,
         "monitoring.m_artDist.dist.normal.min": 0.1,
         "monitoring.m_artDist.dist.normal.max":0.5,
-        "mortality.aids.survtime.art_e": 15,
-        "conception.alpha_base": round(parameters['conception_alpha_base'],8) - 0.2,
+        "conception.alpha_base": round(parameters['conception_alpha_base'],8) - 0.25,
+        "mortality.aids.survtime.art_e.dist.uniform.min":10,
+        "mortality.aids.survtime.art_e.dist.uniform.max":20
     }
 
 

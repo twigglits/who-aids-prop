@@ -50,9 +50,11 @@ def calibration_wrapper_function(parameters = None):
     formation_hazard_agegapry_numrel_man= -0.649752699,
     formation_hazard_agegapry_numrel_woman= -0.61526928)
             
-    cfg_list["population.agedistfile"] = "/home/jupyter/who-aids-prop/build/python/agedist.csv"
+    cfg_list["population.agedistfile"] = "/home/jupyter/who-aids-prop/build/python/eswatini_2023.csv"
     cfg_list['diagnosis.eagernessfactor'] = np.log(1.025)
-    cfg_list["mortality.aids.survtime.art_e"] = 10 #art survival time effect
+    cfg_list["mortality.aids.survtime.art_e.dist.type"] = "uniform"
+    cfg_list["mortality.aids.survtime.art_e.dist.uniform.min"] = 5
+    cfg_list["mortality.aids.survtime.art_e.dist.uniform.max"] = 15
     
     # vmmc
     cfg_list["EventVMMC.enabled"] = "false"
@@ -80,12 +82,10 @@ def calibration_wrapper_function(parameters = None):
     cfg_list['EventPrep.m_prepprobDist.dist.type'] ='uniform' # willingness to start prep
     cfg_list['EventPrep.m_prepprobDist.dist.uniform.min'] = 0
     cfg_list['EventPrep.m_prepprobDist.dist.uniform.max'] = 1
-    # cfg_list['EventPrep.m_prepscheduleDist.dist.type'] = 'fixed' #legacy options
-    # cfg_list['EventPrep.m_prepscheduleDist.dist.fixed.value'] = 0.246575
-    cfg_list['EventPrepDrop.threshold'] = 0.2 # threshold for dropping
+    cfg_list['EventPrepDrop.threshold'] = 1#0.2 # threshold for dropping
     cfg_list['EventPrepDrop.interval.dist.type'] ='uniform' # distribution to choose probablity of dropping which will be used alongside number of relationships or hiv status to decide if dropping out
-    cfg_list['EventPrepDrop.interval.dist.uniform.min'] = 0.25
-    cfg_list['EventPrepDrop.interval.dist.uniform.max'] = 10.0
+    cfg_list['EventPrepDrop.interval.dist.uniform.min'] = 0#0.25
+    cfg_list['EventPrepDrop.interval.dist.uniform.max'] = 1#10.0
 
     # Initial values
     mu_cd4 = 800
@@ -145,7 +145,6 @@ def calibration_wrapper_function(parameters = None):
     # seedid = seed_generator.generate_seed()
     seedid = parameters['seed']
 
-    #TODO: write a fuction such that if you don't pass a calibration parameter value, it uses the default eg the values above
     # calibration parameters
     
     cfg_list["hivtransmission.param.f1"] = round(parameters['hivtransmission_param_f1'],8)
@@ -171,7 +170,6 @@ def calibration_wrapper_function(parameters = None):
     cfg_list['diagnosis.eagernessfactor'] = round(math.log(parameters['diagnosis_eagernessfactor']),8)
 
     # ART introduction configurations
-    # ART introduction configurations
     hiv_testing = {
     "time": 12, #around 1992 
     "diagnosis.baseline":-4
@@ -181,8 +179,7 @@ def calibration_wrapper_function(parameters = None):
         "time": 20, #around 2000
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'], #-1,
         "monitoring.cd4.threshold": 100,
-        "conception.alpha_base": round(parameters['conception_alpha_base'],8) - 0.1,
-        "formation.hazard.agegapry.baseline": cfg_list["formation.hazard.agegapry.baseline"] + 0.5
+        #"formation.hazard.agegapry.baseline": cfg_list["formation.hazard.agegapry.baseline"] + 0.5
     }
 
     art_intro1 = {
@@ -194,15 +191,17 @@ def calibration_wrapper_function(parameters = None):
     art_intro2 = {
         "time": 23, #around 2003
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'], #-0.6,
-        "monitoring.cd4.threshold": 200,
-        "conception.alpha_base": round(parameters['conception_alpha_base'],8) - 0.15,
-        "formation.hazard.agegapry.baseline": cfg_list["formation.hazard.agegapry.baseline"] + 0.7
+        "monitoring.cd4.threshold": 200
+        #"formation.hazard.agegapry.baseline": cfg_list["formation.hazard.agegapry.baseline"] + 0.7
     }
 
     art_intro2_2 = {
         "time": 26, #around 2006
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'], #-0.4,
         "person.art.accept.threshold.dist.fixed.value": 0.9,
+        "mortality.aids.survtime.art_e.dist.uniform.min":15,
+        "mortality.aids.survtime.art_e.dist.uniform.max":35,
+        "conception.alpha_base": parameters['conception_alpha_base'] - parameters['conception_alpha_base_1']
     }
 
     art_intro3 = {
@@ -211,7 +210,9 @@ def calibration_wrapper_function(parameters = None):
         "monitoring.cd4.threshold": 350,
         "monitoring.m_artDist.dist.normal.mu": 0.35,
         "monitoring.m_artDist.dist.normal.min": 0.15,
-        "monitoring.m_artDist.dist.normal.max":0.55
+        "monitoring.m_artDist.dist.normal.max":0.55,
+        "mortality.aids.survtime.art_e.dist.uniform.min":20,
+        "mortality.aids.survtime.art_e.dist.uniform.max":50
     }
 
     art_intro4 = {
@@ -219,6 +220,7 @@ def calibration_wrapper_function(parameters = None):
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'], #-0.1,
         "monitoring.cd4.threshold": 500,
         "person.art.accept.threshold.dist.fixed.value": 0.95
+        
     }
 
     art_intro5 = {
@@ -228,9 +230,9 @@ def calibration_wrapper_function(parameters = None):
         "monitoring.m_artDist.dist.normal.mu": 0.3,
         "monitoring.m_artDist.dist.normal.min": 0.1,
         "monitoring.m_artDist.dist.normal.max":0.5,
-        "mortality.aids.survtime.art_e": 15,
-        "conception.alpha_base": round(parameters['conception_alpha_base'],8) - 0.2,
+        "conception.alpha_base":  parameters['conception_alpha_base'] - parameters['conception_alpha_base_1'] - parameters['conception_alpha_base_1'] - 0.2
     }
+
 
 
         #condom use
@@ -276,14 +278,14 @@ def calibration_wrapper_function(parameters = None):
     prep_intro1 = {
             "time":37, #around 2017
             "EventPrep.enabled": "true",
-            "EventPrep.threshold":0.87 # threshold for willingness to start prep. coverage is 13%
-        
+            "EventPrep.threshold":0.87, # threshold for willingness to start prep. coverage is 13%
+            'EventPrepDrop.threshold': 0.5
         }
-
 
     ART_factual = [hiv_testing, art_intro, art_intro1, art_intro2, art_intro3, art_intro4, art_intro5,
                   condom_intro1, condom_intro2, condom_intro3, vmmc_intro1, vmmc_intro2, vmmc_intro3,
                   prep_intro1]
+
 
     # running the simulation --------------------------------------------------
     identifier = str(seedid)
