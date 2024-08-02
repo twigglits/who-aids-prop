@@ -47,7 +47,7 @@ void EventPrepDrop::fire(Algorithm *pAlgorithm, State *pState, double t)
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
     GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
 	Person *pPerson = getPerson(0);
-    if ((dropOutFraction(t, pRndGen) && pPerson->isPrep()) || (pPerson->getNumberOfRelationships()==0) || (pPerson->hiv().isInfected())) 
+    if ((dropOutFraction(t, pRndGen) && pPerson->isPrep()) || (pPerson->getNumberOfRelationships()==0 && pPerson->isPrep()) || (pPerson->hiv().isInfected() && pPerson->isPrep()))
     {
     pPerson->setPrep(false);
     writeEventLogStart(true, "PrepDrop", t, pPerson, 0);
