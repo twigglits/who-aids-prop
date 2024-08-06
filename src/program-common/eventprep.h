@@ -10,7 +10,7 @@ class PieceWiseLinearFunction;
 class EventPrep : public SimpactEvent
 {
 public:
-	EventPrep(Person *pPerson1, Person *pPerson2, bool scheduleImmediately = false);
+	EventPrep(Person *pPerson1, bool scheduleImmediately = false);
 	~EventPrep();
 
 	std::string getDescription(double tNow) const;

@@ -16,11 +16,8 @@ using namespace std;
 bool EventPrep::m_prep_enabled = true;
 double EventPrep::s_prepThreshold = 0.5;
 
-EventPrep::EventPrep(Person *pPerson1, Person *pPerson2, bool scheduleImmediately) : SimpactEvent(pPerson1, pPerson2)
+EventPrep::EventPrep(Person *pPerson1, bool scheduleImmediately) : SimpactEvent(pPerson1)
 {
-    // m_scheduleImmediately = scheduleImmediately;
-    // assert(pPerson1->hasRelationshipWith(pPerson2));
-    // assert(pPerson2->hasRelationshipWith(pPerson1));
 }
 
 EventPrep::~EventPrep()
@@ -103,10 +100,8 @@ void EventPrep::fire(Algorithm *pAlgorithm, State *pState, double t) {
 
     GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
     Person *pPerson1 = getPerson(0);
-    Person *pPerson2 = getPerson(1);
     double curTime = population.getTime();
     double age1 = pPerson1->getAgeAt(curTime);
-    double age2 = pPerson2->getAgeAt(curTime);
     assert(interventionTime == t); // make sure we're at the correct time
 
     // if (m_prep_enabled) {
@@ -115,22 +110,10 @@ void EventPrep::fire(Algorithm *pAlgorithm, State *pState, double t) {
     {
     pPerson1->setPrep(true);
     writeEventLogStart(true, "Prep_treatment_P1", t, pPerson1, 0);
-    // std::cout << "After PREP_P1 status: " << pPerson1->isPrep() << " for P1: " << pPerson1->getName() << " Age: " << age1 << std::endl;
-    // Dropout event becomes possible
+    
 	EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson1, t);  // needs to be smaller percentage than those that took up prep
 	population.onNewEvent(pEvtPrepDrop);
     }
-
-    if (isEligibleForTreatmentP2(t, pState) && isWillingToStartTreatmentP2(t, pRndGen)) 
-    {
-        pPerson2->setPrep(true);
-        writeEventLogStart(true, "Prep_treatment_P2", t, pPerson2, 0);
-        // std::cout << "After PREP_P2 status: " << pPerson2->isPrep() << " for: " << pPerson2->getName() << " Age: " << age2 << std::endl;
-        // Dropout event becomes possible
-		EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson2, t);  // needs to be smaller percentage than those that took up prep
-		population.onNewEvent(pEvtPrepDrop);
-    } 
-    // } 
 }
 
 ProbabilityDistribution *EventPrep::m_prepprobDist = 0;
