@@ -32,30 +32,31 @@ else:
 
 # the parameters need to be named and not just passed as a vector # loc is lower bound, scale = upper - lower
 
-prior = pyabc.Distribution(hivtransmission_param_f1=pyabc.RV("uniform", 1, 4),
-                           hivtransmission_param_a=pyabc.RV("uniform", -3, 2),
-                           formation_hazard_agegapry_gap_agescale_man_woman=pyabc.RV("uniform", 0.25, 0.2),
+prior = pyabc.Distribution(hivtransmission_param_f1=pyabc.RV("uniform", 1.5, 2),
+                           hivtransmission_param_a=pyabc.RV("uniform", -2.5, 1),
+                           formation_hazard_agegapry_gap_agescale_man_woman=pyabc.RV("uniform", 0.30, 0.12),
                            person_agegap_man_woman_dist_normal_mu=pyabc.RV("uniform", 0, 3),
                            person_agegap_man_woman_dist_normal_sigma=pyabc.RV("uniform", 2, 4),
                            person_eagerness_man_dist_gamma_a=pyabc.RV("uniform", 0.1, 1.4),
                            person_eagerness_woman_dist_gamma_a=pyabc.RV("uniform", 0.1, 1.4),
-                           person_eagerness_man_dist_gamma_b=pyabc.RV("uniform", 50, 20),
-                           person_eagerness_woman_dist_gamma_b=pyabc.RV("uniform", 40, 20),
+                           person_eagerness_man_dist_gamma_b=pyabc.RV("uniform", 50, 15),
+                           person_eagerness_woman_dist_gamma_b=pyabc.RV("uniform", 40, 15),
                            formation_hazard_agegapry_gap_factor_man_woman_exp=pyabc.RV("uniform", -1.5, 1),
-                           formation_hazard_agegapry_baseline=pyabc.RV("uniform", 3, 3),
+                           formation_hazard_agegapry_baseline=pyabc.RV("uniform", 4, 2),
                            formation_hazard_agegapry_numrel_man=pyabc.RV("uniform", -1, 1),
                            formation_hazard_agegapry_numrel_woman=pyabc.RV("uniform", -1, 1),
-                           dissolution_alpha_0=pyabc.RV("uniform", -3, 2),
+                           dissolution_alpha_0=pyabc.RV("uniform", -2, 1),
                            conception_alpha_base=pyabc.RV("uniform", -3, 0.4),
-                           conception_alpha_base_1=pyabc.RV("uniform", 0, 1),
-                           diagnosis_baseline_t0=pyabc.RV("uniform", -3, 2),
-                           diagnosis_baseline_t1=pyabc.RV("uniform", 0, 0.5),
-                           diagnosis_baseline_t2=pyabc.RV("uniform", 0, 0.5),
-                           diagnosis_baseline_t2_2=pyabc.RV("uniform", 0, 0.5),
-                           diagnosis_baseline_t3=pyabc.RV("uniform", 0, 1),
-                           diagnosis_baseline_t4=pyabc.RV("uniform", 0, 1),
-                           diagnosis_baseline_t5=pyabc.RV("uniform", 0, 1), 
-                           diagnosis_eagernessfactor=pyabc.RV("uniform", 1.025, 0.03),
+                           conception_alpha_base_1=pyabc.RV("uniform", 0, 0.5),
+                           conception_alpha_base_2=pyabc.RV("uniform", 0, 0.5),
+                           diagnosis_baseline_t0=pyabc.RV("uniform", -2, 1.5),
+                           diagnosis_baseline_t1=pyabc.RV("uniform", 0.25, 1),
+                           diagnosis_baseline_t2=pyabc.RV("uniform", 0.2, 1),
+                           diagnosis_baseline_t2_2=pyabc.RV("uniform", 0.1, 1),
+                           diagnosis_baseline_t3=pyabc.RV("uniform", 0.1, 1),
+                           diagnosis_baseline_t4=pyabc.RV("uniform", 0.2, 1),
+                           diagnosis_baseline_t5=pyabc.RV("uniform", 0.2, 1), 
+                           diagnosis_eagernessfactor=pyabc.RV("uniform", 1.025, 0.03)
                            )
 
 # Adaptive distance
@@ -67,51 +68,65 @@ distance_adaptive = pyabc.AdaptivePNormDistance(
     scale_log_file=scale_log_file,
 )
 
+
 # weighted distances
 def weighted_distance(x, x_0):
     
     weights = {
-    'growthrate_43': 5,
-    'prev_f_20_15_49': 5,
-    'prev_m_20_15_49': 2,
-    'prev_f_25_15_49': 5,
-    'prev_m_25_15_49': 2,
-    'prev_f_36_15_49': 5,
-    'prev_m_36_15_49': 2,
-    'prev_f_41_15_49': 5,
-    'prev_m_41_15_49': 2,
-    'inc_f_32_15_49': 5,
-    'inc_m_32_15_49': 2,
-    'inc_f_36_15_49': 5,
-    'inc_m_36_15_49': 2,
-    'inc_f_41_15_49': 5,
-    'inc_m_41_15_49': 2,
-    'art_cov_t_30.5': 2,
-    'art_cov_t_35.5': 2,
-    'art_cov_t_38.5': 3,
-    'art_cov_t_43.5': 3,
-    'vl_suppr': 1}
+                'popsize_20':2,
+                'popsize_30':2,
+                'popsize_40':2,
+                 'prev_10_15_49': 2,
+                 'prev_15_15_49':2,
+                 'prev_f_20_15_49': 2,
+                 'prev_m_20_15_49': 2,
+                'prev_f_32_15_49': 5,
+                'prev_m_32_15_49': 5,
+                 'prev_f_36_15_49': 5, #shims2
+                 'prev_m_36_15_49': 5, #shims2
+                'prev_f_41_15_49': 5,
+                'prev_m_41_15_49': 5,
+                'inc_10_15_49': 2,
+                'inc_12_15_49': 5,
+                'inc_15_15_49': 5,
+                'inc_17_15_49': 5,
+                'inc_20_15_49': 5,
+                'inc_f_32_15_49': 5,
+                'inc_m_32_15_49': 5,
+                'inc_f_36_15_49': 5,
+                'inc_m_36_15_49': 5,
+                'inc_f_41_15_49': 10,
+                'inc_m_41_15_49': 10,
+                'inc_f_20_15_24': 10,
+                'inc_f_32_15_24': 5,
+                'inc_f_36_15_24': 5,
+                'inc_f_41_15_24': 5,
+                'inc_m_20_15_24': 5,
+                'inc_m_32_15_24': 5,
+                'inc_m_36_15_24': 2,
+                'inc_m_41_15_24': 2,
+                'art_cov_t_30.5': 2,
+                'art_cov_t_35.5': 2,
+                'art_cov_t_38.5': 2,
+                'art_cov_t_43.5': 2,
+                'prop_diag_25':2,
+                'prop_diag_30':2,
+                'prop_diag_36':2,
+                'prop_diag_41':2,
+                'prop_diag_43':2
+                }
         
     distance = 0
     for key in x.keys():
-        # #print(f"Key: {key}")
-        # if key not in weights:
-        #     print(f"Key {key} not found in weights")
-        #     continue
-        # if key not in x_0:
-        #     print(f"Key {key} not found in x_0")
-        #     continue
-        # #print(f"Weight: {weights[key]}, x[key]: {x[key]}, x_0[key]: {x_0[key]}")
         distance += weights[key] * (x[key] - x_0[key]) ** 2
     
     return np.sqrt(distance)
-
 # create ABC instance
 abc_continued = pyabc.ABCSMC(models=calibration_wrapper_function, 
                    parameter_priors=prior, 
-                   distance_function=distance_adaptive, #weighted_distance
+                   distance_function=weighted_distance, #distance_adaptive, 
                    sampler=MulticoreEvalParallelSampler(n_procs=96),
-                   population_size=10) 
+                   population_size=30) 
 
 
 # target stats
@@ -120,17 +135,17 @@ target_stats = {
      'popsize_20':1.73,
      'popsize_30':1.84,
      'popsize_40':1.98,
-     # 'prev_10_15_49': 0.013,
-     # 'prev_15_15_49': 0.15,
+     'prev_10_15_49': 0.013,
+     'prev_15_15_49': 0.15,
      # 'prev_20_15_49': 0.246,
-     # 'prev_f_20_15_49': 0.26,
-     # 'prev_m_20_15_49': 0.22,
-     # 'prev_f_32_15_49': 0.311, #shims1
-     # 'prev_m_32_15_49': 0.197, #shims1
-     # 'prev_f_36_15_49': 0.325, #shims2
-     # 'prev_m_36_15_49': 0.204, #shims2
-     # 'prev_f_41_15_49': 0.342, #shims3
-     # 'prev_m_41_15_49': 0.183, #shims3
+     'prev_f_20_15_49': 0.26,
+     'prev_m_20_15_49': 0.22,
+     'prev_f_32_15_49': 0.38, #shims1
+     'prev_m_32_15_49': 0.23, #shims1
+     'prev_f_36_15_49': 0.34, #shims2
+     'prev_m_36_15_49': 0.19, #shims2
+     'prev_f_41_15_49': 0.32, #shims3
+     'prev_m_41_15_49': 0.16, #shims3
      # 'prev_f_43_15_49': 0.303, #unaids
      # 'prev_m_43_15_49': 0.199, #unaids
      'inc_10_15_49': 0.0783,
@@ -154,6 +169,10 @@ target_stats = {
     'inc_f_32_15_24': 0.3014, #my estimate based on unaids
     'inc_f_36_15_24': 0.2481, #my estimate based on unaids, to replace #shims 0.187
     'inc_f_41_15_24': 0.1814, #my estimate based on unaids, to replace #shims 0.163
+    'inc_m_20_15_24': 0.41,   #my estimate based on unaids
+    'inc_m_32_15_24': 0.1586, #my estimate based on unaids
+    'inc_m_36_15_24': 0.0919, #my estimate based on unaids, to replace #shims 
+    'inc_m_41_15_24': 0.0189, #my estimate based on unaids, to replace #shims 
     'art_cov_t_30.5': 0.5,
     'art_cov_t_35.5': 0.8,
     'art_cov_t_38.5': 0.87,
@@ -172,7 +191,7 @@ db_path = os.path.join("Calibration/data", "simpact_calibration_output.db")
 abc_continued.load("sqlite:///" + db_path)
 
 # Resume the calibration from the last state
-history = abc_continued.run(minimum_epsilon=0.1, max_nr_populations=10)
+history = abc_continued.run(minimum_epsilon=0.1, max_nr_populations=20)
 
 posterior_params, weights = history.get_distribution()
 

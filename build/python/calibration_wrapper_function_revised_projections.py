@@ -54,7 +54,7 @@ def calibration_wrapper_function(parameters = None):
     cfg_list['diagnosis.eagernessfactor'] = np.log(1.025)
     cfg_list["mortality.aids.survtime.art_e.dist.type"] = "uniform"
     cfg_list["mortality.aids.survtime.art_e.dist.uniform.min"] = 5
-    cfg_list["mortality.aids.survtime.art_e.dist.uniform.max"] = 15
+    cfg_list["mortality.aids.survtime.art_e.dist.uniform.max"] = 20
     
     # vmmc
     cfg_list["EventVMMC.enabled"] = "false"
@@ -199,7 +199,7 @@ def calibration_wrapper_function(parameters = None):
         "time": 26, #around 2006
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'], #-0.4,
         "person.art.accept.threshold.dist.fixed.value": 0.9,
-        "mortality.aids.survtime.art_e.dist.uniform.min":15,
+        "mortality.aids.survtime.art_e.dist.uniform.min":20,
         "mortality.aids.survtime.art_e.dist.uniform.max":35,
         "conception.alpha_base": parameters['conception_alpha_base'] - parameters['conception_alpha_base_1']
     }
@@ -211,8 +211,9 @@ def calibration_wrapper_function(parameters = None):
         "monitoring.m_artDist.dist.normal.mu": 0.35,
         "monitoring.m_artDist.dist.normal.min": 0.15,
         "monitoring.m_artDist.dist.normal.max":0.55,
-        "mortality.aids.survtime.art_e.dist.uniform.min":20,
-        "mortality.aids.survtime.art_e.dist.uniform.max":50
+        "mortality.aids.survtime.art_e.dist.uniform.min":25,
+        "mortality.aids.survtime.art_e.dist.uniform.max":50,
+        "conception.alpha_base":  parameters['conception_alpha_base'] - parameters['conception_alpha_base_1'] - parameters['conception_alpha_base_2'] 
     }
 
     art_intro4 = {
@@ -230,7 +231,6 @@ def calibration_wrapper_function(parameters = None):
         "monitoring.m_artDist.dist.normal.mu": 0.3,
         "monitoring.m_artDist.dist.normal.min": 0.1,
         "monitoring.m_artDist.dist.normal.max":0.5,
-        "conception.alpha_base":  parameters['conception_alpha_base'] - parameters['conception_alpha_base_1'] - parameters['conception_alpha_base_1'] - 0.2
     }
 
 
@@ -278,8 +278,8 @@ def calibration_wrapper_function(parameters = None):
     prep_intro1 = {
             "time":37, #around 2017
             "EventPrep.enabled": "true",
-            "EventPrep.threshold":0.87, # threshold for willingness to start prep. coverage is 13%
-            'EventPrepDrop.threshold': 0.5
+            "EventPrep.threshold":0.93, #0.87, # threshold for willingness to start prep. coverage is 13%
+            'EventPrepDrop.threshold': 0.8
         }
 
     ART_factual = [hiv_testing, art_intro, art_intro1, art_intro2, art_intro3, art_intro4, art_intro5,

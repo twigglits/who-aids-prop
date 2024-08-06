@@ -54,7 +54,7 @@ def calibration_wrapper_function(parameters = None):
     cfg_list['diagnosis.eagernessfactor'] = np.log(1.025)
     cfg_list["mortality.aids.survtime.art_e.dist.type"] = "uniform"
     cfg_list["mortality.aids.survtime.art_e.dist.uniform.min"] = 5
-    cfg_list["mortality.aids.survtime.art_e.dist.uniform.max"] = 15
+    cfg_list["mortality.aids.survtime.art_e.dist.uniform.max"] = 20
     
     # vmmc
     cfg_list["EventVMMC.enabled"] = "false"
@@ -82,7 +82,7 @@ def calibration_wrapper_function(parameters = None):
     cfg_list['EventPrep.m_prepprobDist.dist.type'] ='uniform' # willingness to start prep
     cfg_list['EventPrep.m_prepprobDist.dist.uniform.min'] = 0
     cfg_list['EventPrep.m_prepprobDist.dist.uniform.max'] = 1
-    cfg_list['EventPrepDrop.threshold'] = 1 #0.2 # threshold for dropping
+    cfg_list['EventPrepDrop.threshold'] = 1#0.2 # threshold for dropping
     cfg_list['EventPrepDrop.interval.dist.type'] ='uniform' # distribution to choose probablity of dropping which will be used alongside number of relationships or hiv status to decide if dropping out
     cfg_list['EventPrepDrop.interval.dist.uniform.min'] = 0#0.25
     cfg_list['EventPrepDrop.interval.dist.uniform.max'] = 1#10.0
@@ -198,7 +198,7 @@ def calibration_wrapper_function(parameters = None):
         "time": 26, #around 2006
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'], #-0.4,
         "person.art.accept.threshold.dist.fixed.value": 0.9,
-        "mortality.aids.survtime.art_e.dist.uniform.min":15,
+        "mortality.aids.survtime.art_e.dist.uniform.min":20,
         "mortality.aids.survtime.art_e.dist.uniform.max":35,
         "conception.alpha_base": parameters['conception_alpha_base'] - parameters['conception_alpha_base_1']
     }
@@ -210,15 +210,17 @@ def calibration_wrapper_function(parameters = None):
         "monitoring.m_artDist.dist.normal.mu": 0.35,
         "monitoring.m_artDist.dist.normal.min": 0.15,
         "monitoring.m_artDist.dist.normal.max":0.55,
-        "mortality.aids.survtime.art_e.dist.uniform.min":20,
-        "mortality.aids.survtime.art_e.dist.uniform.max":50
+        "mortality.aids.survtime.art_e.dist.uniform.min":25,
+        "mortality.aids.survtime.art_e.dist.uniform.max":50,
+        "conception.alpha_base":  parameters['conception_alpha_base'] - parameters['conception_alpha_base_1'] - parameters['conception_alpha_base_2'] 
     }
 
     art_intro4 = {
         "time": 33.5, #around 2013
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'], #-0.1,
         "monitoring.cd4.threshold": 500,
-        "person.art.accept.threshold.dist.fixed.value": 0.95,
+        "person.art.accept.threshold.dist.fixed.value": 0.95
+        
     }
 
     art_intro5 = {
@@ -227,9 +229,9 @@ def calibration_wrapper_function(parameters = None):
         "monitoring.cd4.threshold":100000, 
         "monitoring.m_artDist.dist.normal.mu": 0.3,
         "monitoring.m_artDist.dist.normal.min": 0.1,
-        "monitoring.m_artDist.dist.normal.max":0.5,
-        "conception.alpha_base":  parameters['conception_alpha_base'] - parameters['conception_alpha_base_1'] - parameters['conception_alpha_base_1'] - 0.2
+        "monitoring.m_artDist.dist.normal.max":0.5
     }
+
 
 
         #condom use
@@ -275,8 +277,8 @@ def calibration_wrapper_function(parameters = None):
     prep_intro1 = {
             "time":37, #around 2017
             "EventPrep.enabled": "true",
-            "EventPrep.threshold":0.87, # threshold for willingness to start prep. coverage is 13%
-            'EventPrepDrop.threshold': 0.5
+            "EventPrep.threshold":0.93, #0.87, # threshold for willingness to start prep. coverage is 13%
+            'EventPrepDrop.threshold': 0.8
         }
 
     ART_factual = [hiv_testing, art_intro, art_intro1, art_intro2, art_intro3, art_intro4, art_intro5,
@@ -378,39 +380,39 @@ def calibration_wrapper_function(parameters = None):
 
             # Calculate prevalence for males and females separately
 
-#             prev_10_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=10).loc[2, 'pointprevalence']
+            prev_10_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=10).loc[2, 'pointprevalence']
 #             # prev_11_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=11).loc[2, 'pointprevalence']
 #             # prev_12_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=12).loc[2, 'pointprevalence']
 #             # prev_13_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=13).loc[2, 'pointprevalence']
 #             # prev_14_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=14).loc[2, 'pointprevalence']
-#             prev_15_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=15).loc[2, 'pointprevalence']
+            prev_15_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=15).loc[2, 'pointprevalence']
 #             # prev_16_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=16).loc[2, 'pointprevalence']
 #             # prev_17_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=17).loc[2, 'pointprevalence']
 #             # prev_18_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=18).loc[2, 'pointprevalence']
 #             # prev_19_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=19).loc[2, 'pointprevalence']
 #             prev_20_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=20).loc[2, 'pointprevalence']
             
-#             prev_m_20_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=20).loc[0, 'pointprevalence']
-#             prev_f_20_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=20).loc[1, 'pointprevalence']
+            prev_m_20_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=20).loc[0, 'pointprevalence']
+            prev_f_20_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=20).loc[1, 'pointprevalence']
             prev_m_32_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=32).loc[0, 'pointprevalence']
             prev_f_32_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=32).loc[1, 'pointprevalence']
-#             prev_m_36_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=36).loc[0, 'pointprevalence']
-#             prev_f_36_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=36).loc[1, 'pointprevalence']
+            prev_m_36_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=36).loc[0, 'pointprevalence']
+            prev_f_36_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=36).loc[1, 'pointprevalence']
             prev_m_41_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=41).loc[0, 'pointprevalence']
             prev_f_41_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=41).loc[1, 'pointprevalence']
 #             prev_m_43_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=43).loc[0, 'pointprevalence']
 #             prev_f_43_15_49 = psh.prevalence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timepoint=43).loc[1, 'pointprevalence']
 
 
-#             outputdict['prev_10_15_49'] = prev_10_15_49 if not pd.isnull(prev_10_15_49) else 0
-#             outputdict['prev_15_15_49'] = prev_15_15_49 if not pd.isnull(prev_15_15_49) else 0
+            outputdict['prev_10_15_49'] = prev_10_15_49 if not pd.isnull(prev_10_15_49) else 0
+            outputdict['prev_15_15_49'] = prev_15_15_49 if not pd.isnull(prev_15_15_49) else 0
 #             outputdict['prev_20_15_49'] = prev_20_15_49 if not pd.isnull(prev_20_15_49) else 0
-#             outputdict['prev_m_20_15_49'] = prev_m_20_15_49 if not pd.isnull(prev_m_20_15_49) else 0
-#             outputdict['prev_f_20_15_49'] = prev_f_20_15_49 if not pd.isnull(prev_f_20_15_49) else 0
+            outputdict['prev_m_20_15_49'] = prev_m_20_15_49 if not pd.isnull(prev_m_20_15_49) else 0
+            outputdict['prev_f_20_15_49'] = prev_f_20_15_49 if not pd.isnull(prev_f_20_15_49) else 0
             outputdict["prev_f_32_15_49"] = prev_f_32_15_49 if not pd.isnull(prev_f_32_15_49) else 0
             outputdict["prev_m_32_15_49"] = prev_m_32_15_49 if not pd.isnull(prev_m_32_15_49) else 0
-#             outputdict["prev_f_36_15_49"] = prev_f_36_15_49 if not pd.isnull(prev_f_36_15_49) else 0
-#             outputdict["prev_m_36_15_49"] = prev_m_36_15_49 if not pd.isnull(prev_m_36_15_49) else 0
+            outputdict["prev_f_36_15_49"] = prev_f_36_15_49 if not pd.isnull(prev_f_36_15_49) else 0
+            outputdict["prev_m_36_15_49"] = prev_m_36_15_49 if not pd.isnull(prev_m_36_15_49) else 0
             outputdict["prev_f_41_15_49"] = prev_f_41_15_49 if not pd.isnull(prev_f_41_15_49) else 0
             outputdict["prev_m_41_15_49"] = prev_m_41_15_49 if not pd.isnull(prev_m_41_15_49) else 0
 #             outputdict["prev_f_43_15_49"] = prev_f_43_15_49 if not pd.isnull(prev_f_43_15_49) else 0
@@ -453,6 +455,11 @@ def calibration_wrapper_function(parameters = None):
             inc_f_32_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[31,32]).loc[1, 'incidence']
             inc_f_36_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[35,36]).loc[1, 'incidence']
             inc_f_41_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[40,41]).loc[1, 'incidence']
+            
+            inc_m_20_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[19,20]).loc[0, 'incidence']
+            inc_m_32_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[31,32]).loc[0, 'incidence']
+            inc_m_36_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[35,36]).loc[0, 'incidence']
+            inc_m_41_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[40,41]).loc[0, 'incidence']
     
 
             inc_10_15_49 = inc_10_15_49*10
@@ -477,6 +484,11 @@ def calibration_wrapper_function(parameters = None):
             inc_f_32_15_24 = inc_f_32_15_24*10
             inc_f_36_15_24 = inc_f_36_15_24*10
             inc_f_41_15_24 = inc_f_41_15_24*10
+            
+            inc_m_20_15_24 = inc_m_20_15_24*10
+            inc_m_32_15_24 = inc_m_32_15_24*10
+            inc_m_36_15_24 = inc_m_36_15_24*10
+            inc_m_41_15_24 = inc_m_41_15_24*10
 
             outputdict['inc_10_15_49'] = round(inc_10_15_49,5) if not pd.isnull(inc_10_15_49) else 0
             #outputdict['inc_11_15_49'] = round(inc_11_15_49,5) if not pd.isnull(inc_11_15_49) else 0
@@ -503,6 +515,11 @@ def calibration_wrapper_function(parameters = None):
             outputdict['inc_f_32_15_24'] = round(inc_f_32_15_24,5) if not pd.isnull(inc_f_32_15_24) else 0
             outputdict['inc_f_36_15_24'] = round(inc_f_36_15_24,5) if not pd.isnull(inc_f_36_15_24) else 0
             outputdict['inc_f_41_15_24'] = round(inc_f_41_15_24,5) if not pd.isnull(inc_f_41_15_24) else 0
+            
+            outputdict['inc_m_20_15_24'] = round(inc_m_20_15_24,5) if not pd.isnull(inc_m_20_15_24) else 0
+            outputdict['inc_m_32_15_24'] = round(inc_m_32_15_24,5) if not pd.isnull(inc_m_32_15_24) else 0
+            outputdict['inc_m_36_15_24'] = round(inc_m_36_15_24,5) if not pd.isnull(inc_m_36_15_24) else 0
+            outputdict['inc_m_41_15_24'] = round(inc_m_41_15_24,5) if not pd.isnull(inc_m_41_15_24) else 0
     
 
             
