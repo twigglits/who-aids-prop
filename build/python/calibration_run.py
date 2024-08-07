@@ -66,16 +66,16 @@ prior = pyabc.Distribution(hivtransmission_param_f1=pyabc.RV("uniform", 1.5, 1.5
                            person_agegap_man_woman_dist_normal_sigma=pyabc.RV("uniform", 4, 1),
                            person_eagerness_man_dist_gamma_a=pyabc.RV("uniform", 0.75, 0.1),
                            person_eagerness_woman_dist_gamma_a=pyabc.RV("uniform", 0.3, 0.1),
-                           person_eagerness_man_dist_gamma_b=pyabc.RV("uniform", 50, 10),
-                           person_eagerness_woman_dist_gamma_b=pyabc.RV("uniform", 45, 10),
+                           person_eagerness_man_dist_gamma_b=pyabc.RV("uniform", 50, 15),
+                           person_eagerness_woman_dist_gamma_b=pyabc.RV("uniform", 40, 15),
                            formation_hazard_agegapry_gap_factor_man_woman_exp=pyabc.RV("uniform", -1.2, 0.3),
                            formation_hazard_agegapry_baseline=pyabc.RV("uniform", 4, 1),
                            formation_hazard_agegapry_numrel_man=pyabc.RV("uniform", -0.8, 0.4),
                            formation_hazard_agegapry_numrel_woman=pyabc.RV("uniform", -0.5, 0.4),
                            dissolution_alpha_0=pyabc.RV("uniform", -2.5, 0.6),
-                           conception_alpha_base=pyabc.RV("uniform", -2.8, 0.25),
-                           conception_alpha_base_1=pyabc.RV("uniform", 0.3, 0.25),
-                           conception_alpha_base_2=pyabc.RV("uniform", 0.2, 0.25),
+                           conception_alpha_base=pyabc.RV("uniform", -3.1, 0.5),
+                           conception_alpha_base_1=pyabc.RV("uniform", 0.1, 0.4),
+                           conception_alpha_base_2=pyabc.RV("uniform", 0.1, 0.4),
                            diagnosis_baseline_t0=pyabc.RV("uniform", -1.8, 0.3),
                            diagnosis_baseline_t1=pyabc.RV("uniform", 0.2, 0.2),
                            diagnosis_baseline_t2=pyabc.RV("uniform", 0.15, 0.2),
@@ -123,6 +123,8 @@ def weighted_distance(x, x_0):
                 'inc_m_36_15_49': 5,
                 'inc_f_41_15_49': 10,
                 'inc_m_41_15_49': 10,
+                'inc_f_43_15_49': 10,
+                'inc_m_43_15_49': 10,
                 'inc_f_20_15_24': 10,
                 'inc_f_32_15_24': 5,
                 'inc_f_36_15_24': 5,
@@ -151,7 +153,7 @@ def weighted_distance(x, x_0):
 # create ABC instance
 abc = pyabc.ABCSMC(models=calibration_wrapper_function, 
                    parameter_priors=prior, 
-                   distance_function= pyabc.PNormDistance(p=2), #distance_adaptive, #weighted_distance, 
+                   distance_function= distance_adaptive, #weighted_distance,pyabc.PNormDistance(p=2),  
                    sampler=MulticoreEvalParallelSampler(n_procs=95),
                    population_size=30) 
 
@@ -166,12 +168,12 @@ target_stats = {
      # 'prev_20_15_49': 0.246,
      'prev_f_20_15_49': 0.26,
      'prev_m_20_15_49': 0.22,
-     'prev_f_32_15_49': 0.38, #shims1
-     'prev_m_32_15_49': 0.23, #shims1
-     'prev_f_36_15_49': 0.34, #shims2
-     'prev_m_36_15_49': 0.19, #shims2
-     'prev_f_41_15_49': 0.32, #shims3
-     'prev_m_41_15_49': 0.16, #shims3
+     'prev_f_32_15_49': 0.36, 
+     'prev_m_32_15_49': 0.223, 
+     'prev_f_36_15_49': 0.36, 
+     'prev_m_36_15_49': 0.229, 
+     'prev_f_41_15_49': 0.32, 
+     'prev_m_41_15_49': 0.207, 
      # 'prev_f_43_15_49': 0.303, #unaids
      # 'prev_m_43_15_49': 0.199, #unaids
      'inc_10_15_49': 0.0783,
@@ -191,11 +193,12 @@ target_stats = {
     'inc_m_36_15_49': 0.122,#my estimate based on unaids, to replace shims 0.099, #shims2
     'inc_f_41_15_49': 0.1664,#my estimate based on unaids, to replace shims 0.145, #shims3
     'inc_m_41_15_49': 0.0256,#my estimate based on unaids, to replace shims 0.02, #shims3
-    'inc_f_20_15_24': 0.41,   #my estimate based on unaids
+    'inc_f_43_15_49': 0.1333,#unaids
+    'inc_m_43_15_49': 0.0205,#unaids
+    'inc_20_15_24': 0.41,   #unaids
     'inc_f_32_15_24': 0.3014, #my estimate based on unaids
     'inc_f_36_15_24': 0.2481, #my estimate based on unaids, to replace #shims 0.187
     'inc_f_41_15_24': 0.1814, #my estimate based on unaids, to replace #shims 0.163
-    'inc_m_20_15_24': 0.41,   #my estimate based on unaids
     'inc_m_32_15_24': 0.1586, #my estimate based on unaids
     'inc_m_36_15_24': 0.0919, #my estimate based on unaids, to replace #shims 
     'inc_m_41_15_24': 0.0189, #my estimate based on unaids, to replace #shims 

@@ -1439,7 +1439,7 @@ def prep_users_calculator(datalist, agegroup, timewindow):
     df_alive = df_alive.reset_index(drop=True)
 
     events = datalist['etable']
-    prep_use_events = events[events['eventname'] == 'formation'] #change from formation to PrEP
+    prep_use_events = events[events['eventname'] == 'Prep_treatment_P1'] #change from formation to PrEP
 
     # Select only the relevant columns from table2
     prep_use_events = prep_use_events[['p1ID', 'p1gender']]

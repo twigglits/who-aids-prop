@@ -52,6 +52,7 @@ def calibration_wrapper_function(parameters = None):
             
     cfg_list["population.agedistfile"] = "/home/jupyter/who-aids-prop/build/python/eswatini_2023.csv"
     cfg_list['diagnosis.eagernessfactor'] = np.log(1.025)
+    cfg_list['diagnosis.pregnancyfactor'] = 0
     cfg_list["mortality.aids.survtime.art_e.dist.type"] = "uniform"
     cfg_list["mortality.aids.survtime.art_e.dist.uniform.min"] = 5
     cfg_list["mortality.aids.survtime.art_e.dist.uniform.max"] = 20
@@ -176,6 +177,7 @@ def calibration_wrapper_function(parameters = None):
     # ART introduction configurations
     art_intro = {
         "time": 20, #around 2000
+        "diagnosis.pregnancyfactor":0.2,
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'], #-1,
         "monitoring.cd4.threshold": 100,
         #"formation.hazard.agegapry.baseline": cfg_list["formation.hazard.agegapry.baseline"] + 0.5
@@ -205,6 +207,7 @@ def calibration_wrapper_function(parameters = None):
 
     art_intro3 = {
         "time": 30, # 2010
+        "diagnosis.pregnancyfactor":0.5,
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3'],#-0.2,
         "monitoring.cd4.threshold": 350,
         "monitoring.m_artDist.dist.normal.mu": 0.35,
@@ -277,7 +280,7 @@ def calibration_wrapper_function(parameters = None):
     prep_intro1 = {
             "time":37, #around 2017
             "EventPrep.enabled": "true",
-            "EventPrep.threshold":0.93, #0.87, # threshold for willingness to start prep. coverage is 13%
+            "EventPrep.threshold":0.98, #0.87, # threshold for willingness to start prep. coverage is 13%
             'EventPrepDrop.threshold': 0.8
         }
 
@@ -430,36 +433,39 @@ def calibration_wrapper_function(parameters = None):
 
             # Calculate incidence per 10 per period for males and females separately
 
-            inc_10_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[9,10]).loc[2, 'incidence']
-            inc_11_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[10,11]).loc[2, 'incidence']
-            inc_12_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[11,12]).loc[2, 'incidence']
-            inc_13_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[12,13]).loc[2, 'incidence']
-            inc_14_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[13,14]).loc[2, 'incidence']
-            inc_15_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[14,15]).loc[2, 'incidence']
-            inc_16_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[15,16]).loc[2, 'incidence']
-            inc_17_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[16,17]).loc[2, 'incidence']
-            inc_18_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[17,18]).loc[2, 'incidence']
-            inc_19_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[18,19]).loc[2, 'incidence']
-            inc_20_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[19,20]).loc[2, 'incidence']
+            inc_10_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[10,11]).loc[2, 'incidence']
+            inc_11_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[11,10]).loc[2, 'incidence']
+            inc_12_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[12,13]).loc[2, 'incidence']
+            inc_13_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[13,14]).loc[2, 'incidence']
+            inc_14_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[14,15]).loc[2, 'incidence']
+            inc_15_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[15,16]).loc[2, 'incidence']
+            inc_16_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[16,17]).loc[2, 'incidence']
+            inc_17_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[17,18]).loc[2, 'incidence']
+            inc_18_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[18,19]).loc[2, 'incidence']
+            inc_19_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[19,20]).loc[2, 'incidence']
+            inc_20_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[20,21]).loc[2, 'incidence']
             
-            inc_m_32_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[31,32]).loc[0, 'incidence']
-            inc_f_32_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[31,32]).loc[1, 'incidence']
+            inc_m_32_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[32,33]).loc[0, 'incidence']
+            inc_f_32_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[32,33]).loc[1, 'incidence']
 
-            inc_m_36_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[35,36]).loc[0, 'incidence']
-            inc_f_36_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[35,36]).loc[1, 'incidence']
+            inc_m_36_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[36,37]).loc[0, 'incidence']
+            inc_f_36_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[36,37]).loc[1, 'incidence']
 
-            inc_m_41_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[40,41]).loc[0, 'incidence']
-            inc_f_41_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[40,41]).loc[1, 'incidence']
+            inc_m_41_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[41,42]).loc[0, 'incidence']
+            inc_f_41_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[41,42]).loc[1, 'incidence']
             
-            inc_f_20_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[19,20]).loc[1, 'incidence']
-            inc_f_32_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[31,32]).loc[1, 'incidence']
-            inc_f_36_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[35,36]).loc[1, 'incidence']
-            inc_f_41_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[40,41]).loc[1, 'incidence']
+            inc_m_43_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[43,44]).loc[0, 'incidence']
+            inc_f_43_15_49 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=agegroup, timewindow=[43,44]).loc[1, 'incidence']
             
-            inc_m_20_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[19,20]).loc[0, 'incidence']
-            inc_m_32_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[31,32]).loc[0, 'incidence']
-            inc_m_36_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[35,36]).loc[0, 'incidence']
-            inc_m_41_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[40,41]).loc[0, 'incidence']
+            inc_20_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[20,21]).loc[2, 'incidence']
+            inc_f_32_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[32,33]).loc[1, 'incidence']
+            inc_f_36_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[36,37]).loc[1, 'incidence']
+            inc_f_41_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[41,42]).loc[1, 'incidence']
+            
+            # inc_m_20_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[20,21]).loc[0, 'incidence']
+            inc_m_32_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[32,33]).loc[0, 'incidence']
+            inc_m_36_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[36,37]).loc[0, 'incidence']
+            inc_m_41_15_24 = psh.incidence_calculator(datalist=datalist_EAAA, agegroup=[15,25], timewindow=[41,42]).loc[0, 'incidence']
     
 
             inc_10_15_49 = inc_10_15_49*10
@@ -479,13 +485,14 @@ def calibration_wrapper_function(parameters = None):
             inc_f_36_15_49 = inc_f_36_15_49*10
             inc_m_41_15_49 = inc_m_41_15_49*10
             inc_f_41_15_49 = inc_f_41_15_49*10
+            inc_m_43_15_49 = inc_m_43_15_49*10
+            inc_f_43_15_49 = inc_f_43_15_49*10
             
-            inc_f_20_15_24 = inc_f_20_15_24*10
+            inc_20_15_24 = inc_20_15_24*10
             inc_f_32_15_24 = inc_f_32_15_24*10
             inc_f_36_15_24 = inc_f_36_15_24*10
             inc_f_41_15_24 = inc_f_41_15_24*10
             
-            inc_m_20_15_24 = inc_m_20_15_24*10
             inc_m_32_15_24 = inc_m_32_15_24*10
             inc_m_36_15_24 = inc_m_36_15_24*10
             inc_m_41_15_24 = inc_m_41_15_24*10
@@ -511,12 +518,15 @@ def calibration_wrapper_function(parameters = None):
             outputdict['inc_m_41_15_49'] = round(inc_m_41_15_49,5) if not pd.isnull(inc_m_41_15_49) else 0
             outputdict['inc_f_41_15_49'] = round(inc_f_41_15_49,5) if not pd.isnull(inc_f_41_15_49) else 0
             
-            outputdict['inc_f_20_15_24'] = round(inc_f_20_15_24,5) if not pd.isnull(inc_f_20_15_24) else 0
+            outputdict['inc_m_43_15_49'] = round(inc_m_43_15_49,5) if not pd.isnull(inc_m_43_15_49) else 0
+            outputdict['inc_f_43_15_49'] = round(inc_f_43_15_49,5) if not pd.isnull(inc_f_43_15_49) else 0
+            
+            outputdict['inc_20_15_24'] = round(inc_20_15_24,5) if not pd.isnull(inc_20_15_24) else 0
+            
             outputdict['inc_f_32_15_24'] = round(inc_f_32_15_24,5) if not pd.isnull(inc_f_32_15_24) else 0
             outputdict['inc_f_36_15_24'] = round(inc_f_36_15_24,5) if not pd.isnull(inc_f_36_15_24) else 0
             outputdict['inc_f_41_15_24'] = round(inc_f_41_15_24,5) if not pd.isnull(inc_f_41_15_24) else 0
             
-            outputdict['inc_m_20_15_24'] = round(inc_m_20_15_24,5) if not pd.isnull(inc_m_20_15_24) else 0
             outputdict['inc_m_32_15_24'] = round(inc_m_32_15_24,5) if not pd.isnull(inc_m_32_15_24) else 0
             outputdict['inc_m_36_15_24'] = round(inc_m_36_15_24,5) if not pd.isnull(inc_m_36_15_24) else 0
             outputdict['inc_m_41_15_24'] = round(inc_m_41_15_24,5) if not pd.isnull(inc_m_41_15_24) else 0

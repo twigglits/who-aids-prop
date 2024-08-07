@@ -52,6 +52,7 @@ def calibration_wrapper_function(parameters = None):
             
     cfg_list["population.agedistfile"] = "/home/jupyter/who-aids-prop/build/python/eswatini_2023.csv"
     cfg_list['diagnosis.eagernessfactor'] = np.log(1.025)
+    cfg_list['diagnosis.pregnancyfactor'] = 0
     cfg_list["mortality.aids.survtime.art_e.dist.type"] = "uniform"
     cfg_list["mortality.aids.survtime.art_e.dist.uniform.min"] = 5
     cfg_list["mortality.aids.survtime.art_e.dist.uniform.max"] = 20
@@ -177,6 +178,7 @@ def calibration_wrapper_function(parameters = None):
     # ART introduction configurations
     art_intro = {
         "time": 20, #around 2000
+        "diagnosis.pregnancyfactor":0.2,
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'], #-1,
         "monitoring.cd4.threshold": 100,
         #"formation.hazard.agegapry.baseline": cfg_list["formation.hazard.agegapry.baseline"] + 0.5
@@ -206,6 +208,7 @@ def calibration_wrapper_function(parameters = None):
 
     art_intro3 = {
         "time": 30, # 2010
+        "diagnosis.pregnancyfactor":0.5,
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3'],#-0.2,
         "monitoring.cd4.threshold": 350,
         "monitoring.m_artDist.dist.normal.mu": 0.35,
@@ -278,7 +281,7 @@ def calibration_wrapper_function(parameters = None):
     prep_intro1 = {
             "time":37, #around 2017
             "EventPrep.enabled": "true",
-            "EventPrep.threshold":0.93, #0.87, # threshold for willingness to start prep. coverage is 13%
+            "EventPrep.threshold":0.98, #0.87, # threshold for willingness to start prep. coverage is 13%
             'EventPrepDrop.threshold': 0.8
         }
 
