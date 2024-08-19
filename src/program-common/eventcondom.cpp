@@ -14,6 +14,7 @@ using namespace std;
 
 bool EventCondom::m_condom_enabled = false; // line here exists only for declartion, does not set default to false, that is set in cofig JSON at the bottom
 double EventCondom::s_condomThreshold = 0.5; // Initialize with the default threshold value
+double EventCondom::s_condomThresholdAGYW = 0.5;
 
 EventCondom::EventCondom(Person *pPerson) : SimpactEvent(pPerson)
 {
@@ -54,12 +55,26 @@ bool EventCondom::isEligibleForTreatment(double t, const State *pState)
     }
 }
 
-bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen) {
+bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen, const State *pState) {
     assert(m_condomprobDist);
-	double dt = m_condomprobDist->pickNumber();
-    if (dt > s_condomThreshold)
-        return true;
-    return false;
+    Person *pPerson1 = getPerson(0);
+    const SimpactPopulation &population = SIMPACTPOPULATION(pState);
+    double curTime = population.getTime();
+    double age = pPerson1->getAgeAt(curTime); 
+    double dt = m_condomprobDist->pickNumber();
+
+    if (pPerson1->isWoman() && age >= 14 && age <= 24){
+        if (dt > s_condomThresholdAGYW) {
+            return true;
+        }else{
+            return false;
+        }
+    }else{
+        if (dt > s_condomThreshold ){
+            return true;
+        }
+        return false;
+    }
 }
 
 double EventCondom::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState, double t)
@@ -84,11 +99,11 @@ void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
     assert(interventionTime == t);
 
     if (m_condom_enabled) {
-        if (isEligibleForTreatment(t, pState) && isWillingToStartTreatment(t, pRndGen)) {
+        if (isEligibleForTreatment(t, pState) && isWillingToStartTreatment(t, pRndGen, pState)) {
             assert(!pPerson->isCondomUsing());
             pPerson->setCondomUse(true);
             writeEventLogStart(true, "(Condom_Programming)", t, pPerson, 0);
-        }else if (isEligibleForTreatment(t, pState) && !isWillingToStartTreatment(t, pRndGen))
+        }else if (isEligibleForTreatment(t, pState) && !isWillingToStartTreatment(t, pRndGen, pState))
         {
             writeEventLogStart(true, "(Condom_Programming_not_willing_to_treat)", t, pPerson, 0);
         }
@@ -117,7 +132,8 @@ void EventCondom::processConfig(ConfigSettings &config, GslRandomNumberGenerator
     // Read the boolean parameter from the config
     std::string enabledStr;
     if (!(r = config.getKeyValue("EventCondom.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false") ||
-        !(r = config.getKeyValue("EventCondom.threshold", s_condomThreshold))){
+        !(r = config.getKeyValue("EventCondom.threshold", s_condomThreshold)) ||
+        !(r = config.getKeyValue("EventCondom.thresholdAGYW", s_condomThresholdAGYW))){
         abortWithMessage(r.getErrorString());
     }
     m_condom_enabled = (enabledStr == "true");
@@ -127,7 +143,8 @@ void EventCondom::obtainConfig(ConfigWriter &config) {
     bool_t r;
 
     if (!(r = config.addKey("EventCondom.enabled", m_condom_enabled ? "true" : "false")) ||
-        !(r = config.addKey("EventCondom.threshold", s_condomThreshold))) {
+        !(r = config.addKey("EventCondom.threshold", s_condomThreshold)) ||
+        !(r = config.addKey("EventCondom.thresholdAGYW", s_condomThresholdAGYW))) {
         abortWithMessage(r.getErrorString());
     }
 
@@ -145,6 +162,7 @@ JSONConfig CondomJSONConfig(R"JSON(
         "params": [
             ["EventCondom.enabled", "true", [ "true", "false"] ],
             ["EventCondom.threshold", 0.5],
+            ["EventCondom.thresholdAGYW", 0.5],
             ["EventCondom.m_condomprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
             ["EventCondom.m_condomscheduleDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
