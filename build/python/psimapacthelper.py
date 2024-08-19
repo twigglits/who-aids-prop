@@ -483,6 +483,48 @@ def agedistr_creator(shape=5, scale=65):
     
     return agedist_data_frame
 
+def agemix_df_maker(datalist):
+    # Check if datalist is a dictionary with the expected keys
+    if not isinstance(datalist, dict) or not all(key in datalist for key in ["ptable", "rtable"]):
+        raise ValueError("Datalist wrong type")
+
+    # Create dataframes from the input data
+    rtable = pd.DataFrame(datalist["rtable"])
+    ptable = pd.DataFrame(datalist["ptable"])
+
+    # Process male relationships
+    dfrmale = rtable.rename(columns={'ID1': 'ID'})
+    dfrmale['relid'] = dfrmale['ID'].astype(str) + dfrmale['ID2'].astype(str)
+
+    # Process female relationships
+    dfrfemale = rtable.rename(columns={'ID2': 'ID'})
+    dfrfemale['relid'] = dfrfemale['ID1'].astype(str) + dfrfemale['ID'].astype(str)
+
+    # Filter ptable for males and merge with male relationship dataframe
+    dfmale = ptable[ptable['Gender'] == 0]
+    dfmale = dfmale.merge(dfrmale, how='left', left_on='ID', right_on='ID')
+    dfmale = dfmale.drop(columns=['ID2'])
+
+    # Filter ptable for females and merge with female relationship dataframe
+    dffemale = ptable[ptable['Gender'] == 1]
+    dffemale = dffemale.merge(dfrfemale, how='left', left_on='ID', right_on='ID')
+    dffemale = dffemale.drop(columns=['ID1'])
+
+    # Combine male and female dataframes
+    df = pd.concat([dfmale, dffemale])
+    df = df.sort_values(by=['Gender', 'ID', 'relid', 'FormTime'])
+
+    # Compute additional columns
+    df['episodeorder'] = df.groupby(['Gender', 'ID', 'relid']).cumcount() + 1
+    df['agerelform'] = df['FormTime'] - df['TOB']
+    df['agerelform'] = df.groupby(['Gender', 'ID', 'relid'])['agerelform'].transform('first')
+
+    df['Gender'] = df['Gender'].map({0: 'male', 1: 'female'})
+    df['pagerelform'] = df.apply(lambda row: row['agerelform'] - row['AgeGap'] if row['Gender'] == 'male'
+                                else row['agerelform'] + row['AgeGap'], axis=1)
+
+    return df
+
 def pop_growth_calculator(datalist, timewindow):
     """
     Calculate population growth rate.
@@ -514,18 +556,60 @@ def pop_growth_calculator(datalist, timewindow):
 
     return float(growth_rate[0])
 
-def pop_size_calculator(datalist, timepoint):
+def calculate_population(datalist, agegroup, timepoint):
+
+    # Calculate population size relative
+
+    df = datalist['ptable']
+
+    df_alive = df[
+        (df['TOB'].astype(float) <= timepoint) &  # Born before or at timepoint
+        (df['TOD'].astype(float) > timepoint)     # Died after timepoint
+    ].copy()
+
+    df_alive = df_alive[
+        (df_alive['TOB'] <= timepoint - agegroup[0]) &
+        (df_alive['TOB'] > timepoint - agegroup[1])
+    ]
+
+    popsize = df_alive.groupby('Gender').size().reset_index(name='popsize')
+    total_pop = pd.DataFrame({'Gender': ['Total'], 'popsize': [df_alive.shape[0]]})
+    return pd.concat([popsize, total_pop], ignore_index=True)
+    
+def pop_size_calculator(datalist, agegroup, timepoint):
     """
     Calculate population size relative to start size.
 
     Examples:
     >>> data = readthedata()
-    >>> pop_size_calculator(datalist=data, timepoint = 20)
+    >>> pop_size_calculator(datalist=data, timepoint = 20, agegroup=[0,300])
     """
-    popsize = datalist['ltable'].loc[datalist['ltable']['Time'] == timepoint, 'PopSize'].values[0]
-    start_popsize = (datalist['itable']['population.nummen'] + datalist['itable']['population.numwomen']).values[0]
+    df = datalist['ptable']
 
-    return float(popsize/start_popsize)
+    def calculate_population(df, timepoint, agegroup):
+        df_alive = df[
+            (df['TOB'].astype(float) <= timepoint) &  # Born before or at timepoint
+            (df['TOD'].astype(float) > timepoint)     # Died after timepoint
+        ].copy()
+
+        df_alive = df_alive[
+            (df_alive['TOB'] <= timepoint - agegroup[0]) &
+            (df_alive['TOB'] > timepoint - agegroup[1])
+        ]
+
+        popsize = df_alive.groupby('Gender').size().reset_index(name='popsize')
+        total_pop = pd.DataFrame({'Gender': ['Total'], 'popsize': [df_alive.shape[0]]})
+        return pd.concat([popsize, total_pop], ignore_index=True)
+
+    # Calculate population sizes at time 0 and the given timepoint
+    popsize_0 = calculate_population(df, 0, agegroup)
+    popsize_timepoint = calculate_population(df, timepoint, agegroup)
+
+    # Merge and calculate growth rate
+    popsize_overall = pd.merge(popsize_0, popsize_timepoint, on='Gender')
+    popsize_overall['growth_rate'] = popsize_overall['popsize_y'] / popsize_overall['popsize_x']
+
+    return popsize_overall
 
 def proportion_diagnosed_calculator(datalist, agegroup, timepoint):
     # Subset data to include only those alive and infected at the specified timepoint
@@ -856,10 +940,10 @@ def prevalence_obs_calculator(datalist, agegroup, timepoint):
 
     return prevalence_df
 
-def ART_coverage_calculator(datalist, agegroup, timepoint, site="All"):
+def True_ART_coverage_calculator(datalist, agegroup, timepoint):
     """
     Calculate overall HIV prevalence and ART coverage aggregated by gender. The ART coverage 
-    denominator in this case is Number of people living with HIV who know their HIV status (second 95 target)
+    denominator in this case is Number of people living with HIV 
 
     Calculate the HIV prevalence and ART coverage at a point in time, for specific
     age groups and gender strata.
@@ -928,8 +1012,8 @@ def ART_coverage_calculator(datalist, agegroup, timepoint, site="All"):
                 upper_bounds_prev.append(np.nan)
 
         for index, row in ART_coverage_df.iterrows():
-            if not np.isnan(row['sum_onART']) and not np.isnan(row['sum_diagnosed']) and row['sum_diagnosed'] >= 1:    
-                result_ART = binomtest(int(row['sum_onART']), int(row['sum_diagnosed']))
+            if not np.isnan(row['sum_onART']) and not np.isnan(row['sum_cases']) and row['sum_cases'] >= 1:    
+                result_ART = binomtest(int(row['sum_onART']), int(row['sum_cases']))
                 ci_ART = result_ART.proportion_ci(confidence_level=0.95)
                 lower_bounds_ART.append(ci_ART.low)
                 upper_bounds_ART.append(ci_ART.high)
@@ -940,7 +1024,7 @@ def ART_coverage_calculator(datalist, agegroup, timepoint, site="All"):
         ART_coverage_df['pointprevalence'] = ART_coverage_df['sum_cases'] / ART_coverage_df['popsize']
         ART_coverage_df['pointprevalence_95_ll'] = lower_bounds_prev
         ART_coverage_df['pointprevalence_95_ul'] = upper_bounds_prev
-        ART_coverage_df['ART_coverage'] = ART_coverage_df['sum_onART'] / ART_coverage_df['sum_diagnosed']
+        ART_coverage_df['ART_coverage'] = ART_coverage_df['sum_onART'] / ART_coverage_df['sum_cases']
         ART_coverage_df['ART_coverage_95_ll'] = lower_bounds_ART
         ART_coverage_df['ART_coverage_95_ul'] = upper_bounds_ART
 
@@ -969,8 +1053,8 @@ def ART_coverage_calculator(datalist, agegroup, timepoint, site="All"):
                 upper_bounds_prev.append(np.nan)
 
         for index, row in ART_coverage_all_df.iterrows():
-            if not np.isnan(row['sum_onART']) and not np.isnan(row['sum_diagnosed']) and row['sum_diagnosed'] >= 1:    
-                result_ART = binomtest(int(row['sum_onART']), int(row['sum_diagnosed']))
+            if not np.isnan(row['sum_onART']) and not np.isnan(row['sum_cases']) and row['sum_cases'] >= 1:    
+                result_ART = binomtest(int(row['sum_onART']), int(row['sum_cases']))
                 ci_ART = result_ART.proportion_ci(confidence_level=0.95)
                 lower_bounds_ART.append(ci_ART.low)
                 upper_bounds_ART.append(ci_ART.high)
@@ -981,9 +1065,186 @@ def ART_coverage_calculator(datalist, agegroup, timepoint, site="All"):
         ART_coverage_all_df['pointprevalence'] = ART_coverage_all_df['sum_cases'] / ART_coverage_all_df['popsize']
         ART_coverage_all_df['pointprevalence_95_ll'] = lower_bounds_prev
         ART_coverage_all_df['pointprevalence_95_ul'] = upper_bounds_prev
+        ART_coverage_all_df['ART_coverage'] = ART_coverage_all_df['sum_onART'] / ART_coverage_all_df['sum_cases']
+        ART_coverage_all_df['ART_coverage_95_ll'] = lower_bounds_ART
+        ART_coverage_all_df['ART_coverage_95_ul'] = upper_bounds_ART
+
+        # Combine stratified and overall prevalence data frames
+        ART_coverage_df = pd.concat([ART_coverage_df, ART_coverage_all_df], ignore_index=True) 
+    else:
+        ART_coverage_df = pd.DataFrame({
+            'Gender': [None],
+            'popsize': [None],
+            'sum_cases': [None],
+            'sum_diagnosed':[None],
+            'sum_onART': [None],
+            'pointprevalence': [None],
+            'pointprevalence_95_ll': [None],
+            'pointprevalence_95_ul': [None],
+            'ART_coverage': [None],
+            'ART_coverage_95_ll': [None],
+            'ART_coverage_95_ul': [None]
+        })
+
+    return ART_coverage_df 
+
+def ART_coverage_calculator(datalist, agegroup, timepoint):
+    """
+    Calculate overall HIV prevalence and ART coverage aggregated by gender. The ART coverage 
+    denominator in this case is Number of people living with HIV who know their HIV status (second 95 target)
+
+    Calculate the HIV prevalence and ART coverage at a point in time, for specific
+    age groups and gender strata.
+
+    Parameters:
+    datalist (dict): The dictionary object that is produced by readthedata.
+    agegroup (list): Boundaries of the age group (lower.bound <= age < upper.bound) that
+                    should be retained, e.g. agegroup = [15, 30]
+    timepoint (int): Point in time at which the ART coverage should be calculated.
+    site (str): Select only the particular site from the study, if all ignore site/use all sites.
+                Default is "All".
+
+    Returns:
+    pandas.DataFrame: A dataframe with HIV prevalence estimates and ART coverage estimates and
+                      surrounding confidence bounds,
+                      for the specified time point and age group, overall, and stratified by gender.
+
+    Examples:
+    data(datalist)
+    ART_coverage_df = ART_coverage_calculator(datalist=datalist, agegroup=[15, 30], timepoint=30, site="All")
+    ART_coverage_df
+    """
+
+    # First, filter people who were alive and infected at the timepoint
+    
+    # df_alive_infected = alive_infected(datalist=datalist, timepoint=timepoint)
+    df_alive_infected_diagnosed = alive_diagnosed(datalist=datalist, timepoint=timepoint)
+    #df_alive_infected = df_alive_infected[df_alive_infected['Infected']]
+
+    # Filter by age group
+    alive_infected_agegroup = df_alive_infected_diagnosed[(df_alive_infected_diagnosed['TOB'] <= timepoint - agegroup[0]) &
+                                             (df_alive_infected_diagnosed['TOB'] > timepoint - agegroup[1])]
+
+    raw_df = alive_infected_agegroup.copy()
+
+    # Filter ART data to get those on ART at the timepoint
+    art_df = datalist['ttable'][(datalist['ttable']['TStart'].astype(float) <= timepoint) &
+                                (datalist['ttable']['TEnd'].astype(float) > timepoint)]
+
+    # Merge ART status into raw_df
+    raw_df = pd.merge(raw_df, art_df, on=['ID', 'Gender'], how='left')
+
+    if not raw_df.empty and raw_df['Infected'].sum()  > 0:
+        raw_df['onART'] = ~raw_df['TStart'].isna()
+
+        ART_coverage_df = raw_df.groupby('Gender').agg(
+            popsize=('Gender', 'size'),
+            sum_cases=('Infected', 'sum'),
+            sum_diagnosed=('Diagnosed', 'sum'),
+            sum_onART=('onART', 'sum')
+            ).reset_index()
+
+        lower_bounds_prev = []
+        upper_bounds_prev = []
+        lower_bounds_ART = []
+        upper_bounds_ART = []
+        lower_bounds_ART_True = []
+        upper_bounds_ART_True = []
+
+        for index, row in ART_coverage_df.iterrows():
+            if not np.isnan(row['sum_cases']) and not np.isnan(row['popsize']) and row['popsize'] >= 1:
+                result_prev = binomtest(int(row['sum_cases']), int(row['popsize']))
+                ci_prev = result_prev.proportion_ci(confidence_level=0.95)
+                lower_bounds_prev.append(ci_prev.low)
+                upper_bounds_prev.append(ci_prev.high)
+            else:
+                lower_bounds_prev.append(np.nan)
+                upper_bounds_prev.append(np.nan)
+
+        for index, row in ART_coverage_df.iterrows():
+            if not np.isnan(row['sum_onART']) and not np.isnan(row['sum_diagnosed']) and row['sum_diagnosed'] >= 1:    
+                result_ART = binomtest(int(row['sum_onART']), int(row['sum_diagnosed']))
+                ci_ART = result_ART.proportion_ci(confidence_level=0.95)
+                lower_bounds_ART.append(ci_ART.low)
+                upper_bounds_ART.append(ci_ART.high)
+            else:
+                lower_bounds_ART.append(np.nan)
+                upper_bounds_ART.append(np.nan)
+
+        for index, row in ART_coverage_df.iterrows():
+            if not np.isnan(row['sum_onART']) and not np.isnan(row['sum_cases']) and row['sum_cases'] >= 1:    
+                result_ART = binomtest(int(row['sum_onART']), int(row['sum_cases']))
+                ci_ART_True = result_ART.proportion_ci(confidence_level=0.95)
+                lower_bounds_ART_True.append(ci_ART_True.low)
+                upper_bounds_ART_True.append(ci_ART_True.high)
+            else:
+                lower_bounds_ART_True.append(np.nan)
+                upper_bounds_ART_True.append(np.nan)
+
+        ART_coverage_df['pointprevalence'] = ART_coverage_df['sum_cases'] / ART_coverage_df['popsize']
+        ART_coverage_df['pointprevalence_95_ll'] = lower_bounds_prev
+        ART_coverage_df['pointprevalence_95_ul'] = upper_bounds_prev
+        ART_coverage_df['ART_coverage'] = ART_coverage_df['sum_onART'] / ART_coverage_df['sum_diagnosed']
+        ART_coverage_df['ART_coverage_95_ll'] = lower_bounds_ART
+        ART_coverage_df['ART_coverage_95_ul'] = upper_bounds_ART
+        ART_coverage_df['ART_coverage_True'] = ART_coverage_df['sum_onART'] / ART_coverage_df['sum_cases']
+        ART_coverage_df['ART_coverage_True_95_ll'] = lower_bounds_ART_True
+        ART_coverage_df['ART_coverage_True_95_ul'] = upper_bounds_ART_True
+
+    # Calculate overall coverage
+        ART_coverage_all_df = pd.DataFrame({
+            'Gender': ['Total'],
+            'popsize': [raw_df.shape[0]],
+            'sum_cases': [raw_df['Infected'].sum()],
+            'sum_diagnosed':[raw_df['Diagnosed'].sum()],
+            'sum_onART': [raw_df['onART'].sum()]
+        })
+
+        lower_bounds_prev = []
+        upper_bounds_prev = []
+        lower_bounds_ART = []
+        upper_bounds_ART = []
+        lower_bounds_ART_True = []
+        upper_bounds_ART_True = []
+
+        for index, row in ART_coverage_all_df.iterrows():
+            if not np.isnan(row['sum_cases']) and not np.isnan(row['popsize']) and row['popsize'] >= 1:
+                result_prev = binomtest(int(row['sum_cases']), int(row['popsize']))
+                ci_prev = result_prev.proportion_ci(confidence_level=0.95)
+                lower_bounds_prev.append(ci_prev.low)
+                upper_bounds_prev.append(ci_prev.high)
+            else:
+                lower_bounds_prev.append(np.nan)
+                upper_bounds_prev.append(np.nan)
+
+        for index, row in ART_coverage_all_df.iterrows():
+            if not np.isnan(row['sum_onART']) and not np.isnan(row['sum_diagnosed']) and row['sum_diagnosed'] >= 1:    
+                result_ART = binomtest(int(row['sum_onART']), int(row['sum_diagnosed']))
+                ci_ART = result_ART.proportion_ci(confidence_level=0.95)
+                lower_bounds_ART.append(ci_ART.low)
+                upper_bounds_ART.append(ci_ART.high)
+            else:
+                lower_bounds_ART.append(np.nan)
+                upper_bounds_ART.append(np.nan)
+        for index, row in ART_coverage_all_df.iterrows():
+            if not np.isnan(row['sum_onART']) and not np.isnan(row['sum_cases']) and row['sum_cases'] >= 1:    
+                result_ART = binomtest(int(row['sum_onART']), int(row['sum_cases']))
+                ci_ART = result_ART.proportion_ci(confidence_level=0.95)
+                lower_bounds_ART_True.append(ci_ART_True.low)
+                upper_bounds_ART_True.append(ci_ART_True.high)
+            else:
+                lower_bounds_ART_True.append(np.nan)
+                upper_bounds_ART_True.append(np.nan)
+        
+        ART_coverage_all_df['pointprevalence'] = ART_coverage_all_df['sum_cases'] / ART_coverage_all_df['popsize']
+        ART_coverage_all_df['pointprevalence_95_ll'] = lower_bounds_prev
+        ART_coverage_all_df['pointprevalence_95_ul'] = upper_bounds_prev
         ART_coverage_all_df['ART_coverage'] = ART_coverage_all_df['sum_onART'] / ART_coverage_all_df['sum_diagnosed']
         ART_coverage_all_df['ART_coverage_95_ll'] = lower_bounds_ART
         ART_coverage_all_df['ART_coverage_95_ul'] = upper_bounds_ART
+        ART_coverage_all_df['ART_coverage_True'] = ART_coverage_all_df['sum_onART'] / ART_coverage_all_df['sum_cases']
+        ART_coverage_all_df['ART_coverage_True_95_ll'] = lower_bounds_ART_True
+        ART_coverage_all_df['ART_coverage_True_95_ul'] = upper_bounds_ART_True
 
         # Combine stratified and overall prevalence data frames
         ART_coverage_df = pd.concat([ART_coverage_df, ART_coverage_all_df], ignore_index=True)   
@@ -1000,7 +1261,10 @@ def ART_coverage_calculator(datalist, agegroup, timepoint, site="All"):
             'pointprevalence_95_ul': [None],
             'ART_coverage': [None],
             'ART_coverage_95_ll': [None],
-            'ART_coverage_95_ul': [None]
+            'ART_coverage_95_ul': [None],
+            'ART_coverage_True': [None],
+            'ART_coverage_True_95_ll': [None],
+            'ART_coverage_True_95_ul': [None]
         })
 
     return ART_coverage_df
