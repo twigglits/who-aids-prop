@@ -154,7 +154,7 @@ void EventPrep::processConfig(ConfigSettings &config, GslRandomNumberGenerator *
     std::string enabledStr;
     if (!(r = config.getKeyValue("EventPrep.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false") ||
         !(r = config.getKeyValue("EventPrep.threshold", s_prepThreshold)) ||
-        !(r = config.getKeyValue("EventPrep.threshold", s_prepThresholdAGYW))){
+        !(r = config.getKeyValue("EventPrep.thresholdAGYW", s_prepThresholdAGYW))){
         abortWithMessage(r.getErrorString());
     }
     m_prep_enabled = (enabledStr == "true");
