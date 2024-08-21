@@ -13,25 +13,24 @@ public:
 
 	std::string getDescription(double tNow) const;
 	void writeLogs(const SimpactPopulation &pop, double tNow) const;
-    bool isEnabled() const { return m_enabled; } // Add this method to check if the event is enabled
+    bool isEnabled() const { return m_enabled; } 
 	void fire(Algorithm *pAlgorithm, State *pState, double t);
-    // getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
 
 	bool isEveryoneAffected() const { return false; }
 
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
 	static void obtainConfig(ConfigWriter &config);
 	static bool hasNextIntervention();
-	// static bool m_VMMC_enabled;
+	
 	static ProbabilityDistribution *m_vmmcprobDist;
     static ProbabilityDistribution *m_pVMMC;
-	static bool m_VMMC_enabled; // Add this line
-    // static void setEnabled(bool enabled) { m_enabled = enabled; } // Add this method to set the flag
+	static bool m_VMMC_enabled; 
+    
 	static double s_vmmcThreshold;
 
 private:
 	bool isEligibleForTreatment(double t, const State *pState);
-    // double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
+    
 	bool isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen);
     double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
 	static ProbabilityDistribution *m_vmmcscheduleDist;
@@ -39,7 +38,7 @@ private:
 	static std::list<double> m_interventionTimes;
 	static std::list<ConfigSettings> m_interventionSettings;
 	static bool m_interventionsProcessed;
-    static bool m_enabled; // Add this static member
+    static bool m_enabled; 
 };
 
 #endif // EVENTVMMC_H

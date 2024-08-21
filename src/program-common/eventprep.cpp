@@ -25,7 +25,7 @@ EventPrep::~EventPrep()
 {
 }
 
-// rest of our template functions
+
 string EventPrep::getDescription(double tNow) const
 {
 	return strprintf("Prep event for %s", getPerson(0)->getName().c_str());
@@ -42,10 +42,10 @@ bool EventPrep::isEligibleForTreatment(double t, const State *pState)
     Person *pPerson1 = getPerson(0);
 
     if (!pPerson1->hiv().isInfected() && !pPerson1->isPrep()){
-        std::cout << "Person:" << pPerson1->getName() << "is eligible for treatment Prep" <<  std::endl;
+        // std::cout << "Person:" << pPerson1->getName() << "is eligible for treatment Prep" <<  std::endl;
         return true;
     }else{
-        std::cout << "Person:" << pPerson1->getName() << "is NOT eligible for treatment: Prep" << std::endl;
+        // std::cout << "Person:" << pPerson1->getName() << "is NOT eligible for treatment: Prep" << std::endl;
         return false;
     }
 }
@@ -82,19 +82,18 @@ double EventPrep::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen
 
 void EventPrep::fire(Algorithm *pAlgorithm, State *pState, double t) {
     SimpactPopulation &population = SIMPACTPOPULATION(pState);
-    double interventionTime;
+    GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
     ConfigSettings interventionConfig;
 
-    GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
     Person *pPerson1 = getPerson(0);
-    double curTime = population.getTime();
-    double age1 = pPerson1->getAgeAt(curTime);
+    double interventionTime;
     assert(interventionTime == t); 
 
     if (isEligibleForTreatment(t, pState) && isWillingToStartTreatment(t, pRndGen, pState)) 
     {
     pPerson1->setPrep(true);
-    writeEventLogStart(true, "Prep_treatment", t, pPerson1, 0);
+    std::cout << "Person:" << pPerson1->getName() << "with Gender:" << pPerson1->getGender() << "is eligible for treatment Prep" <<  std::endl;
+    writeEventLogStart(true, "Prep_Treatment", t, pPerson1, 0);
     
 	EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson1, t);
 	population.onNewEvent(pEvtPrepDrop);
@@ -108,21 +107,21 @@ PieceWiseLinearFunction *EventPrep::s_pRecheckInterval = 0;
 void EventPrep::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen) {
     bool_t r;
     
-    // Process VMMC schedule distribution
+    
     if (m_prepscheduleDist) {
         delete m_prepscheduleDist;
         m_prepscheduleDist = 0;
     }
     m_prepscheduleDist = getDistributionFromConfig(config, pRndGen, "EventPrep.m_prepscheduleDist");
 
-    // Process VMMC probability distribution
+    
     if (m_prepprobDist) {
         delete m_prepprobDist;
         m_prepprobDist = 0;
     }
     m_prepprobDist = getDistributionFromConfig(config, pRndGen, "EventPrep.m_prepprobDist");
 
-    // Read the boolean parameter from the config
+    
     std::string enabledStr;
     if (!(r = config.getKeyValue("EventPrep.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false") ||
         !(r = config.getKeyValue("EventPrep.threshold", s_prepThreshold)) ||
@@ -136,17 +135,14 @@ void EventPrep::processConfig(ConfigSettings &config, GslRandomNumberGenerator *
 void EventPrep::obtainConfig(ConfigWriter &config) {
     bool_t r;
 
-    // Add the VMMC enabled parameter
+    
     if (!(r = config.addKey("EventPrep.enabled", m_prep_enabled ? "true" : "false")) ||
         !(r = config.addKey("EventPrep.threshold", s_prepThreshold)) ||
         !(r = config.addKey("EventPrep.thresholdAGYW", s_prepThresholdAGYW))){
         abortWithMessage(r.getErrorString());
     }
 
-    // Add the VMMC schedule distribution to the config
     addDistributionToConfig(m_prepscheduleDist, config, "EventPrep.m_prepscheduleDist");
-
-    // Add the VMMC probability distribution to the config
     addDistributionToConfig(m_prepprobDist, config, "EventPrep.m_prepprobDist");
 }
 
