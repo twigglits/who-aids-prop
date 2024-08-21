@@ -27,10 +27,8 @@ public:
 	static double s_prepThresholdAGYW;
 
 private:
-	bool isEligibleForTreatmentP1(double t, const State *pState);
-	bool isEligibleForTreatmentP2(double t, const State *pState);
-	bool isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *pRndGen, const State *pState);
-	bool isWillingToStartTreatmentP2(double t, GslRandomNumberGenerator *pRndGen);
+	bool isEligibleForTreatment(double t, const State *pState);
+	bool isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen, const State *pState);
     bool m_scheduleImmediately;
 
     double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
