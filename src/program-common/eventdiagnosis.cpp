@@ -215,7 +215,7 @@ double HazardFunctionDiagnosis::evaluate(double t)
 	int HSV2 = (m_pPerson->hsv2().isInfected()) ?1:0;
 	double E = (m_pPerson->getFormationEagernessParameter());
 	int P = (m_pPerson->isWoman() && WOMAN(m_pPerson)->isPregnant())?1:0;
-	int Y = (m_pPerson->isWoman() && WOMAN(m_pPerson)->isPregnant() && age_agyw>=15 && age_agyw<25)?1:0;
+	int Y = (m_pPerson->isWoman() && age_agyw>=15 && age_agyw<25)?1:0;
 
 	double age = (t-tb);
 
