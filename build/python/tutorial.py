@@ -14,10 +14,10 @@ cfg = {
     "population.nummen": 500,
     "population.numwomen": 500,
     "population.simtime": 50,
-    "population.agedistfile": "/home/jupyter/who-aids-prop/build/python/agedist.csv",
+    "population.agedistfile": "/home/jupyter/who-aids-prop/build/python/eswatini_1980.csv",
     "periodiclogging.interval": 1,
     "periodiclogging.starttime": 0,
-    "mortality.aids.survtime.art_e": 10,
+    # "mortality.aids.survtime.art_e": 10,
     # vmmc
     "EventVMMC.enabled": "false",
     "EventVMMC.threshold":0.5,

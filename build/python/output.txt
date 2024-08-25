@@ -358,6 +358,94 @@
 # hsv2seed.amount
 # hsv2seed.stop.short
 #
+# The following depends on monitoring.m_artDist.dist.type = beta
+# monitoring.m_artDist.dist.beta.a
+# monitoring.m_artDist.dist.beta.b
+# monitoring.m_artDist.dist.beta.min
+# monitoring.m_artDist.dist.beta.max
+#
+# The following depends on monitoring.m_artDist.dist.type = discrete.csv.onecol
+# monitoring.m_artDist.dist.discrete.csv.onecol.file
+# monitoring.m_artDist.dist.discrete.csv.onecol.xmin
+# monitoring.m_artDist.dist.discrete.csv.onecol.xmax
+# monitoring.m_artDist.dist.discrete.csv.onecol.ycolumn
+# monitoring.m_artDist.dist.discrete.csv.onecol.floor
+#
+# The following depends on monitoring.m_artDist.dist.type = discrete.csv.twocol
+# monitoring.m_artDist.dist.discrete.csv.twocol.file
+# monitoring.m_artDist.dist.discrete.csv.twocol.xcolumn
+# monitoring.m_artDist.dist.discrete.csv.twocol.ycolumn
+# monitoring.m_artDist.dist.discrete.csv.twocol.floor
+#
+# The following depends on monitoring.m_artDist.dist.type = discrete.inline
+# monitoring.m_artDist.dist.discrete.inline.xvalues
+# monitoring.m_artDist.dist.discrete.inline.yvalues
+# monitoring.m_artDist.dist.discrete.inline.floor
+#
+# The following depends on monitoring.m_artDist.dist.type = exponential
+# monitoring.m_artDist.dist.exponential.lambda
+#
+# The following depends on monitoring.m_artDist.dist.type = fixed
+# monitoring.m_artDist.dist.fixed.value
+#
+# The following depends on monitoring.m_artDist.dist.type = gamma
+# monitoring.m_artDist.dist.gamma.a
+# monitoring.m_artDist.dist.gamma.b
+#
+# The following depends on monitoring.m_artDist.dist.type = lognormal
+# monitoring.m_artDist.dist.lognormal.zeta
+# monitoring.m_artDist.dist.lognormal.sigma
+#
+# The following depends on monitoring.m_artDist.dist.type = normal
+# monitoring.m_artDist.dist.normal.mu
+# monitoring.m_artDist.dist.normal.sigma
+# monitoring.m_artDist.dist.normal.min
+# monitoring.m_artDist.dist.normal.max
+#
+# The following depends on mortality.aids.survtime.art_e.dist.type = beta
+# mortality.aids.survtime.art_e.dist.beta.a
+# mortality.aids.survtime.art_e.dist.beta.b
+# mortality.aids.survtime.art_e.dist.beta.min
+# mortality.aids.survtime.art_e.dist.beta.max
+#
+# The following depends on mortality.aids.survtime.art_e.dist.type = discrete.csv.onecol
+# mortality.aids.survtime.art_e.dist.discrete.csv.onecol.file
+# mortality.aids.survtime.art_e.dist.discrete.csv.onecol.xmin
+# mortality.aids.survtime.art_e.dist.discrete.csv.onecol.xmax
+# mortality.aids.survtime.art_e.dist.discrete.csv.onecol.ycolumn
+# mortality.aids.survtime.art_e.dist.discrete.csv.onecol.floor
+#
+# The following depends on mortality.aids.survtime.art_e.dist.type = discrete.csv.twocol
+# mortality.aids.survtime.art_e.dist.discrete.csv.twocol.file
+# mortality.aids.survtime.art_e.dist.discrete.csv.twocol.xcolumn
+# mortality.aids.survtime.art_e.dist.discrete.csv.twocol.ycolumn
+# mortality.aids.survtime.art_e.dist.discrete.csv.twocol.floor
+#
+# The following depends on mortality.aids.survtime.art_e.dist.type = discrete.inline
+# mortality.aids.survtime.art_e.dist.discrete.inline.xvalues
+# mortality.aids.survtime.art_e.dist.discrete.inline.yvalues
+# mortality.aids.survtime.art_e.dist.discrete.inline.floor
+#
+# The following depends on mortality.aids.survtime.art_e.dist.type = exponential
+# mortality.aids.survtime.art_e.dist.exponential.lambda
+#
+# The following depends on mortality.aids.survtime.art_e.dist.type = fixed
+# mortality.aids.survtime.art_e.dist.fixed.value
+#
+# The following depends on mortality.aids.survtime.art_e.dist.type = gamma
+# mortality.aids.survtime.art_e.dist.gamma.a
+# mortality.aids.survtime.art_e.dist.gamma.b
+#
+# The following depends on mortality.aids.survtime.art_e.dist.type = lognormal
+# mortality.aids.survtime.art_e.dist.lognormal.zeta
+# mortality.aids.survtime.art_e.dist.lognormal.sigma
+#
+# The following depends on mortality.aids.survtime.art_e.dist.type = normal
+# mortality.aids.survtime.art_e.dist.normal.mu
+# mortality.aids.survtime.art_e.dist.normal.sigma
+# mortality.aids.survtime.art_e.dist.normal.min
+# mortality.aids.survtime.art_e.dist.normal.max
+#
 # The following depends on EventPrepDrop.interval.dist.type = beta
 # EventPrepDrop.interval.dist.beta.a
 # EventPrepDrop.interval.dist.beta.b
@@ -1565,6 +1653,7 @@ conception.wsf.dist.fixed.value                              = 0
 # Valid values are: ['true', 'false']
 EventCondom.enabled                                          = false
 EventCondom.threshold                                        = 0.01
+EventCondom.thresholdAGYW                                    = 0.5
 # Valid values are: ['fixed', 'uniform', 'beta', 'gamma', 'lognormal', 'normal', 'exponential', 'discrete.inline', 'discrete.csv.onecol', 'discrete.csv.twocol']
 EventCondom.m_condomprobDist.dist.type                       = uniform
 # Valid values are: ['fixed', 'uniform', 'beta', 'gamma', 'lognormal', 'normal', 'exponential', 'discrete.inline', 'discrete.csv.onecol', 'discrete.csv.twocol']
@@ -1603,6 +1692,7 @@ diagnosis.isdiagnosedfactor                                  = 0
 diagnosis.beta                                               = 0
 diagnosis.HSV2factor                                         = 0
 diagnosis.eagernessfactor                                    = 0
+diagnosis.pregnancyfactor                                    = 0
 diagnosis.t_max                                              = 200
 
 # These are the parameters for the hazard in the dissolution event.
@@ -1796,7 +1886,7 @@ intervention.enabled                                         = yes
 #   intervention.fileids =
 # then the files used would be 'intconfig_1.txt', 'intconfig_2.txt' and
 # 'intconfig_3.txt'.
-intervention.baseconfigname                                  = simpact-cyan-2024-07-19-09-58-37_26586_GrrrNMuM-interventionconfig_%.txt
+intervention.baseconfigname                                  = simpact-cyan-2024-08-25-11-55-58_4307_TDnIY3Mo-interventionconfig_%.txt
 intervention.times                                           = 20.0
 intervention.fileids                                         = 1
 
@@ -1811,6 +1901,13 @@ intervention.fileids                                         = 1
 # viral load.
 monitoring.cd4.threshold                                     = 1
 monitoring.fraction.log_viralload                            = 0.3
+# Valid values are: ['fixed', 'uniform', 'beta', 'gamma', 'lognormal', 'normal', 'exponential', 'discrete.inline', 'discrete.csv.onecol', 'discrete.csv.twocol']
+monitoring.m_artDist.dist.type                               = uniform
+
+# The following depends on monitoring.m_artDist.dist.type = uniform
+# Parameters for a uniform distribution
+monitoring.m_artDist.dist.uniform.min                        = 0
+monitoring.m_artDist.dist.uniform.max                        = 1
 
 # These parameters specify the interval with which monitoring events will take
 # place. This is determined by a piecewise linear function, which is a function
@@ -1833,7 +1930,13 @@ monitoring.interval.piecewise.right                          = 0.5
 # set-point viral load: t_surv = C/Vsp^(-k) + art_e
 mortality.aids.survtime.C                                    = 65
 mortality.aids.survtime.k                                    = -0.2
-mortality.aids.survtime.art_e                                = 10
+# Valid values are: ['fixed', 'uniform', 'beta', 'gamma', 'lognormal', 'normal', 'exponential', 'discrete.inline', 'discrete.csv.onecol', 'discrete.csv.twocol']
+mortality.aids.survtime.art_e.dist.type                      = uniform
+
+# The following depends on mortality.aids.survtime.art_e.dist.type = uniform
+# Parameters for a uniform distribution
+mortality.aids.survtime.art_e.dist.uniform.min               = 0
+mortality.aids.survtime.art_e.dist.uniform.max               = 1
 
 # Parameters for the weibull distribution from which a non-aids
 # time of death is picked.
@@ -1854,6 +1957,7 @@ periodiclogging.outfile.logperiodic                          = ${SIMPACT_OUTPUT_
 # Valid values are: ['true', 'false']
 EventPrep.enabled                                            = false
 EventPrep.threshold                                          = 0.5
+EventPrep.thresholdAGYW                                      = 0.5
 # Valid values are: ['fixed', 'uniform', 'beta', 'gamma', 'lognormal', 'normal', 'exponential', 'discrete.inline', 'discrete.csv.onecol', 'discrete.csv.twocol']
 EventPrep.m_prepprobDist.dist.type                           = uniform
 
@@ -2157,7 +2261,7 @@ population.nummen                                            = 500
 population.numwomen                                          = 500
 population.simtime                                           = 50
 population.maxevents                                         = -1
-population.agedistfile                                       = /home/jupyter/who-aids-prop/build/python/agedist.csv
+population.agedistfile                                       = /home/jupyter/who-aids-prop/build/python/eswatini_1980.csv
 population.msm                                               = no
 
 # If set to 1, formation events will be scheduled for all man,woman
