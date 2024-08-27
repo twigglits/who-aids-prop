@@ -34,9 +34,6 @@ void EventDiagnosis::markOtherAffectedPeople(const PopulationStateInterface &pop
 {
 	Person *pPerson = getPerson(0);
 
-	// Infected partners (who possibly have a diagnosis event, of which
-	// the hazard depends on the number of diagnosed partners), are also
-	// affected!
 	int numRel = pPerson->getNumberOfRelationships();
 
 	pPerson->startRelationshipIteration();
@@ -50,10 +47,23 @@ void EventDiagnosis::markOtherAffectedPeople(const PopulationStateInterface &pop
 	}
 
 #ifndef NDEBUG
-	// Double check that the iteration is done
 	double tDummy;
 	assert(pPerson->getNextRelationshipPartner(tDummy) == 0);
 #endif // NDEBUG
+}
+
+
+bool EventDiagnosis::getY(const Person *pPerson, const State *pState)
+{
+	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
+	double curTime = population.getTime();
+	double age = pPerson->getAgeAt(curTime); 
+	cout << "Checking age of person " << pPerson->getName() << " with age: " << age << endl;
+	if (pPerson->isWoman() && age >= 15 && age < 25){
+		return true;
+	}else{
+		return false;
+	}
 }
 
 void EventDiagnosis::fire(Algorithm *pAlgorithm, State *pState, double t)
@@ -64,10 +74,8 @@ void EventDiagnosis::fire(Algorithm *pAlgorithm, State *pState, double t)
 	assert(pPerson->hiv().isInfected());
 	assert(!pPerson->hiv().hasLoweredViralLoad());
 
-	// Mark the person as diagnosed
 	pPerson->hiv().increaseDiagnoseCount();
 
-	// Schedule an initial monitoring event right away! (the 'true' is for 'right away')
 	EventMonitoring *pEvtMonitor = new EventMonitoring(pPerson, true);
 	population.onNewEvent(pEvtMonitor);
 }
@@ -76,9 +84,10 @@ double EventDiagnosis::calculateInternalTimeInterval(const State *pState, double
 {
 	Person *pPerson = getPerson(0);
 	double tMax = getTMax(pPerson);
+	bool Y = getY(pPerson, pState);
 
 	HazardFunctionDiagnosis h0(pPerson, s_baseline, s_ageFactor, s_genderFactor, s_diagPartnersFactor,
-			           s_isDiagnosedFactor, s_beta, s_HSV2factor, s_eagernessFactor, s_pregnancyFactor);
+			           s_isDiagnosedFactor, s_beta, s_HSV2factor, s_eagernessFactor, s_pregnancyFactor, s_AGYWFactor);
 	TimeLimitedHazardFunction h(h0, tMax);
 
 	return h.calculateInternalTimeInterval(t0, dt);
@@ -88,9 +97,10 @@ double EventDiagnosis::solveForRealTimeInterval(const State *pState, double Tdif
 {
 	Person *pPerson = getPerson(0);
 	double tMax = getTMax(pPerson);
+	bool Y = getY(pPerson, pState);
 
 	HazardFunctionDiagnosis h0(pPerson, s_baseline, s_ageFactor, s_genderFactor, s_diagPartnersFactor,
-			           s_isDiagnosedFactor, s_beta, s_HSV2factor, s_eagernessFactor, s_pregnancyFactor);
+			           s_isDiagnosedFactor, s_beta, s_HSV2factor, s_eagernessFactor, s_pregnancyFactor, s_AGYWFactor);
 	TimeLimitedHazardFunction h(h0, tMax);
 
 	return h.solveForRealTimeInterval(t0, Tdiff);
@@ -115,6 +125,8 @@ double EventDiagnosis::s_HSV2factor = 0;
 double EventDiagnosis::s_tMax = 0;
 double EventDiagnosis::s_eagernessFactor = 0;
 double EventDiagnosis::s_pregnancyFactor = 0;
+double EventDiagnosis::s_AGYWFactor = 0;
+double EventDiagnosis::s_Y = 0;
 
 
 void EventDiagnosis::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
@@ -130,7 +142,8 @@ void EventDiagnosis::processConfig(ConfigSettings &config, GslRandomNumberGenera
 	    !(r = config.getKeyValue("diagnosis.t_max", s_tMax))||
 	    !(r = config.getKeyValue("diagnosis.HSV2factor", s_HSV2factor)) ||
 		!(r = config.getKeyValue("diagnosis.eagernessfactor", s_eagernessFactor)) ||
-		!(r = config.getKeyValue("diagnosis.pregnancyfactor", s_pregnancyFactor))
+		!(r = config.getKeyValue("diagnosis.pregnancyfactor", s_pregnancyFactor)) ||
+		!(r = config.getKeyValue("diagnosis.AGYWfactor", s_AGYWFactor)) 
 	   )
 		abortWithMessage(r.getErrorString());
 }
@@ -148,25 +161,18 @@ void EventDiagnosis::obtainConfig(ConfigWriter &config)
 	    !(r = config.addKey("diagnosis.t_max", s_tMax)) ||
 	    !(r = config.addKey("diagnosis.HSV2factor", s_HSV2factor)) ||
 		!(r = config.addKey("diagnosis.eagernessfactor", s_eagernessFactor)) ||
-		!(r = config.addKey("diagnosis.pregnancyfactor", s_pregnancyFactor))
+		!(r = config.addKey("diagnosis.pregnancyfactor", s_pregnancyFactor)) ||
+		!(r = config.addKey("diagnosis.AGYWfactor", s_AGYWFactor))
 	   )
 		abortWithMessage(r.getErrorString());
 }
 
-// exp(baseline + ageFactor*(t-t_birth) + genderFactor*gender + diagPartnersFactor*numDiagnosedPartners
-//     isDiagnosedFactor*hasBeenDiagnosed + beta*(t-t_infected) + HSV2factor*HSV2)
-//
-// = exp(A + B*t) with
-// 
-//  A = baseline - ageFactor*t_birth + genderFactor*gender + diagPartnersFactor*numDiagnosedPartners + HSV2factor*HSV2
-//      + isDiagnosedFactor*hasBeenDiagnosed - beta*t_infected
-//  B = ageFactor + beta
 HazardFunctionDiagnosis::HazardFunctionDiagnosis(Person *pPerson, double baseline, double ageFactor,
 		                                                 double genderFactor, double diagPartnersFactor,
-							         double isDiagnosedFactor, double beta, double HSV2factor, double eagernessFactor, double pregnancyFactor)
+							         double isDiagnosedFactor, double beta, double HSV2factor, double eagernessFactor, double pregnancyFactor, double AGYWFactor)
 	: m_baseline(baseline), m_ageFactor(ageFactor), m_genderFactor(genderFactor),
 	  m_diagPartnersFactor(diagPartnersFactor), m_isDiagnosedFactor(isDiagnosedFactor),
-	  m_beta(beta), m_HSV2factor(HSV2factor), m_eagernessFactor(eagernessFactor), m_pregnancyFactor(pregnancyFactor)
+	  m_beta(beta), m_HSV2factor(HSV2factor), m_eagernessFactor(eagernessFactor), m_pregnancyFactor(pregnancyFactor), m_AGYWFactor(AGYWFactor)
 {
 	assert(pPerson != 0);
 	m_pPerson = pPerson;
@@ -178,9 +184,11 @@ HazardFunctionDiagnosis::HazardFunctionDiagnosis(Person *pPerson, double baselin
 	int hasBeenDiagnosed = (pPerson->hiv().isDiagnosed())?1:0;
 	int HSV2 = (pPerson->hsv2().isInfected())?1:0;
 	double E = (pPerson->getFormationEagernessParameter());
-	int P = (pPerson->isWoman() && WOMAN(pPerson)->isPregnant()) ? 1 : 0;
+	int P = (pPerson->isWoman() && WOMAN(pPerson)->isPregnant())?1:0;
+	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
+	int Y = (EventDiagnosis::getY(pPerson, pState))?1:0;
 
-	double A = baseline - ageFactor*tb + genderFactor*G + diagPartnersFactor*D + isDiagnosedFactor*hasBeenDiagnosed - beta*tinf + HSV2factor*HSV2 - eagernessFactor*E + pregnancyFactor*P;
+	double A = baseline - ageFactor*tb + genderFactor*G + diagPartnersFactor*D + isDiagnosedFactor*hasBeenDiagnosed - beta*tinf + HSV2factor*HSV2 - eagernessFactor*E + pregnancyFactor*P + AGYWFactor*Y;
 	double B = ageFactor + beta;
 
 	setAB(A, B);
@@ -196,12 +204,12 @@ double HazardFunctionDiagnosis::evaluate(double t)
 	int hasBeenDiagnosed = (m_pPerson->hiv().isDiagnosed())?1:0;
 	int HSV2 = (m_pPerson->hsv2().isInfected()) ?1:0;
 	double E = (m_pPerson->getFormationEagernessParameter());
-	int P = (m_pPerson->isWoman() && WOMAN(m_pPerson)->isPregnant()) ? 1 : 0;
-
+	int P = (m_pPerson->isWoman() && WOMAN(m_pPerson)->isPregnant())?1:0;
+	int Y = (EventDiagnosis::getY(m_pPerson, pState))?1:0;
 	double age = (t-tb);
 
 	return std::exp(m_baseline + m_ageFactor*age + m_genderFactor*G + m_diagPartnersFactor*D +
-			m_isDiagnosedFactor*hasBeenDiagnosed + m_beta*(t-tinf)+ m_HSV2factor*HSV2 + m_eagernessFactor*E + m_pregnancyFactor*P);
+			m_isDiagnosedFactor*hasBeenDiagnosed + m_beta*(t-tinf)+ m_HSV2factor*HSV2 + m_eagernessFactor*E + m_pregnancyFactor*P + m_AGYWFactor*Y);
 }
 
 ConfigFunctions diagnosisConfigFunctions(EventDiagnosis::processConfig, EventDiagnosis::obtainConfig, "EventDiagnosis");

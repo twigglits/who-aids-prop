@@ -12,15 +12,13 @@ class ProbabilityDistribution;
 class HazardFunctionDiagnosis : public HazardFunctionExp
 {
 public:
-	HazardFunctionDiagnosis(Person *pPerson, double baseline, double ageFactor,
-				double genderFactor, double diagPartnersFactor,
-				double isDiagnosedFactor, double beta, double HSV2factor, double eagernessFactor, double pregnancyFactor); 
-
+	HazardFunctionDiagnosis(Person *pPerson, double baseline, double ageFactor, double genderFactor, double diagPartnersFactor, double isDiagnosedFactor, double beta, double HSV2factor, double eagernessFactor, double pregnancyFactor, double AGYWFactor); 
 	double evaluate(double t);
 private:
 	Person *m_pPerson;
 	const double m_baseline, m_ageFactor, m_genderFactor, m_diagPartnersFactor;
-	const double m_isDiagnosedFactor, m_beta, m_HSV2factor, m_eagernessFactor, m_pregnancyFactor;
+	const double m_isDiagnosedFactor, m_beta, m_HSV2factor, m_eagernessFactor, m_pregnancyFactor, m_AGYWFactor;
+	const State *pState;
 };
 
 class EventDiagnosis : public SimpactEvent
@@ -31,11 +29,9 @@ public:
 
 	std::string getDescription(double tNow) const;
 	void writeLogs(const SimpactPopulation &pop, double tNow) const;
+	static bool getY(const Person *pPerson, const State *pState);
 	void fire(Algorithm *pAlgorithm, State *pState, double t);
 
-	// Since the hazard depends on the number of diagnosed partners,
-	// every partner of this person who is infected (so diagnosis event
-	// is possible) needs to be marked as affected
 	void markOtherAffectedPeople(const PopulationStateInterface &population);
 
 	static void processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen);
@@ -45,6 +41,7 @@ private:
 	double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);
 	static double getTMax(const Person *pPerson);
 
+	// bool getY(double t, const State *pState);  
 	static double s_baseline;
 	static double s_ageFactor;
 	static double s_genderFactor;
@@ -55,6 +52,8 @@ private:
 	static double s_HSV2factor; 
 	static double s_eagernessFactor;
 	static double s_pregnancyFactor;
+	static double s_AGYWFactor;
+	static double s_Y;
 };
 
 #endif // EVENTDIAGNOSIS_H
