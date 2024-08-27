@@ -8,7 +8,7 @@ def duplicate_rows(df, times):
 
 def simpact_parallel(model=calibration_wrapper_function,
                      input_csv='input.csv',
-                     seed_count=0,
+                     seed_count=1,
                      n_cluster=None,
                      repeat=2):
     

@@ -15,7 +15,6 @@ using namespace std;
 
 bool EventPrep::m_prep_enabled = true;
 double EventPrep::s_prepThreshold = 0.5;
-double EventPrep::s_prepThresholdAGYW = 0.5;
 
 EventPrep::EventPrep(Person *pPerson1, bool scheduleImmediately) : SimpactEvent(pPerson1)
 {
@@ -44,7 +43,7 @@ bool EventPrep::isEligibleForTreatmentP1(double t, const State *pState)
     Person *pPerson2 = getPerson(1);
 
     if (!pPerson1->hiv().isInfected() && !pPerson1->isPrep()){  //&& pPerson2->hiv().isInfected()  we check that a person is in a relationship
-        // std::cout << "P1 eli//&& pPerson1->hiv().isInfected() we check that a person is in a relationshipgible: " << pPerson2->getName() << std::endl;
+        // std::cout << "P1 eligible: " << pPerson2->getName() << std::endl;
         return true;
     }else{
         // std::cout << "P1 NOT ELIGIBLE: " << pPerson2->getName() << std::endl;
@@ -59,35 +58,22 @@ bool EventPrep::isEligibleForTreatmentP2(double t, const State *pState)
     Person *pPerson1 = getPerson(0);
     Person *pPerson2 = getPerson(1);
 
-    if (!pPerson2->hiv().isInfected() && !pPerson2->isPrep()){
+    if (!pPerson2->hiv().isInfected() && !pPerson2->isPrep()){  //&& pPerson1->hiv().isInfected() we check that a person is in a relationship
+        // std::cout << "P2 eligible: " << pPerson2->getName() << std::endl;
         return true;
     }else{
+        // std::cout << "P2 NOT ELIGIBLE: " << pPerson2->getName() << std::endl;
         return false;
     }
 }
 
-bool EventPrep::isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *pRndGen, const State *pState) {
+bool EventPrep::isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *pRndGen) {
+    //Person *pPerson1 = getPerson(0);
     assert(m_prepprobDist);
-    Person *pPerson1 = getPerson(0);
-    const SimpactPopulation &population = SIMPACTPOPULATION(pState);
-    double curTime = population.getTime();
-    double age = pPerson1->getAgeAt(curTime); 
     double dt = m_prepprobDist->pickNumber();
-
-    if (pPerson1->isWoman() && age >= 14 && age <= 24){
-        if (dt > s_prepThresholdAGYW) {
-            return true;
-        }else{
-            return false;
-        }
-    }
-    else{
-        if (dt > s_prepThreshold ){
-            return true;
-        }else{
-            return false;
-        }
-    }
+    if (dt > s_prepThreshold )
+        return true;
+    return false;
 }
 
 bool EventPrep::isWillingToStartTreatmentP2(double t, GslRandomNumberGenerator *pRndGen) {
@@ -120,7 +106,7 @@ void EventPrep::fire(Algorithm *pAlgorithm, State *pState, double t) {
 
     // if (m_prep_enabled) {
 
-    if (isEligibleForTreatmentP1(t, pState) && isWillingToStartTreatmentP1(t, pRndGen, pState)) 
+    if (isEligibleForTreatmentP1(t, pState) && isWillingToStartTreatmentP1(t, pRndGen)) 
     {
     pPerson1->setPrep(true);
     writeEventLogStart(true, "Prep_treatment_P1", t, pPerson1, 0);
@@ -154,8 +140,7 @@ void EventPrep::processConfig(ConfigSettings &config, GslRandomNumberGenerator *
     // Read the boolean parameter from the config
     std::string enabledStr;
     if (!(r = config.getKeyValue("EventPrep.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false") ||
-        !(r = config.getKeyValue("EventPrep.threshold", s_prepThreshold)) ||
-        !(r = config.getKeyValue("EventPrep.thresholdAGYW", s_prepThresholdAGYW))){
+        !(r = config.getKeyValue("EventPrep.threshold", s_prepThreshold))){
         abortWithMessage(r.getErrorString());
     }
     m_prep_enabled = (enabledStr == "true");
@@ -167,8 +152,7 @@ void EventPrep::obtainConfig(ConfigWriter &config) {
 
     // Add the VMMC enabled parameter
     if (!(r = config.addKey("EventPrep.enabled", m_prep_enabled ? "true" : "false")) ||
-        !(r = config.addKey("EventPrep.threshold", s_prepThreshold)) ||
-        !(r = config.addKey("EventPrep.thresholdAGYW", s_prepThresholdAGYW))){
+        !(r = config.addKey("EventPrep.threshold", s_prepThreshold))) {
         abortWithMessage(r.getErrorString());
     }
 
@@ -187,7 +171,6 @@ JSONConfig PrepJSONConfig(R"JSON(
         "params": [
             ["EventPrep.enabled", "true", [ "true", "false"] ],
             ["EventPrep.threshold", 0.5],
-            ["EventPrep.thresholdAGYW", 0.5],
             ["EventPrep.m_prepprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
         "info": [ 
