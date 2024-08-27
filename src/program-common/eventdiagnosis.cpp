@@ -227,6 +227,7 @@ JSONConfig diagnosisJSONConfig(R"JSON(
 		     [ "diagnosis.HSV2factor", 0 ],
 			 [ "diagnosis.eagernessfactor", 0 ],
 			 [ "diagnosis.pregnancyfactor", 0 ],
+			 [ "diagnosis.AGYWfactor", 0 ],
                 [ "diagnosis.t_max", 200 ]	
             ],
             "info": [
@@ -235,7 +236,7 @@ JSONConfig diagnosisJSONConfig(R"JSON(
                 "",
                 " h = exp(baseline + agefactor*A(t) + genderfactor*G ",
                 "         + diagpartnersfactor*ND + isdiagnosedfactor*D",
-                "         + beta*t + HSV2factor*HSV2 + eagernessfactor*E)",
+                "         + beta*t + HSV2factor*HSV2 + eagernessfactor*E + pregnancyfactor*P + AGYWfactor*Y)",
                 "",
                 "Here, A(t) is the age of the person, G is the gender (0 for a man, 1 for a",
                 "woman), ND is the number of diagnosed partners and D is a flag (0 or 1)",
