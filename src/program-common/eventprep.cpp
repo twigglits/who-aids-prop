@@ -8,7 +8,7 @@
 #include "configfunctions.h"
 #include "configsettingslog.h"
 #include <iostream>
-#include <cstdlib>
+#include <cstdlib> // for rand() function
 #include <chrono>
 
 using namespace std;
@@ -36,21 +36,37 @@ void EventPrep::writeLogs(const SimpactPopulation &pop, double tNow) const
 	Person *pPerson = getPerson(0);
 }
 
-bool EventPrep::isEligibleForTreatment(double t, const State *pState)
+bool EventPrep::isEligibleForTreatmentP1(double t, const State *pState)
 {
     const SimpactPopulation &population = SIMPACTPOPULATION(pState);
-    Person *pPerson1 = getPerson(0);
 
-    if (!pPerson1->hiv().isInfected() && !pPerson1->isPrep()){
-        std::cout << "Person:" << pPerson1->getName() << "is eligible for treatment Prep" <<  std::endl;
+    Person *pPerson1 = getPerson(0);
+    Person *pPerson2 = getPerson(1);
+
+    if (!pPerson1->hiv().isInfected() && !pPerson1->isPrep()){  //&& pPerson2->hiv().isInfected()  we check that a person is in a relationship
+        // std::cout << "P1 eli//&& pPerson1->hiv().isInfected() we check that a person is in a relationshipgible: " << pPerson2->getName() << std::endl;
         return true;
     }else{
-        std::cout << "Person:" << pPerson1->getName() << "is NOT eligible for treatment: Prep" << std::endl;
+        // std::cout << "P1 NOT ELIGIBLE: " << pPerson2->getName() << std::endl;
         return false;
     }
 }
 
-bool EventPrep::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen, const State *pState) {
+bool EventPrep::isEligibleForTreatmentP2(double t, const State *pState)
+{
+    const SimpactPopulation &population = SIMPACTPOPULATION(pState);
+
+    Person *pPerson1 = getPerson(0);
+    Person *pPerson2 = getPerson(1);
+
+    if (!pPerson2->hiv().isInfected() && !pPerson2->isPrep()){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+bool EventPrep::isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *pRndGen, const State *pState) {
     assert(m_prepprobDist);
     Person *pPerson1 = getPerson(0);
     const SimpactPopulation &population = SIMPACTPOPULATION(pState);
@@ -58,7 +74,7 @@ bool EventPrep::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pR
     double age = pPerson1->getAgeAt(curTime); 
     double dt = m_prepprobDist->pickNumber();
 
-    if (pPerson1->isWoman() && age >= 15 && age < 25){
+    if (pPerson1->isWoman() && age >= 14 && age <= 24){
         if (dt > s_prepThresholdAGYW) {
             return true;
         }else{
@@ -66,11 +82,21 @@ bool EventPrep::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pR
         }
     }
     else{
-        if (dt > s_prepThreshold){
+        if (dt > s_prepThreshold ){
             return true;
         }
         return false;
     }
+}
+
+bool EventPrep::isWillingToStartTreatmentP2(double t, GslRandomNumberGenerator *pRndGen) {
+    //Person *pPerson2 = getPerson(1);
+    assert(m_prepprobDist);
+    double dt = m_prepprobDist->pickNumber();
+    if (dt > s_prepThreshold )
+        return true;
+    return false;
+    
 }
 
 double EventPrep::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
@@ -89,14 +115,16 @@ void EventPrep::fire(Algorithm *pAlgorithm, State *pState, double t) {
     Person *pPerson1 = getPerson(0);
     double curTime = population.getTime();
     double age1 = pPerson1->getAgeAt(curTime);
-    assert(interventionTime == t); 
+    assert(interventionTime == t); // make sure we're at the correct time
 
-    if (isEligibleForTreatment(t, pState) && isWillingToStartTreatment(t, pRndGen, pState)) 
+    // if (m_prep_enabled) {
+
+    if (isEligibleForTreatmentP1(t, pState) && isWillingToStartTreatmentP1(t, pRndGen, pState)) 
     {
     pPerson1->setPrep(true);
-    writeEventLogStart(true, "Prep_treatment", t, pPerson1, 0);
+    writeEventLogStart(true, "Prep_treatment_P1", t, pPerson1, 0);
     
-	EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson1, t);
+	EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson1, t);  // needs to be smaller percentage than those that took up prep
 	population.onNewEvent(pEvtPrepDrop);
     }
 }

@@ -286,7 +286,7 @@ def calibration_wrapper_function(parameters = None):
             "time":37, #around 2017
             "EventPrep.enabled": "true",
             "EventPrep.threshold":0.98, #0.87, # threshold for willingness to start prep. coverage is 13%
-            "EventPrep.thresholdAGYW":0.95,
+            "EventPrep.thresholdAGYW":0,
             'EventPrepDrop.threshold': 0.8
         }
 
@@ -318,7 +318,7 @@ def calibration_wrapper_function(parameters = None):
 
     # Specify the file path to save the dictionary object
     #file_path = f'Calibration/final_data/datalist_seed{identifier}.pkl'
-    file_path = f'Calibration/final_data/datalist_seed1111.pkl'
+    file_path = f'Calibration/final_data/datalist_seed2222.pkl'
 
     # Save dictionary to a single file using pickle
     with open(file_path, 'wb') as f:
