@@ -84,8 +84,9 @@ bool EventPrep::isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *
     else{
         if (dt > s_prepThreshold ){
             return true;
+        }else{
+            return false;
         }
-        return false;
     }
 }
 
