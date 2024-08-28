@@ -16,7 +16,6 @@ bool EventAGYW::m_AGYW_enabled = false;
 
 EventAGYW::EventAGYW(Person *pWoman) : SimpactEvent(pWoman)
 {
-	assert(pWoman->isWoman());
 }
 
 EventAGYW::~EventAGYW()
@@ -41,7 +40,7 @@ bool EventAGYW::isEligibleForTreatment(double t, const State *pState)
     const SimpactPopulation &population = SIMPACTPOPULATION(pState);
     
     Woman *pWoman = WOMAN(getPerson(0));
-    assert(pWoman->isWoman());// line here exists only for declartion, does not set default to false, that is set in cofig JSON at the bottom
+    // assert(pWoman->isWoman());// line here exists only for declartion, does not set default to false, that is set in cofig JSON at the bottom
     double curTime = population.getTime();
     double age = pWoman->getAgeAt(curTime); 
     // cout << "Checking eligibility for person " << pWoman->getName() << " with age: " << age << endl;
@@ -67,19 +66,16 @@ void EventAGYW::fire(Algorithm *pAlgorithm, State *pState, double t) {
 
     GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
     Woman *pWoman = WOMAN(getPerson(0));
-    assert(pWoman->isWoman());
     double curTime = population.getTime();
     double age = pWoman->getAgeAt(curTime);
     assert(interventionTime == t);
 
     if (m_AGYW_enabled) {
         if (isEligibleForTreatment(t, pState) && pWoman->isWoman()) {
-            assert(!pWoman->isAGYW());
             pWoman->setAGYW(true);
             std::cout << "Adding Woman to AGYW selection: " << pWoman->getName() << " Age: " << age << "AGYW status: " << pWoman->isAGYW() << std::endl;
             writeEventLogStart(true, "(AGYW_selection)", t, pWoman, 0);
         }else if (!isEligibleForTreatment(t, pState) && pWoman->isWoman()){
-            assert(pWoman->isAGYW());
             pWoman->setAGYW(false);
             std::cout << "Removing Woman from AGYW selection: " << pWoman->getName() << " Age: " << age << "AGYW status: " << pWoman->isAGYW() << std::endl;
             writeEventLogStart(false, "(AGYW_removal)", t, pWoman, 0);
