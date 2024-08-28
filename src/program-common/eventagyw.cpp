@@ -54,8 +54,7 @@ bool EventAGYW::isEligibleForTreatment(double t, const State *pState)
 
 double EventAGYW::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-	assert(m_agywscheduleDist);
-	double dt = m_agywscheduleDist->pickNumber();
+	double dt = 1.0;
 	return dt;
 }
 
