@@ -126,8 +126,6 @@ double EventDiagnosis::s_tMax = 0;
 double EventDiagnosis::s_eagernessFactor = 0;
 double EventDiagnosis::s_pregnancyFactor = 0;
 double EventDiagnosis::s_AGYWFactor = 0;
-double EventDiagnosis::s_Y = 0;
-
 
 void EventDiagnosis::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
@@ -185,8 +183,9 @@ HazardFunctionDiagnosis::HazardFunctionDiagnosis(Person *pPerson, double baselin
 	int HSV2 = (pPerson->hsv2().isInfected())?1:0;
 	double E = (pPerson->getFormationEagernessParameter());
 	int P = (pPerson->isWoman() && WOMAN(pPerson)->isPregnant())?1:0;
-	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
-	int Y = (EventDiagnosis::getY(pPerson, pState))?1:0;
+	// const SimpactPopulation &population = SIMPACTPOPULATION(pState);
+	// int Y = (EventDiagnosis::getY(pPerson, pState))?1:0;
+	int Y = (pPerson->isWoman() && WOMAN(pPerson)->isAGYW())?1:0;
 
 	double A = baseline - ageFactor*tb + genderFactor*G + diagPartnersFactor*D + isDiagnosedFactor*hasBeenDiagnosed - beta*tinf + HSV2factor*HSV2 - eagernessFactor*E + pregnancyFactor*P + AGYWFactor*Y;
 	double B = ageFactor + beta;
@@ -205,7 +204,7 @@ double HazardFunctionDiagnosis::evaluate(double t)
 	int HSV2 = (m_pPerson->hsv2().isInfected()) ?1:0;
 	double E = (m_pPerson->getFormationEagernessParameter());
 	int P = (m_pPerson->isWoman() && WOMAN(m_pPerson)->isPregnant())?1:0;
-	int Y = (EventDiagnosis::getY(m_pPerson, pState))?1:0;
+	int Y = (m_pPerson->isWoman() && WOMAN(m_pPerson)->isAGYW())?1:0;
 	double age = (t-tb);
 
 	return std::exp(m_baseline + m_ageFactor*age + m_genderFactor*G + m_diagPartnersFactor*D +

@@ -60,7 +60,7 @@ bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *
     double age = pPerson1->getAgeAt(curTime); 
     double dt = m_condomprobDist->pickNumber();
 
-    if (pPerson1->isWoman() && age >= 15 && age < 25){
+    if (pPerson1->isWoman() && age >= 14 && age < 25){
         if (dt > s_condomThresholdAGYW) {
             return true;
         }else{
@@ -81,7 +81,6 @@ double EventCondom::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndG
 	    double dt = m_condomscheduleDist->pickNumber();
 
 	    return dt;
-        
 }
 
 void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
