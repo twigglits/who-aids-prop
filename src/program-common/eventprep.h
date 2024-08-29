@@ -24,18 +24,13 @@ public:
     static bool m_prep_enabled;
 	static ProbabilityDistribution *m_prepprobDist;
 	static double s_prepThreshold;
+	static double s_AGYWThreshold;
 
 private:
 	bool isEligibleForTreatmentP1(double t, const State *pState);
-	bool isEligibleForTreatmentP2(double t, const State *pState);
 	bool isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *pRndGen);
-	bool isWillingToStartTreatmentP2(double t, GslRandomNumberGenerator *pRndGen);
     bool m_scheduleImmediately;
-
     double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
-	
-    static ProbabilityDistribution *m_prepscheduleDist;
-    
     static std::list<double> m_interventionTimes;
 	static std::list<ConfigSettings> m_interventionSettings;
 	static bool m_interventionsProcessed;

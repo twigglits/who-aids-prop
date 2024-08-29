@@ -15,6 +15,7 @@ using namespace std;
 
 bool EventPrep::m_prep_enabled = true;
 double EventPrep::s_prepThreshold = 0.5;
+double EventPrep::s_AGYWThreshold = 0.5;
 
 EventPrep::EventPrep(Person *pPerson1, bool scheduleImmediately) : SimpactEvent(pPerson1)
 {
@@ -24,7 +25,6 @@ EventPrep::~EventPrep()
 {
 }
 
-// rest of our template functions
 string EventPrep::getDescription(double tNow) const
 {
 	return strprintf("Prep event for %s", getPerson(0)->getName().c_str());
@@ -40,50 +40,28 @@ bool EventPrep::isEligibleForTreatmentP1(double t, const State *pState)
     const SimpactPopulation &population = SIMPACTPOPULATION(pState);
 
     Person *pPerson1 = getPerson(0);
-    Person *pPerson2 = getPerson(1);
 
-    if (!pPerson1->hiv().isInfected() && !pPerson1->isPrep()){  //&& pPerson2->hiv().isInfected()  we check that a person is in a relationship
-        // std::cout << "P1 eligible: " << pPerson2->getName() << std::endl;
+    if (!pPerson1->hiv().isInfected() && !pPerson1->isPrep()){
         return true;
     }else{
-        // std::cout << "P1 NOT ELIGIBLE: " << pPerson2->getName() << std::endl;
-        return false;
-    }
-}
-
-bool EventPrep::isEligibleForTreatmentP2(double t, const State *pState)
-{
-    const SimpactPopulation &population = SIMPACTPOPULATION(pState);
-
-    Person *pPerson1 = getPerson(0);
-    Person *pPerson2 = getPerson(1);
-
-    if (!pPerson2->hiv().isInfected() && !pPerson2->isPrep()){  //&& pPerson1->hiv().isInfected() we check that a person is in a relationship
-        // std::cout << "P2 eligible: " << pPerson2->getName() << std::endl;
-        return true;
-    }else{
-        // std::cout << "P2 NOT ELIGIBLE: " << pPerson2->getName() << std::endl;
         return false;
     }
 }
 
 bool EventPrep::isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *pRndGen) {
-    //Person *pPerson1 = getPerson(0);
     assert(m_prepprobDist);
+    Person *pPerson1 = getPerson(0);
     double dt = m_prepprobDist->pickNumber();
-    if (dt > s_prepThreshold )
+    if (pPerson1->isWoman() && WOMAN(pPerson1)->isAGYW() && dt > s_AGYWThreshold)
+    {
         return true;
-    return false;
-}
-
-bool EventPrep::isWillingToStartTreatmentP2(double t, GslRandomNumberGenerator *pRndGen) {
-    //Person *pPerson2 = getPerson(1);
-    assert(m_prepprobDist);
-    double dt = m_prepprobDist->pickNumber();
-    if (dt > s_prepThreshold )
+    }
+    else if (dt > s_prepThreshold)
+    {
         return true;
-    return false;
-    
+    }else{
+        return false;
+    }
 }
 
 double EventPrep::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
@@ -102,35 +80,24 @@ void EventPrep::fire(Algorithm *pAlgorithm, State *pState, double t) {
     Person *pPerson1 = getPerson(0);
     double curTime = population.getTime();
     double age1 = pPerson1->getAgeAt(curTime);
-    assert(interventionTime == t); // make sure we're at the correct time
-
-    // if (m_prep_enabled) {
+    assert(interventionTime == t); 
 
     if (isEligibleForTreatmentP1(t, pState) && isWillingToStartTreatmentP1(t, pRndGen)) 
     {
     pPerson1->setPrep(true);
     writeEventLogStart(true, "Prep_treatment_P1", t, pPerson1, 0);
     
-	EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson1, t);  // needs to be smaller percentage than those that took up prep
+	EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson1, t);
 	population.onNewEvent(pEvtPrepDrop);
     }
 }
 
 ProbabilityDistribution *EventPrep::m_prepprobDist = 0;
-ProbabilityDistribution *EventPrep::m_prepscheduleDist = 0;
 PieceWiseLinearFunction *EventPrep::s_pRecheckInterval = 0;
 
 void EventPrep::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen) {
     bool_t r;
-    
-    // Process VMMC schedule distribution
-    if (m_prepscheduleDist) {
-        delete m_prepscheduleDist;
-        m_prepscheduleDist = 0;
-    }
-    m_prepscheduleDist = getDistributionFromConfig(config, pRndGen, "EventPrep.m_prepscheduleDist");
 
-    // Process VMMC probability distribution
     if (m_prepprobDist) {
         delete m_prepprobDist;
         m_prepprobDist = 0;
@@ -140,7 +107,8 @@ void EventPrep::processConfig(ConfigSettings &config, GslRandomNumberGenerator *
     // Read the boolean parameter from the config
     std::string enabledStr;
     if (!(r = config.getKeyValue("EventPrep.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false") ||
-        !(r = config.getKeyValue("EventPrep.threshold", s_prepThreshold))){
+        !(r = config.getKeyValue("EventPrep.threshold", s_prepThreshold)) ||
+        !(r = config.getKeyValue("EventPrep.AGYWThreshold", s_AGYWThreshold))){
         abortWithMessage(r.getErrorString());
     }
     m_prep_enabled = (enabledStr == "true");
@@ -150,16 +118,13 @@ void EventPrep::processConfig(ConfigSettings &config, GslRandomNumberGenerator *
 void EventPrep::obtainConfig(ConfigWriter &config) {
     bool_t r;
 
-    // Add the VMMC enabled parameter
+    
     if (!(r = config.addKey("EventPrep.enabled", m_prep_enabled ? "true" : "false")) ||
-        !(r = config.addKey("EventPrep.threshold", s_prepThreshold))) {
-        abortWithMessage(r.getErrorString());
-    }
+        !(r = config.addKey("EventPrep.threshold", s_prepThreshold)) || 
+        !(r = config.addKey("EventPrep.AGYWThreshold", s_AGYWThreshold))){
+            abortWithMessage(r.getErrorString());
+        }
 
-    // Add the VMMC schedule distribution to the config
-    addDistributionToConfig(m_prepscheduleDist, config, "EventPrep.m_prepscheduleDist");
-
-    // Add the VMMC probability distribution to the config
     addDistributionToConfig(m_prepprobDist, config, "EventPrep.m_prepprobDist");
 }
 
@@ -171,20 +136,12 @@ JSONConfig PrepJSONConfig(R"JSON(
         "params": [
             ["EventPrep.enabled", "true", [ "true", "false"] ],
             ["EventPrep.threshold", 0.5],
+            ["EventPrep.AGYWThreshold", 0.5],
             ["EventPrep.m_prepprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
         "info": [ 
             "This parameter is used to set the distribution of subject willing to accept VMMC treatment",
             "and to enable or disable the VMMC event."
-        ]
-    },
-    "EventPrep_schedule_dist": { 
-        "depends": null,
-        "params": [  
-            [ "EventPrep.m_prepscheduleDist.dist", "distTypes", ["fixed", [ ["value", 0.246575 ] ] ] ] 
-        ],
-        "info": [ 
-            "This parameter is used to specify the VMMC scheduling duration. The default is fixed."
         ]
     }
 )JSON");

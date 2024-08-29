@@ -1,4 +1,5 @@
 #include "eventcondom.h"
+#include "eventprep.h"
 #include "gslrandomnumbergenerator.h"
 #include "configdistributionhelper.h"
 #include "util.h"
@@ -43,31 +44,34 @@ bool EventCondom::isEligibleForTreatment(double t, const State *pState)
     Person *pPerson = getPerson(0);
     double curTime = population.getTime();
     double age = pPerson->getAgeAt(curTime); 
-    // cout << "Checking eligibility for person " << pPerson->getName() << " with age: " << age << endl;
     
     if (pPerson->isSexuallyActive()) {
-        // cout << "Person " << pPerson->getName() << " Condom eligible with age: " << age << endl;
-        return true;  // eligible for condom programming
+        return true;  
     }else {        
-        // cout << "Person " << pPerson->getName() << " Condom NOT eligible with age: " << age << endl;
         return false;
     }
 }
 
 bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen) {
     assert(m_condomprobDist);
+    Person *pPerson = getPerson(0);
 	double dt = m_condomprobDist->pickNumber();
-    if (dt > s_condomThreshold)
+    
+    if (pPerson->isWoman() && WOMAN(pPerson)->isAGYW() && dt > EventPrep::s_AGYWThreshold ){  //we link to AGYW threshold defined in eventprep file, thus we only need to pass in `EventPrep.AGYWThreshold` for it to be reference here
         return true;
-    return false;
+    }
+    else if (dt > s_condomThreshold){
+        return true;
+    }else{
+        return false;
+    }
+    
 }
 
 double EventCondom::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState, double t)
 {
         assert(m_condomscheduleDist);
-
 	    double dt = m_condomscheduleDist->pickNumber();
-
 	    return dt;
         
 }
@@ -81,7 +85,6 @@ void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
     Person *pPerson = getPerson(0);
     double curTime = population.getTime();
     double age = pPerson->getAgeAt(curTime);
-    assert(interventionTime == t);
 
     if (m_condom_enabled) {
         if (isEligibleForTreatment(t, pState) && isWillingToStartTreatment(t, pRndGen)) {
