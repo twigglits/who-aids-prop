@@ -24,11 +24,12 @@ public:
     static bool m_prep_enabled;
 	static ProbabilityDistribution *m_prepprobDist;
 	static double s_prepThreshold;
-	static double s_prepThresholdAGYW;
 
 private:
-	bool isEligibleForTreatment(double t, const State *pState);
-	bool isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen, const State *pState);
+	bool isEligibleForTreatmentP1(double t, const State *pState);
+	bool isEligibleForTreatmentP2(double t, const State *pState);
+	bool isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *pRndGen);
+	bool isWillingToStartTreatmentP2(double t, GslRandomNumberGenerator *pRndGen);
     bool m_scheduleImmediately;
 
     double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
