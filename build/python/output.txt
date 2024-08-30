@@ -1597,6 +1597,11 @@
 population.coarsemap.subdivx                                 = 20
 population.coarsemap.subdivy                                 = 20
 
+# This parameter is used to set the distribution of subject willing to accept AGYW treatment
+# and to enable or disable the AGYW event.
+# Valid values are: ['true', 'false']
+EventAGYW.enabled                                            = true
+
 # Indicates the time interval before death that the AIDS stages occur
 # The defaults are 15 and 6 months before death
 aidsstage.start                                              = 1.25
@@ -1677,7 +1682,7 @@ debut.debutage                                               = 15
 # 
 #  h = exp(baseline + agefactor*A(t) + genderfactor*G 
 #          + diagpartnersfactor*ND + isdiagnosedfactor*D
-#          + beta*t + HSV2factor*HSV2 + eagernessfactor*E)
+#          + beta*t + HSV2factor*HSV2 + eagernessfactor*E + pregnancyfactor*P + AGYWfactor*Y)
 # 
 # Here, A(t) is the age of the person, G is the gender (0 for a man, 1 for a
 # woman), ND is the number of diagnosed partners and D is a flag (0 or 1)
@@ -1692,6 +1697,7 @@ diagnosis.beta                                               = 0
 diagnosis.HSV2factor                                         = 0
 diagnosis.eagernessfactor                                    = 0
 diagnosis.pregnancyfactor                                    = 0
+diagnosis.AGYWfactor                                         = 0.5
 diagnosis.t_max                                              = 200
 
 # These are the parameters for the hazard in the dissolution event.
@@ -1885,7 +1891,7 @@ intervention.enabled                                         = yes
 #   intervention.fileids =
 # then the files used would be 'intconfig_1.txt', 'intconfig_2.txt' and
 # 'intconfig_3.txt'.
-intervention.baseconfigname                                  = simpact-cyan-2024-08-28-12-19-18_6919_93eh0uQI-interventionconfig_%.txt
+intervention.baseconfigname                                  = simpact-cyan-2024-08-30-10-39-53_13192_c7Jpc8II-interventionconfig_%.txt
 intervention.times                                           = 20.0
 intervention.fileids                                         = 1
 
