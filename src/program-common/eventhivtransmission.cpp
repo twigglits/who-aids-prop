@@ -3,7 +3,6 @@
 #include "eventmortality.h"
 #include "eventaidsmortality.h"
 #include "eventchronicstage.h"
-#include "eventagyw.h"
 #include "eventdiagnosis.h"
 #include "eventdebut.h"
 #include "jsonconfig.h"
@@ -111,8 +110,6 @@ void EventHIVTransmission::infectPerson(SimpactPopulation &population, Person *p
 	EventChronicStage *pEvtChronic = new EventChronicStage(pTarget);
 	population.onNewEvent(pEvtChronic);
 
-	EventAGYW *pEvtAGYW = new EventAGYW(pTarget);
-	population.onNewEvent(pEvtAGYW); 
 	// Once infected, a HIV diagnosis event will be scheduled, which can cause 
 	// treatment of the person later on
 	EventDiagnosis *pEvtDiag = new EventDiagnosis(pTarget);

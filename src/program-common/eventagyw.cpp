@@ -40,13 +40,10 @@ bool EventAGYW::isEligibleForTreatment(double t, const State *pState)
     const SimpactPopulation &population = SIMPACTPOPULATION(pState);
     
     Woman *pWoman = WOMAN(getPerson(0));
-    // assert(pWoman->isWoman());// line here exists only for declartion, does not set default to false, that is set in cofig JSON at the bottom
     double curTime = population.getTime();
     double age = pWoman->getAgeAt(curTime); 
-    // cout << "Checking eligibility for person " << pWoman->getName() << " with age: " << age << endl;
     
     if (pWoman->isWoman() && age >= 15.0 && age < 25.0) { 
-        // cout << "Person: " << pWoman->getName() << " eligible with Age: " << age << " and Gender: " << pWoman->getGender() << endl;
         return true;
     }    
     return false;
@@ -54,7 +51,7 @@ bool EventAGYW::isEligibleForTreatment(double t, const State *pState)
 
 double EventAGYW::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-	double dt = 1.0;
+	double dt = 0.0;
 	return dt;
 }
 
@@ -77,7 +74,7 @@ void EventAGYW::fire(Algorithm *pAlgorithm, State *pState, double t) {
         }else if (!isEligibleForTreatment(t, pState) && pWoman->isWoman()){
             pWoman->setAGYW(false);
             std::cout << "Removing Woman from AGYW selection: " << pWoman->getName() << " Age: " << age << "AGYW status: " << pWoman->isAGYW() << std::endl;
-            writeEventLogStart(false, "(AGYW_removal)", t, pWoman, 0);
+            writeEventLogStart(true, "(AGYW_removal)", t, pWoman, 0);
         }
     } 
 }
