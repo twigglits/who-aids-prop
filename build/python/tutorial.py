@@ -38,7 +38,8 @@ cfg = {
     "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.floor": 'yes', # to force distribution to return exact values and not any value within the bin
     "hivtransmission.threshold": 0.5, # threshold for condom use in formation
     # prep
-    "EventPrep.enabled": "false"
+    "EventPrep.enabled": "false",
+    'diagnosis.AGYWfactor':0.5
 }
 
 # no testing before time 20

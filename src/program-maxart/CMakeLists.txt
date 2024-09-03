@@ -29,6 +29,7 @@ set(SOURCES_SIMPACT
     ../program-common/eventvmmc.cpp
 	../program-common/eventprep.cpp
     ../program-common/eventprepdrop.cpp
+	../program-common/eventagyw.cpp
 	../program-common/eventhsv2seed.cpp
 	../program-common/eventintervention.cpp
 	../program-common/eventaidsstage.cpp

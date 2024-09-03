@@ -21,7 +21,8 @@ def simpact_parallel(model=calibration_wrapper_function,
     if n_cluster is None:
         n_cluster = min(cpu_count(), 8)
         
-    nb_simul = len(actual_input_matrix)
+    # nb_simul = len(actual_input_matrix)
+    nb_simul = 1
     
     list_param = []
     for i in range(nb_simul):
