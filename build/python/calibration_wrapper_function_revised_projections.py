@@ -53,7 +53,8 @@ def calibration_wrapper_function(parameters = None):
     cfg_list["population.agedistfile"] = "/home/jupyter/who-aids-prop/build/python/eswatini_1980.csv"
     cfg_list['diagnosis.eagernessfactor'] = np.log(1.025)
     cfg_list['diagnosis.pregnancyfactor'] = 0
-    cfg_list['diagnosis.AGYWfactor'] = 0.5
+    cfg_list['EventAGYW.enabled']='false'
+    cfg_list['diagnosis.AGYWfactor'] = 0
     cfg_list["mortality.aids.survtime.art_e.dist.type"] = "uniform"
     cfg_list["mortality.aids.survtime.art_e.dist.uniform.min"] = 5
     cfg_list["mortality.aids.survtime.art_e.dist.uniform.max"] = 25
@@ -189,6 +190,7 @@ def calibration_wrapper_function(parameters = None):
     # ART introduction configurations
     art_intro = {
         "time": 20, #around 2000
+        #"EventAGYW.enabled": 'true',
         "diagnosis.pregnancyfactor":0.2,
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'], #-1,
         "monitoring.cd4.threshold": 100
