@@ -18,7 +18,6 @@ private:
 	Person *m_pPerson;
 	const double m_baseline, m_ageFactor, m_genderFactor, m_diagPartnersFactor;
 	const double m_isDiagnosedFactor, m_beta, m_HSV2factor, m_eagernessFactor, m_pregnancyFactor, m_AGYWFactor;
-	const State *pState;
 };
 
 class EventDiagnosis : public SimpactEvent
@@ -29,7 +28,7 @@ public:
 
 	std::string getDescription(double tNow) const;
 	void writeLogs(const SimpactPopulation &pop, double tNow) const;
-	static bool getY(const Person *pPerson, const State *pState);
+	// static bool getY(const Person *pPerson, const State *pState);
 	void fire(Algorithm *pAlgorithm, State *pState, double t);
 
 	void markOtherAffectedPeople(const PopulationStateInterface &population);
@@ -53,7 +52,6 @@ private:
 	static double s_eagernessFactor;
 	static double s_pregnancyFactor;
 	static double s_AGYWFactor;
-	static double s_Y;
 };
 
 #endif // EVENTDIAGNOSIS_H

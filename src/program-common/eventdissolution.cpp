@@ -57,10 +57,14 @@ void EventDissolution::fire(Algorithm *pAlgorithm, State *pState, double t)
 	pPerson2->removeRelationship(pPerson1, t, false);
 
 	EventAGYW *pEvtAGYW1 = new EventAGYW(pPerson1);
-	population.onNewEvent(pEvtAGYW1);
-
 	EventAGYW *pEvtAGYW2 = new EventAGYW(pPerson2);
-	population.onNewEvent(pEvtAGYW2); 
+
+	if (EventAGYW::m_AGYW_enabled){
+	if (pPerson2->isWoman()){
+		EventAGYW *pEvtAGYW = new EventAGYW(pPerson2);
+		population.onNewEvent(pEvtAGYW);
+	}
+	}
 
 	// A new formation event should only be scheduled if neither person is in the
 	// final AIDS stage

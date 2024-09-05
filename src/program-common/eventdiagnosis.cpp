@@ -52,20 +52,6 @@ void EventDiagnosis::markOtherAffectedPeople(const PopulationStateInterface &pop
 #endif // NDEBUG
 }
 
-
-bool EventDiagnosis::getY(const Person *pPerson, const State *pState)
-{
-	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
-	double curTime = population.getTime();
-	double age = pPerson->getAgeAt(curTime); 
-	cout << "Checking age of person " << pPerson->getName() << " with age: " << age << endl;
-	if (pPerson->isWoman() && age >= 15 && age < 25){
-		return true;
-	}else{
-		return false;
-	}
-}
-
 void EventDiagnosis::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
@@ -84,7 +70,6 @@ double EventDiagnosis::calculateInternalTimeInterval(const State *pState, double
 {
 	Person *pPerson = getPerson(0);
 	double tMax = getTMax(pPerson);
-	bool Y = getY(pPerson, pState);
 
 	HazardFunctionDiagnosis h0(pPerson, s_baseline, s_ageFactor, s_genderFactor, s_diagPartnersFactor,
 			           s_isDiagnosedFactor, s_beta, s_HSV2factor, s_eagernessFactor, s_pregnancyFactor, s_AGYWFactor);
@@ -97,7 +82,6 @@ double EventDiagnosis::solveForRealTimeInterval(const State *pState, double Tdif
 {
 	Person *pPerson = getPerson(0);
 	double tMax = getTMax(pPerson);
-	bool Y = getY(pPerson, pState);
 
 	HazardFunctionDiagnosis h0(pPerson, s_baseline, s_ageFactor, s_genderFactor, s_diagPartnersFactor,
 			           s_isDiagnosedFactor, s_beta, s_HSV2factor, s_eagernessFactor, s_pregnancyFactor, s_AGYWFactor);
@@ -183,11 +167,11 @@ HazardFunctionDiagnosis::HazardFunctionDiagnosis(Person *pPerson, double baselin
 	int HSV2 = (pPerson->hsv2().isInfected())?1:0;
 	double E = (pPerson->getFormationEagernessParameter());
 	int P = (pPerson->isWoman() && WOMAN(pPerson)->isPregnant())?1:0;
-	// const SimpactPopulation &population = SIMPACTPOPULATION(pState);
-	// int Y = (EventDiagnosis::getY(pPerson, pState))?1:0;
 	int Y = (pPerson->isWoman() && WOMAN(pPerson)->isAGYW())?1:0;
 
-	double A = baseline - ageFactor*tb + genderFactor*G + diagPartnersFactor*D + isDiagnosedFactor*hasBeenDiagnosed - beta*tinf + HSV2factor*HSV2 - eagernessFactor*E + pregnancyFactor*P + AGYWFactor*Y;
+	std::cout << "For human int Y:" << Y << " AGYW status:" << WOMAN(pPerson)->isAGYW() << " with Factor:" << AGYWFactor << std::endl;
+
+	double A = baseline - ageFactor*tb + genderFactor*G + diagPartnersFactor*D + isDiagnosedFactor*hasBeenDiagnosed - beta*tinf + HSV2factor*HSV2 - eagernessFactor*E + pregnancyFactor*P+ AGYWFactor*Y;
 	double B = ageFactor + beta;
 
 	setAB(A, B);

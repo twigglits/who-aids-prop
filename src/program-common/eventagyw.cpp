@@ -22,13 +22,6 @@ EventAGYW::~EventAGYW()
 {
 }
 
-string EventAGYW::getDescription(double tNow) const
-{
-    Person *pWoman = WOMAN(getPerson(0));
-    assert(pWoman->isWoman());
-	return strprintf("AGYW event for %s", getPerson(0)->getName().c_str());
-}
-
 void EventAGYW::writeLogs(const SimpactPopulation &pop, double tNow) const
 {
 	Person *pWoman = WOMAN(getPerson(0));
@@ -64,7 +57,8 @@ void EventAGYW::fire(Algorithm *pAlgorithm, State *pState, double t) {
     Woman *pWoman = WOMAN(getPerson(0));
     double curTime = population.getTime();
     double age = pWoman->getAgeAt(curTime);
-    assert(interventionTime == t);
+
+    assert(interventionTime == t); // make sure we're at the correct time
 
     if (m_AGYW_enabled) {
         if (isEligibleForTreatment(t, pState) && pWoman->isWoman()) {

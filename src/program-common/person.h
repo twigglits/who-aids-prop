@@ -155,12 +155,11 @@ public:
 
 	void setPregnant(bool f)							{ m_pregnant = f; }
 	bool isPregnant() const								{ return m_pregnant; }
-
-	bool m_AGYW;
 	
 	void setAGYW(bool y)												{ m_AGYW = y; }
 	bool isAGYW() const													{ return m_AGYW; }
 private:
+	bool m_AGYW;
 	bool m_pregnant;
 	
 };

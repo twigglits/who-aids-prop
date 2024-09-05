@@ -153,6 +153,7 @@ Man::~Man()
 Woman::Woman(double dateOfBirth) : Person(dateOfBirth, Female)
 {
 	m_pregnant = false;
+	m_AGYW = false;
 }
 
 Woman::~Woman()

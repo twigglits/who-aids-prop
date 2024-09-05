@@ -86,7 +86,6 @@ void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t) {
     if (m_VMMC_enabled) {
         if (isEligibleForTreatment(t, pState) && isWillingToStartTreatment(t, pRndGen) && pMan->isMan()) {
             assert(!pMan->isVmmc());
-            // std::cout << "Circumcising Person: " << pMan->getName() << " Age: " << age << std::endl; // Debugging statement
             pMan->setVmmc(true);
             writeEventLogStart(true, "(VMMC_treatment)", t, pMan, 0);
         } 

@@ -11,9 +11,7 @@ public:
 	EventAGYW(Person *pPerson);
 	~EventAGYW();
 
-	std::string getDescription(double tNow) const;
 	void writeLogs(const SimpactPopulation &pop, double tNow) const;
-    bool isEnabled() const { return m_enabled; }
 	void fire(Algorithm *pAlgorithm, State *pState, double t);
 	bool isEveryoneAffected() const { return false; }
 
@@ -34,7 +32,6 @@ private:
 	static std::list<double> m_interventionTimes;
 	static std::list<ConfigSettings> m_interventionSettings;
 	static bool m_interventionsProcessed;
-    static bool m_enabled; 
 };
 
 #endif // EVENTAGYW_H
