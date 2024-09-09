@@ -1,6 +1,7 @@
 #include "eventdissolution.h"
 #include "eventformation.h"
 #include "eventagyw.h"
+#include "eventdiagnosis.h"
 #include "eventprepdrop.h"
 #include "evthazarddissolution.h"
 #include "jsonconfig.h"
@@ -56,13 +57,15 @@ void EventDissolution::fire(Algorithm *pAlgorithm, State *pState, double t)
 	pPerson1->removeRelationship(pPerson2, t, false);
 	pPerson2->removeRelationship(pPerson1, t, false);
 
-	EventAGYW *pEvtAGYW1 = new EventAGYW(pPerson1);
-	EventAGYW *pEvtAGYW2 = new EventAGYW(pPerson2);
-
-	if (EventAGYW::m_AGYW_enabled){
-	if (pPerson2->isWoman()){
-		EventAGYW *pEvtAGYW = new EventAGYW(pPerson2);
-		population.onNewEvent(pEvtAGYW);
+	if (EventDiagnosis::s_AGYWflag){
+    double curTime = population.getTime();
+    double age = pPerson2->getAgeAt(curTime); 
+	if (pPerson2->isWoman() && age >= 15.0 && age < 25.0) { 
+        WOMAN(pPerson2)->setAGYW(true);
+		std::cout << "Setting Person2" << pPerson2 << " AGYW status:" << WOMAN(pPerson2)->isAGYW() << std::endl;
+    }else if (pPerson2->isWoman()){
+		WOMAN(pPerson2)->setAGYW(false);
+		std::cout << "Unsetting Person2" << pPerson2 << " AGYW status:" << WOMAN(pPerson2)->isAGYW() << std::endl;
 	}
 	}
 

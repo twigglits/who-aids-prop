@@ -19,7 +19,6 @@ set(
 	../program-common/eventcondom.cpp
 	../program-common/eventprep.cpp
     ../program-common/eventprepdrop.cpp
-	../program-common/eventagyw.cpp
 	../program-common/eventhivtransmission.cpp
 	../program-common/eventhsv2transmission.cpp
 	../program-common/eventchronicstage.cpp

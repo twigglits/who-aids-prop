@@ -5,8 +5,8 @@
 #include "eventdebut.h"
 #include "eventprep.h"
 #include "eventprepdrop.h"
+#include "eventdiagnosis.h"
 #include "eventcondom.h"
-#include "eventagyw.h"
 #include "simpactpopulation.h"
 #include "simpactevent.h"
 #include "evthazardformationsimple.h"
@@ -111,10 +111,15 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);
 
-	if (EventAGYW::m_AGYW_enabled){
-	if (pPerson2->isWoman()){
-		EventAGYW *pEvtAGYW = new EventAGYW(pPerson2);
-		population.onNewEvent(pEvtAGYW);
+	if (EventDiagnosis::s_AGYWflag){
+    double curTime = population.getTime();
+    double age = pPerson2->getAgeAt(curTime); 
+	if (pPerson2->isWoman() && age >= 15.0 && age < 25.0) { 
+        WOMAN(pPerson2)->setAGYW(true);
+		std::cout << "Setting Person2" << pPerson2 << " AGYW status:" << WOMAN(pPerson2)->isAGYW() << std::endl;
+    }else if(pPerson2->isWoman()){
+		WOMAN(pPerson2)->setAGYW(false);
+		std::cout << "Unsetting Person2" << pPerson2 << " AGYW status:" << WOMAN(pPerson2)->isAGYW() << std::endl;
 	}
 	}
 

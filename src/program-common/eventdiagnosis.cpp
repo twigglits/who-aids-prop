@@ -110,6 +110,7 @@ double EventDiagnosis::s_tMax = 0;
 double EventDiagnosis::s_eagernessFactor = 0;
 double EventDiagnosis::s_pregnancyFactor = 0;
 double EventDiagnosis::s_AGYWFactor = 0;
+bool EventDiagnosis::s_AGYWflag = false;
 
 void EventDiagnosis::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
@@ -125,7 +126,8 @@ void EventDiagnosis::processConfig(ConfigSettings &config, GslRandomNumberGenera
 	    !(r = config.getKeyValue("diagnosis.HSV2factor", s_HSV2factor)) ||
 		!(r = config.getKeyValue("diagnosis.eagernessfactor", s_eagernessFactor)) ||
 		!(r = config.getKeyValue("diagnosis.pregnancyfactor", s_pregnancyFactor)) ||
-		!(r = config.getKeyValue("diagnosis.AGYWfactor", s_AGYWFactor)) 
+		!(r = config.getKeyValue("diagnosis.AGYWfactor", s_AGYWFactor)) ||
+		!(r = config.getKeyValue("diagnosis.AGYWflag", s_AGYWflag)) 
 	   )
 		abortWithMessage(r.getErrorString());
 }
@@ -144,7 +146,8 @@ void EventDiagnosis::obtainConfig(ConfigWriter &config)
 	    !(r = config.addKey("diagnosis.HSV2factor", s_HSV2factor)) ||
 		!(r = config.addKey("diagnosis.eagernessfactor", s_eagernessFactor)) ||
 		!(r = config.addKey("diagnosis.pregnancyfactor", s_pregnancyFactor)) ||
-		!(r = config.addKey("diagnosis.AGYWfactor", s_AGYWFactor))
+		!(r = config.addKey("diagnosis.AGYWfactor", s_AGYWFactor)) ||
+		!(r = config.addKey("diagnosis.AGYWflag", s_AGYWflag))
 	   )
 		abortWithMessage(r.getErrorString());
 }
@@ -211,6 +214,7 @@ JSONConfig diagnosisJSONConfig(R"JSON(
 			 [ "diagnosis.eagernessfactor", 0 ],
 			 [ "diagnosis.pregnancyfactor", 0 ],
 			 [ "diagnosis.AGYWfactor", 0 ],
+			 [ "diagnosis.AGYWflag", false ],
                 [ "diagnosis.t_max", 200 ]	
             ],
             "info": [

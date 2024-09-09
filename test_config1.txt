@@ -25,6 +25,8 @@ $SIMPACT_DATA_DIR = /home/jupyter/who-aids-prop/build/data/
 # Note that no calculations can be performed in this file anymore, so instead
 # of writing 1.0/2.0, you'd need to write 0.5 for example.
 
+# EventAGYW.enabled                                            = true
+diagnosis.AGYWflag                                             = yes
 # The following depends on birth.pregnancyduration.dist.type = beta
 # birth.pregnancyduration.dist.beta.a
 # birth.pregnancyduration.dist.beta.b
@@ -1586,7 +1588,6 @@ population.coarsemap.subdivy                                 = 20
 # This parameter is used to set the distribution of subject willing to accept AGYW treatment
 # and to enable or disable the AGYW event.
 # Valid values are: ['true', 'false']
-EventAGYW.enabled                                            = false
 
 # Indicates the time interval before death that the AIDS stages occur
 # The defaults are 15 and 6 months before death
@@ -2280,9 +2281,9 @@ person.vsp.model.logdist2d.dist2d.binormalsymm.max           = 6
 population.nummen                                            = 1000
 population.numwomen                                          = 1000
 population.simtime                                           = 71
-# population.nummen                                            = 200
-# population.numwomen                                          = 200
-# population.simtime                                           = 21
+# population.nummen                                            = 500
+# population.numwomen                                          = 500
+# population.simtime                                           = 71
 
 population.maxevents                                         = -1
 population.agedistfile                                       = /home/jeannaude/who-aids-prop/eswatini_1980.csv
