@@ -2277,12 +2277,12 @@ person.vsp.model.logdist2d.dist2d.binormalsymm.max           = 6
 # By default, the 'maxevents' parameter is negative, causing it to be
 # ignored. Set this to a positive value to make sure the simulation stops
 # when this number of events has been exceeded.
+# population.nummen                                            = 1000
+# population.numwomen                                          = 1000
+# population.simtime                                           = 71
 population.nummen                                            = 1000
 population.numwomen                                          = 1000
-population.simtime                                           = 71
-# population.nummen                                            = 200
-# population.numwomen                                          = 200
-# population.simtime                                           = 21
+population.simtime                                           = 50
 
 population.maxevents                                         = -1
 population.agedistfile                                       = /home/jeannaude/who-aids-prop/eswatini_1980.csv
@@ -2295,3 +2295,4 @@ population.msm                                               = no
 # only used in the initial scheduling of formation events, but also 
 # when a debut event fires, to limit the newly scheduled formation events.
 population.eyecap.fraction                                   = 0.2
+EventAGYW.agywage                                            = 25

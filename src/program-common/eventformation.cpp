@@ -112,10 +112,8 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	Person *pPerson2 = getPerson(1);
 
 	if (EventAGYW::m_AGYW_enabled){
-	if (pPerson2->isWoman()){
 		EventAGYW *pEvtAGYW = new EventAGYW(pPerson2);
 		population.onNewEvent(pEvtAGYW);
-	}
 	}
 
 	EventCondom *pEvtCondom1 = new EventCondom(pPerson1);

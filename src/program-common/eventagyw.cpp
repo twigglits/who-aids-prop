@@ -12,8 +12,6 @@
 
 using namespace std;
 
-bool EventAGYW::m_AGYW_enabled = false; 
-
 EventAGYW::EventAGYW(Person *pWoman) : SimpactEvent(pWoman)
 {
 }
@@ -22,65 +20,61 @@ EventAGYW::~EventAGYW()
 {
 }
 
-void EventAGYW::writeLogs(const SimpactPopulation &pop, double tNow) const
-{
-	Person *pWoman = WOMAN(getPerson(0));
-    assert(pWoman->isWoman());
-}
-
-bool EventAGYW::isEligibleForTreatment(double t, const State *pState)
-{
-    const SimpactPopulation &population = SIMPACTPOPULATION(pState);
-    
-    Woman *pWoman = WOMAN(getPerson(0));
-    double curTime = population.getTime();
-    double age = pWoman->getAgeAt(curTime); 
-    
-    if (pWoman->isWoman() && age >= 15.0 && age < 25.0) { 
-        return true;
-    }    
-    return false;
-}
-
 double EventAGYW::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-	double dt = 0.0;
-	return dt;
+	const SimpactPopulation &population = SIMPACTPOPULATION(pState);
+	Person *pPerson = getPerson(0);
+
+	assert(pPerson != 0);
+	assert(getNumberOfPersons() == 1);
+    assert(pPerson->isWoman());
+    assert(m_AGYW_age > 0);
+    
+    // double age = pPerson->getDateOfBirth() + m_AGYW_age;
+	// double dt = population.getTime() - age;
+
+    double dt = 0.0;
+    return dt;
 }
 
-void EventAGYW::fire(Algorithm *pAlgorithm, State *pState, double t) {
+std::string EventAGYW::getDescription(double tNow) const
+{
+	Person *pPerson = getPerson(0);
+	return strprintf("AGYW desc %s", pPerson->getName().c_str());
+}
+
+void EventAGYW::writeLogs(const SimpactPopulation &pop, double tNow) const
+{
+	Person *pWoman = getPerson(0);
+    writeEventLogStart(true, "AGYW writelog", tNow, pWoman, 0);
+}
+
+void EventAGYW::fire(Algorithm *pAlgorithm, State *pState, double t) 
+{
     SimpactPopulation &population = SIMPACTPOPULATION(pState);
-    double interventionTime;
-    ConfigSettings interventionConfig;
-
-    GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
-    Woman *pWoman = WOMAN(getPerson(0));
-    double curTime = population.getTime();
-    double age = pWoman->getAgeAt(curTime);
-
-    assert(interventionTime == t); // make sure we're at the correct time
-
-    if (m_AGYW_enabled) {
-        if (isEligibleForTreatment(t, pState) && pWoman->isWoman()) {
-            pWoman->setAGYW(true);
-            std::cout << "Adding Woman to AGYW selection: " << pWoman->getName() << " Age: " << age << "AGYW status: " << pWoman->isAGYW() << std::endl;
-            writeEventLogStart(true, "(AGYW_selection)", t, pWoman, 0);
-        }else if (!isEligibleForTreatment(t, pState) && pWoman->isWoman()){
-            pWoman->setAGYW(false);
-            std::cout << "Removing Woman from AGYW selection: " << pWoman->getName() << " Age: " << age << "AGYW status: " << pWoman->isAGYW() << std::endl;
-            writeEventLogStart(true, "(AGYW_removal)", t, pWoman, 0);
-        }
-    } 
+    Person *pWoman = getPerson(0);
+	assert(getNumberOfPersons() == 1);
+    assert(pWoman->isWoman());
+    double age = pWoman->getDateOfBirth() + m_AGYW_age;
+	double ref_age = population.getTime() - age;
+    if (ref_age > 0){
+      WOMAN(pWoman)->setAGYW(false);
+    std::cout << "Unsetting AGYW: " << pWoman->getName() << "AGYW status: " << WOMAN(pWoman)->isAGYW() << std::endl;
+    writeEventLogStart(true, "AGYW of", t, pWoman, 0);
+    }     
 }
 
-ProbabilityDistribution *EventAGYW::m_agywscheduleDist = 0;
+bool EventAGYW::m_AGYW_enabled = false; 
+double EventAGYW::m_AGYW_age = -1;
 
 void EventAGYW::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen) {
     bool_t r;
 
     // Read the boolean parameter from the config
     std::string enabledStr;
-    if (!(r = config.getKeyValue("EventAGYW.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false")){
+    if (!(r = config.getKeyValue("EventAGYW.agywage", m_AGYW_age, 0, 100)) ||
+        !(r = config.getKeyValue("EventAGYW.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false"))
+        {
         abortWithMessage(r.getErrorString());
     }
     m_AGYW_enabled = (enabledStr == "true");
@@ -90,7 +84,8 @@ void EventAGYW::obtainConfig(ConfigWriter &config) {
     bool_t r;
 
     // Add the AGYW enabled parameter
-    if (!(r = config.addKey("EventAGYW.enabled", m_AGYW_enabled ? "true" : "false"))) {
+    if (!(r = config.addKey("EventAGYW.agywage", m_AGYW_age)) ||
+        !(r = config.addKey("EventAGYW.enabled", m_AGYW_enabled ? "true" : "false"))){
         abortWithMessage(r.getErrorString());
     }
 }
@@ -101,10 +96,11 @@ JSONConfig AGYWJSONConfig(R"JSON(
     "EventAGYW": { 
         "depends": null,
         "params": [
+            ["EventAGYW.agywage", 25 ],
             ["EventAGYW.enabled", "true", [ "true", "false"] ]
         ],
         "info": [ 
-            "This parameter is used to set the distribution of subject willing to accept AGYW treatment",
+            "agywage represents the age at which we set the AGYW property to False",
             "and to enable or disable the AGYW event."
         ]
     }
