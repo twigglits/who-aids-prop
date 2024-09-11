@@ -58,9 +58,9 @@ void EventAGYW::fire(Algorithm *pAlgorithm, State *pState, double t)
     double age = pWoman->getDateOfBirth() + m_AGYW_age;
 	double ref_age = population.getTime() - age;
     if (ref_age > 0){
-      WOMAN(pWoman)->setAGYW(false);
-    std::cout << "Unsetting AGYW: " << pWoman->getName() << "AGYW status: " << WOMAN(pWoman)->isAGYW() << std::endl;
-    writeEventLogStart(true, "AGYW of", t, pWoman, 0);
+        WOMAN(pWoman)->setAGYW(false);
+        std::cout << "Unsetting AGYW: " << pWoman->getName() << "AGYW status: " << WOMAN(pWoman)->isAGYW() << std::endl;
+        writeEventLogStart(true, "AGYW of", t, pWoman, 0);
     }     
 }
 
