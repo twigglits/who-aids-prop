@@ -53,7 +53,7 @@ def calibration_wrapper_function(parameters = None):
     cfg_list["population.agedistfile"] = "/home/jupyter/who-aids-prop/build/python/eswatini_1980.csv"
     cfg_list['diagnosis.eagernessfactor'] = np.log(1.025)
     cfg_list['diagnosis.pregnancyfactor'] = 0
-    cfg_list['EventAGYW.enabled']='false'
+    cfg_list['EventAGYW.enabled']='true'
     cfg_list['diagnosis.AGYWfactor'] = 0
     cfg_list["mortality.aids.survtime.art_e.dist.type"] = "uniform"
     cfg_list["mortality.aids.survtime.art_e.dist.uniform.min"] = 5
@@ -149,7 +149,8 @@ def calibration_wrapper_function(parameters = None):
     # seedid = random.randint(0,1000000000)
     # seed_generator = psh.UniqueSeedGenerator()
     # seedid = seed_generator.generate_seed()
-    seedid = parameters['seed']
+    seedid = int(parameters['seed'])
+    modelid = int(parameters['model_id'])
 
     # calibration parameters
     
@@ -296,32 +297,31 @@ def calibration_wrapper_function(parameters = None):
     ART_factual = [hiv_testing, conception,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
                   condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2, prep_intro1]
-
-
+    
     # running the simulation --------------------------------------------------
-    identifier = str(seedid)
+    identifier = f'model_{modelid}_seed_{seedid}'
     #rootDir = "/Users/emdominic/Documents/Wimmy/who_hiv_inc_modelling/Calibration/data" 
     rootDir = "Calibration/data" 
  
     destDir = os.path.join(rootDir, identifier)
     
     # Print log message
-    print(f'========== Now running for parameter set with seed {seedid} ===========')
+    print(f'========== Now running for model {modelid} seed {seedid} ===========')
 
     results = simpact.run(
         config=cfg_list,
         destDir=destDir,
         interventionConfig=ART_factual,
         seed=seedid,
-        identifierFormat=f'seed {identifier}',
+        #identifierFormat=f'seed {identifier}',
+        identifierFormat = identifier,
         quiet=True
     )
 
     datalist = psh.readthedata(results)
 
     # Specify the file path to save the dictionary object
-    file_path = f'Calibration/final_data/datalist_AGYW_seed{identifier}.pkl'
-    #file_path = f'Calibration/final_data/datalist_seed1111.pkl'
+    file_path = f'Calibration/final_data/datalist_AGYW_enabled_{identifier}.pkl'
 
     # Save dictionary to a single file using pickle
     with open(file_path, 'wb') as f:
@@ -330,6 +330,40 @@ def calibration_wrapper_function(parameters = None):
     shutil.rmtree(destDir) #deletes the folder with output files
     
     return None
+
+
+#     # running the simulation --------------------------------------------------
+#     identifier = str(seedid)
+#     #rootDir = "/Users/emdominic/Documents/Wimmy/who_hiv_inc_modelling/Calibration/data" 
+#     rootDir = "Calibration/data" 
+ 
+#     destDir = os.path.join(rootDir, identifier)
+    
+#     # Print log message
+#     print(f'========== Now running for parameter set with seed {seedid} ===========')
+
+#     results = simpact.run(
+#         config=cfg_list,
+#         destDir=destDir,
+#         interventionConfig=ART_factual,
+#         seed=seedid,
+#         identifierFormat=f'seed {identifier}',
+#         quiet=True
+#     )
+
+#     datalist = psh.readthedata(results)
+
+#     # Specify the file path to save the dictionary object
+#     file_path = f'Calibration/final_data/datalist_AGYW_seed{identifier}.pkl'
+#     #file_path = f'Calibration/final_data/datalist_seed1111.pkl'
+
+#     # Save dictionary to a single file using pickle
+#     with open(file_path, 'wb') as f:
+#         pickle.dump(datalist, f)
+        
+#     shutil.rmtree(destDir) #deletes the folder with output files
+    
+#     return None
 
 
 
