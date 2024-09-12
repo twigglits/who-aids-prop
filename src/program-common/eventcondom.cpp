@@ -14,6 +14,7 @@ using namespace std;
 
 bool EventCondom::m_condom_enabled = false; // line here exists only for declartion, does not set default to false, that is set in cofig JSON at the bottom
 double EventCondom::s_condomThreshold = 0.5; // Initialize with the default threshold value
+double EventCondom::s_condomAGYWThreshold = 0.5;
 
 EventCondom::EventCondom(Person *pPerson) : SimpactEvent(pPerson)
 {
@@ -43,13 +44,10 @@ bool EventCondom::isEligibleForTreatment(double t, const State *pState)
     Person *pPerson = getPerson(0);
     double curTime = population.getTime();
     double age = pPerson->getAgeAt(curTime); 
-    // cout << "Checking eligibility for person " << pPerson->getName() << " with age: " << age << endl;
     
     if (pPerson->isSexuallyActive()) {
-        // cout << "Person " << pPerson->getName() << " Condom eligible with age: " << age << endl;
-        return true;  // eligible for condom programming
+        return true; 
     }else {        
-        // cout << "Person " << pPerson->getName() << " Condom NOT eligible with age: " << age << endl;
         return false;
     }
 }
@@ -57,17 +55,26 @@ bool EventCondom::isEligibleForTreatment(double t, const State *pState)
 bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen) {
     assert(m_condomprobDist);
 	double dt = m_condomprobDist->pickNumber();
-    if (dt > s_condomThreshold)
+    Person *pPerson = getPerson(0);
+    double threshold=0;  
+    if (pPerson->isWoman() && WOMAN(pPerson)->isAGYW()){
+        threshold = s_condomAGYWThreshold;
+    }
+    else
+    {
+        threshold = s_condomThreshold;
+    }
+        
+    if(dt > threshold){
         return true;
+    }
     return false;
 }
 
 double EventCondom::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState, double t)
 {
         assert(m_condomscheduleDist);
-
 	    double dt = m_condomscheduleDist->pickNumber();
-
 	    return dt;
         
 }
@@ -117,6 +124,7 @@ void EventCondom::processConfig(ConfigSettings &config, GslRandomNumberGenerator
     // Read the boolean parameter from the config
     std::string enabledStr;
     if (!(r = config.getKeyValue("EventCondom.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false") ||
+        !(r = config.getKeyValue("EventCondom.AGYWthreshold", s_condomAGYWThreshold)) || 
         !(r = config.getKeyValue("EventCondom.threshold", s_condomThreshold))){
         abortWithMessage(r.getErrorString());
     }
@@ -127,6 +135,7 @@ void EventCondom::obtainConfig(ConfigWriter &config) {
     bool_t r;
 
     if (!(r = config.addKey("EventCondom.enabled", m_condom_enabled ? "true" : "false")) ||
+        !(r = config.addKey("EventCondom.AGYWthreshold", s_condomAGYWThreshold)) || 
         !(r = config.addKey("EventCondom.threshold", s_condomThreshold))) {
         abortWithMessage(r.getErrorString());
     }
@@ -144,6 +153,7 @@ JSONConfig CondomJSONConfig(R"JSON(
         "depends": null,
         "params": [
             ["EventCondom.enabled", "true", [ "true", "false"] ],
+            ["EventCondom.AGYWthreshold", 0.5],
             ["EventCondom.threshold", 0.5],
             ["EventCondom.m_condomprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
             ["EventCondom.m_condomscheduleDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]

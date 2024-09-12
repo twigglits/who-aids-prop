@@ -15,6 +15,7 @@ using namespace std;
 
 bool EventPrep::m_prep_enabled = true;
 double EventPrep::s_prepThreshold = 0.5;
+double EventPrep::s_prepAGYWThreshold = 0.5;
 
 EventPrep::EventPrep(Person *pPerson1, bool scheduleImmediately) : SimpactEvent(pPerson1)
 {
@@ -68,16 +69,24 @@ bool EventPrep::isEligibleForTreatmentP2(double t, const State *pState)
 }
 
 bool EventPrep::isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *pRndGen) {
-    //Person *pPerson1 = getPerson(0);
+    Person *pPerson1 = getPerson(0);
     assert(m_prepprobDist);
     double dt = m_prepprobDist->pickNumber();
-    if (dt > s_prepThreshold )
+    double threshold=0;  
+    if (pPerson1->isWoman() && WOMAN(pPerson1)->isAGYW()){
+        threshold = s_prepAGYWThreshold;
+    }
+    else
+    {
+        threshold = s_prepThreshold;
+    }
+    if(dt > threshold){
         return true;
+    }
     return false;
 }
 
 bool EventPrep::isWillingToStartTreatmentP2(double t, GslRandomNumberGenerator *pRndGen) {
-    //Person *pPerson2 = getPerson(1);
     assert(m_prepprobDist);
     double dt = m_prepprobDist->pickNumber();
     if (dt > s_prepThreshold )
@@ -140,6 +149,7 @@ void EventPrep::processConfig(ConfigSettings &config, GslRandomNumberGenerator *
     // Read the boolean parameter from the config
     std::string enabledStr;
     if (!(r = config.getKeyValue("EventPrep.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false") ||
+        !(r = config.getKeyValue("EventPrep.AGYWthreshold", s_prepAGYWThreshold)) || 
         !(r = config.getKeyValue("EventPrep.threshold", s_prepThreshold))){
         abortWithMessage(r.getErrorString());
     }
@@ -150,16 +160,13 @@ void EventPrep::processConfig(ConfigSettings &config, GslRandomNumberGenerator *
 void EventPrep::obtainConfig(ConfigWriter &config) {
     bool_t r;
 
-    // Add the VMMC enabled parameter
     if (!(r = config.addKey("EventPrep.enabled", m_prep_enabled ? "true" : "false")) ||
-        !(r = config.addKey("EventPrep.threshold", s_prepThreshold))) {
+        !(r = config.addKey("EventPrep.AGYWthreshold", s_prepAGYWThreshold)) ||
+        !(r = config.addKey("EventPrep.threshold", s_prepThreshold))){
         abortWithMessage(r.getErrorString());
     }
 
-    // Add the VMMC schedule distribution to the config
     addDistributionToConfig(m_prepscheduleDist, config, "EventPrep.m_prepscheduleDist");
-
-    // Add the VMMC probability distribution to the config
     addDistributionToConfig(m_prepprobDist, config, "EventPrep.m_prepprobDist");
 }
 
@@ -170,6 +177,7 @@ JSONConfig PrepJSONConfig(R"JSON(
         "depends": null,
         "params": [
             ["EventPrep.enabled", "true", [ "true", "false"] ],
+            ["EventPrep.AGYWthreshold", 0.5],
             ["EventPrep.threshold", 0.5],
             ["EventPrep.m_prepprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],

@@ -1643,6 +1643,7 @@ conception.wsf.dist.fixed.value                              = 0
 # and to enable or disable the Condom event.
 # Valid values are: ['true', 'false']
 EventCondom.enabled                                          = false
+EventCondom.AGYWthreshold                                    = 0.8
 EventCondom.threshold                                        = 0.8
 # Valid values are: ['fixed', 'uniform', 'beta', 'gamma', 'lognormal', 'normal', 'exponential', 'discrete.inline', 'discrete.csv.onecol', 'discrete.csv.twocol']
 EventCondom.m_condomprobDist.dist.type                       = uniform
@@ -1962,6 +1963,7 @@ periodiclogging.outfile.logperiodic                          = ${SIMPACT_OUTPUT_
 # Valid values are: ['true', 'false']
 EventPrep.enabled                                            = false
 EventPrep.threshold                                          = 1
+EventPrep.AGYWthreshold                                      = 0.5
 # Valid values are: ['fixed', 'uniform', 'beta', 'gamma', 'lognormal', 'normal', 'exponential', 'discrete.inline', 'discrete.csv.onecol', 'discrete.csv.twocol']
 EventPrep.m_prepprobDist.dist.type                           = uniform
 
@@ -2280,9 +2282,9 @@ person.vsp.model.logdist2d.dist2d.binormalsymm.max           = 6
 # population.nummen                                            = 1000
 # population.numwomen                                          = 1000
 # population.simtime                                           = 71
-population.nummen                                            = 1000
-population.numwomen                                          = 1000
-population.simtime                                           = 50
+population.nummen                                            = 200
+population.numwomen                                          = 200
+population.simtime                                           = 71
 
 population.maxevents                                         = -1
 population.agedistfile                                       = /home/jeannaude/who-aids-prop/eswatini_1980.csv

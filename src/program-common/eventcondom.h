@@ -22,8 +22,6 @@ public:
 	static ProbabilityDistribution *m_condomprobDist;
 	static ProbabilityDistribution *m_condomscheduleDist;
 	static bool m_condom_enabled;
-    static double s_condomThreshold; // New static variable for the threshold
-
 
 private:
 	bool isEligibleForTreatment(double t, const State *pState);
@@ -35,6 +33,8 @@ private:
 	static std::list<ConfigSettings> m_interventionSettings;
 	static bool m_interventionsProcessed;
     static bool m_enabled; // Add this static member
+	static double s_condomThreshold; // New static variable for the threshold
+	static double s_condomAGYWThreshold;
 };
 
 #endif // EVENTCONDOM_H
