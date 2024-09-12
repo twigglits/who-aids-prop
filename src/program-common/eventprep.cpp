@@ -15,6 +15,10 @@ using namespace std;
 
 bool EventPrep::m_prep_enabled = true;
 double EventPrep::s_prepThreshold = 0.5;
+// bool EventPrep::m_cab_la_enabled = false;
+// double EventPrep::s_cabLaThreshold = 0.5;
+// bool EventPrep::m_injectable_enabled = false;
+// double EventPrep::s_injectableThreshold = 0.5;
 
 EventPrep::EventPrep(Person *pPerson1, bool scheduleImmediately) : SimpactEvent(pPerson1)
 {
@@ -108,6 +112,17 @@ void EventPrep::fire(Algorithm *pAlgorithm, State *pState, double t) {
 
     if (isEligibleForTreatmentP1(t, pState) && isWillingToStartTreatmentP1(t, pRndGen)) 
     {
+        
+    // Randomly decide between daily oral PrEP, CAB-LA, and injectable PrEP
+    // double randomChoice = pRndGen->pickNumber();
+    // if (randomChoice < s_prepThreshold) {
+    //     pPerson1->setPrep(true);
+    // } else if (m_cab_la_enabled && randomChoice < s_cabLaThreshold) {
+    //     pPerson1->setCabLa(true);
+    // } else if (m_injectable_enabled && randomChoice < s_injectableThreshold) {
+    //     pPerson1->setInjectable(true);
+    // }
+        
     pPerson1->setPrep(true);
     writeEventLogStart(true, "Prep_treatment_P1", t, pPerson1, 0);
     
@@ -152,7 +167,12 @@ void EventPrep::obtainConfig(ConfigWriter &config) {
 
     // Add the VMMC enabled parameter
     if (!(r = config.addKey("EventPrep.enabled", m_prep_enabled ? "true" : "false")) ||
-        !(r = config.addKey("EventPrep.threshold", s_prepThreshold))) {
+        !(r = config.addKey("EventPrep.threshold", s_prepThreshold))||
+        // !(r = config.addKey("EventPrep.cab_la_enabled", m_cab_la_enabled ? "true" : "false")) ||
+        // !(r = config.addKey("EventPrep.cab_la_threshold", s_cabLaThreshold)) ||
+        // !(r = config.addKey("EventPrep.injection_enabled", m_injectable_enabled ? "true" : "false")) ||
+        // !(r = config.addKey("EventPrep.injection_threshold", s_injectableThreshold)) ||
+       ) {
         abortWithMessage(r.getErrorString());
     }
 
@@ -171,6 +191,10 @@ JSONConfig PrepJSONConfig(R"JSON(
         "params": [
             ["EventPrep.enabled", "true", [ "true", "false"] ],
             ["EventPrep.threshold", 0.5],
+            // ["EventPrep.cab_la_enabled", "false", [ "true", "false"] ],
+            // ["EventPrep.cab_la_threshold", 0.5],
+            // ["EventPrep.injection_enabled", "false", [ "true", "false"] ],
+            // ["EventPrep.injection_threshold", 0.5],
             ["EventPrep.m_prepprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
         "info": [ 

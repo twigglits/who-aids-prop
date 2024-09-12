@@ -16,7 +16,7 @@ def calibration_wrapper_function(parameters = None):
     # Creating cfg list -------------------------------------------------------
     cfg_list = psh.input_params_creator(
     population_eyecap_fraction=0.2,
-    population_simtime=71,  # Until 1 January 2051
+    population_simtime=41,  # Until 1 January 2051
     population_nummen=1000,
     population_numwomen=1000,
     population_msm="no",
@@ -56,6 +56,8 @@ def calibration_wrapper_function(parameters = None):
     cfg_list["mortality.aids.survtime.art_e.dist.type"] = "uniform"
     cfg_list["mortality.aids.survtime.art_e.dist.uniform.min"] = 5
     cfg_list["mortality.aids.survtime.art_e.dist.uniform.max"] = 25
+    
+    # cfg_list["EventAGYW.enabled"] = "false"
     
     # vmmc
     cfg_list["EventVMMC.enabled"] = "false"
@@ -145,7 +147,8 @@ def calibration_wrapper_function(parameters = None):
     # seedid = random.randint(0,1000000000)
     # seed_generator = psh.UniqueSeedGenerator()
     # seedid = seed_generator.generate_seed()
-    seedid = parameters['seed']
+    seedid = int(parameters['seed'])
+    modelid = int(parameters['model_id'])
 
     # calibration parameters
     
@@ -290,28 +293,29 @@ def calibration_wrapper_function(parameters = None):
 
 
     # running the simulation --------------------------------------------------
-    identifier = str(seedid)
+    identifier = f'model_{modelid}_seed_{seedid}'
     #rootDir = "/Users/emdominic/Documents/Wimmy/who_hiv_inc_modelling/Calibration/data" 
     rootDir = "Calibration/data" 
  
     destDir = os.path.join(rootDir, identifier)
     
     # Print log message
-    print(f'========== Now running for parameter set with seed {seedid} ===========')
+    print(f'========== Now running for model {modelid} seed {seedid} ===========')
 
     results = simpact.run(
         config=cfg_list,
         destDir=destDir,
         interventionConfig=ART_factual,
         seed=seedid,
-        identifierFormat=f'seed {identifier}',
+        #identifierFormat=f'seed {identifier}',
+        identifierFormat = identifier,
         quiet=True
     )
 
     datalist = psh.readthedata(results)
 
     # Specify the file path to save the dictionary object
-    file_path = f'Calibration/final_data/datalist_seed{identifier}.pkl'
+    file_path = f'Calibration/final_data/datalist_original_{identifier}.pkl'
 
     # Save dictionary to a single file using pickle
     with open(file_path, 'wb') as f:

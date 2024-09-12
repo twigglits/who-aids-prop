@@ -79,7 +79,6 @@ public:
 	// set and check for if person is doing prep
     void setPrep(double t)												{ m_relations.setPrep(t); }
 	bool isPrep() const													{ return m_relations.isPrep(); }
-    
 
 	double getDebutTime() const														{ return m_relations.getDebutTime(); }
 
@@ -156,8 +155,13 @@ public:
 
 	void setPregnant(bool f)							{ m_pregnant = f; }
 	bool isPregnant() const								{ return m_pregnant; }
+	
+	// void setAGYW(bool y)												{ m_AGYW = y; }
+	// bool isAGYW() const													{ return m_AGYW; }
 private:
+	// bool m_AGYW;
 	bool m_pregnant;
+	
 };
 
 inline Man *MAN(Person *pPerson)

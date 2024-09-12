@@ -1,5 +1,6 @@
 #include "eventdissolution.h"
 #include "eventformation.h"
+// #include "eventagyw.h"
 #include "eventprepdrop.h"
 #include "evthazarddissolution.h"
 #include "jsonconfig.h"
@@ -44,9 +45,6 @@ void EventDissolution::writeLogs(const SimpactPopulation &pop, double tNow) cons
 
 	string evtName = (pPerson2->isWoman()) ? "formation" : "formationmsm";
 	writeEventLogStart(true, "dissolution", tNow, pPerson1, pPerson2);
-
-	// Relationship log will be written when handling the dissolution in person.cpp, that way
-	// it will also be handled when it's because someone dies
 }
 
 void EventDissolution::fire(Algorithm *pAlgorithm, State *pState, double t)
@@ -57,6 +55,16 @@ void EventDissolution::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 	pPerson1->removeRelationship(pPerson2, t, false);
 	pPerson2->removeRelationship(pPerson1, t, false);
+
+// 	EventAGYW *pEvtAGYW1 = new EventAGYW(pPerson1);
+// 	EventAGYW *pEvtAGYW2 = new EventAGYW(pPerson2);
+
+// 	if (EventAGYW::m_AGYW_enabled){
+// 	if (pPerson2->isWoman()){
+// 		EventAGYW *pEvtAGYW = new EventAGYW(pPerson2);
+// 		population.onNewEvent(pEvtAGYW);
+// 	}
+// 	}
 
 	// A new formation event should only be scheduled if neither person is in the
 	// final AIDS stage

@@ -6,6 +6,7 @@
 #include "eventprep.h"
 #include "eventprepdrop.h"
 #include "eventcondom.h"
+// #include "eventagyw.h"
 #include "simpactpopulation.h"
 #include "simpactevent.h"
 #include "evthazardformationsimple.h"
@@ -110,6 +111,13 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);
 
+	// if (EventAGYW::m_AGYW_enabled){
+	// if (pPerson2->isWoman()){
+	// 	EventAGYW *pEvtAGYW = new EventAGYW(pPerson2);
+	// 	population.onNewEvent(pEvtAGYW);
+	// }
+	// }
+
 	EventCondom *pEvtCondom1 = new EventCondom(pPerson1);
 	EventCondom *pEvtCondom2 = new EventCondom(pPerson2);
 
@@ -130,7 +138,7 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 		if (!pWoman->isPregnant())
 		{
-			EventConception *pEvtConception = new EventConception(pPerson1, pPerson2, t); // should be: man, woman, formation time
+			EventConception *pEvtConception = new EventConception(pPerson1, pPerson2, t);
 			population.onNewEvent(pEvtConception);
 		}
 	}
