@@ -21,8 +21,7 @@ def simpact_parallel(model=calibration_wrapper_function,
     if n_cluster is None:
         n_cluster = min(cpu_count(), 8)
         
-    # nb_simul = len(actual_input_matrix)
-    nb_simul = 10
+    nb_simul = len(actual_input_matrix)
     
     list_param = []
     for i in range(nb_simul):
@@ -37,7 +36,7 @@ def simpact_parallel(model=calibration_wrapper_function,
 
 # Example usage:
 if __name__ == "__main__":
-    result = simpact_parallel(input_csv='Calibration/data/posterior_distributions.csv', 
+    result = simpact_parallel(input_csv='Calibration/data/posterior_distributions-Copy1.csv', 
                               n_cluster=128, 
-                              repeat=1)
+                              repeat=10)
     print(result)
