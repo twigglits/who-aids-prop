@@ -17,7 +17,7 @@ bool EventPrep::m_prep_enabled = true;
 double EventPrep::s_prepThreshold = 0.5;
 double EventPrep::s_prepAGYWThreshold = 0.5;
 
-EventPrep::EventPrep(Person *pPerson1, bool scheduleImmediately) : SimpactEvent(pPerson1)
+EventPrep::EventPrep(Person *pPerson) : SimpactEvent(pPerson)
 {
 }
 
@@ -36,14 +36,14 @@ void EventPrep::writeLogs(const SimpactPopulation &pop, double tNow) const
 	Person *pPerson = getPerson(0);
 }
 
-bool EventPrep::isEligibleForTreatmentP1(double t, const State *pState)
+bool EventPrep::isEligibleForTreatmentP1(double t, const State *pState, Person *pPerson)
 {
     const SimpactPopulation &population = SIMPACTPOPULATION(pState);
 
-    Person *pPerson1 = getPerson(0);
-    Person *pPerson2 = getPerson(1);
+    // Person *pPerson1 = getPerson(0);
+    // Person *pPerson2 = getPerson(1);
 
-    if (!pPerson1->hiv().isInfected() && !pPerson1->isPrep()){  //&& pPerson2->hiv().isInfected()  we check that a person is in a relationship
+    if (!pPerson->hiv().isInfected() && !pPerson->isPrep()){  //&& pPerson2->hiv().isInfected()  we check that a person is in a relationship
         // std::cout << "P1 eligible: " << pPerson2->getName() << std::endl;
         return true;
     }else{
@@ -52,28 +52,12 @@ bool EventPrep::isEligibleForTreatmentP1(double t, const State *pState)
     }
 }
 
-bool EventPrep::isEligibleForTreatmentP2(double t, const State *pState)
-{
-    const SimpactPopulation &population = SIMPACTPOPULATION(pState);
-
-    Person *pPerson1 = getPerson(0);
-    Person *pPerson2 = getPerson(1);
-
-    if (!pPerson2->hiv().isInfected() && !pPerson2->isPrep()){  //&& pPerson1->hiv().isInfected() we check that a person is in a relationship
-        // std::cout << "P2 eligible: " << pPerson2->getName() << std::endl;
-        return true;
-    }else{
-        // std::cout << "P2 NOT ELIGIBLE: " << pPerson2->getName() << std::endl;
-        return false;
-    }
-}
-
-bool EventPrep::isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *pRndGen) {
-    Person *pPerson1 = getPerson(0);
+bool EventPrep::isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *pRndGen, Person *pPerson) {
+    // Person *pPerson = getPerson(0);
     assert(m_prepprobDist);
     double dt = m_prepprobDist->pickNumber();
     double threshold=0;  
-    if (pPerson1->isWoman() && WOMAN(pPerson1)->isAGYW()){
+    if (pPerson->isWoman() && WOMAN(pPerson)->isAGYW()){
         threshold = s_prepAGYWThreshold;
     }
     else
@@ -84,15 +68,6 @@ bool EventPrep::isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *
         return true;
     }
     return false;
-}
-
-bool EventPrep::isWillingToStartTreatmentP2(double t, GslRandomNumberGenerator *pRndGen) {
-    assert(m_prepprobDist);
-    double dt = m_prepprobDist->pickNumber();
-    if (dt > s_prepThreshold )
-        return true;
-    return false;
-    
 }
 
 double EventPrep::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
@@ -108,19 +83,15 @@ void EventPrep::fire(Algorithm *pAlgorithm, State *pState, double t) {
     ConfigSettings interventionConfig;
 
     GslRandomNumberGenerator *pRndGen = population.getRandomNumberGenerator();
-    Person *pPerson1 = getPerson(0);
-    double curTime = population.getTime();
-    double age1 = pPerson1->getAgeAt(curTime);
-    assert(interventionTime == t); // make sure we're at the correct time
+    Person *pPerson = getPerson(0);
 
-    // if (m_prep_enabled) {
-
-    if (isEligibleForTreatmentP1(t, pState) && isWillingToStartTreatmentP1(t, pRndGen)) 
+    if (isEligibleForTreatmentP1(t, pState, pPerson) && isWillingToStartTreatmentP1(t, pRndGen, pPerson)) 
     {
-    pPerson1->setPrep(true);
-    writeEventLogStart(true, "Prep_treatment_P1", t, pPerson1, 0);
+    pPerson->setPrep(true);
+    std::cout << "P FIRE: " << pPerson->getName() << "Gender"<< pPerson->getGender() << std::endl;
+    writeEventLogStart(true, "Prep_treatment_P1", t, pPerson, 0);
     
-	EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson1, t);  // needs to be smaller percentage than those that took up prep
+	EventPrepDrop *pEvtPrepDrop = new EventPrepDrop(pPerson, t);  // needs to be smaller percentage than those that took up prep
 	population.onNewEvent(pEvtPrepDrop);
     }
 }

@@ -122,6 +122,17 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	population.onNewEvent(pEvtCondom1);
 	population.onNewEvent(pEvtCondom2);
 
+	if (!pPerson1->hiv().isInfected()){  //this is men
+		EventPrep *pEvtPrep1 = new EventPrep(pPerson1);
+        population.onNewEvent(pEvtPrep1);
+	}
+
+	if (!pPerson2->hiv().isInfected()){  //this is women in most cases unless MSM
+		EventPrep *pEvtPrep2 = new EventPrep(pPerson2);
+    	population.onNewEvent(pEvtPrep2);
+	}
+
+
 	pPerson1->addRelationship(pPerson2, t);
 	pPerson2->addRelationship(pPerson1, t);
 
@@ -139,17 +150,6 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 			EventConception *pEvtConception = new EventConception(pPerson1, pPerson2, t);
 			population.onNewEvent(pEvtConception);
 		}
-	}
-
-
-	if (!pPerson1->hiv().isInfected()){  //this is men
-		EventPrep *pEvtPrep = new EventPrep(pPerson1);
-        population.onNewEvent(pEvtPrep);
-	}
-
-	if (!pPerson2->hiv().isInfected()){  //this is women in most cases unless MSM
-		EventPrep *pEvtPrep = new EventPrep(pPerson2);
-    	population.onNewEvent(pEvtPrep);
 	}
 	
 	if (pPerson1->hiv().isInfected())
