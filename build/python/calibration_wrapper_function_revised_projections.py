@@ -234,7 +234,8 @@ def calibration_wrapper_function(parameters = None):
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'], #-0.1,
         "monitoring.cd4.threshold": 500,
         "person.art.accept.threshold.dist.fixed.value": 0.9,
-        "conception.alpha_base":  parameters['conception_alpha_base']- parameters['conception_alpha_base_1'] - parameters['conception_alpha_base_2']
+        "conception.alpha_base":  parameters['conception_alpha_base']- parameters['conception_alpha_base_1'] - parameters['conception_alpha_base_2'],
+        # "diagnosis.AGYWfactor":1.2
     }
 
     art_intro5 = {
@@ -243,7 +244,8 @@ def calibration_wrapper_function(parameters = None):
         "monitoring.cd4.threshold":100000, 
         "monitoring.m_artDist.dist.normal.mu": 0.3,
         "monitoring.m_artDist.dist.normal.min": 0.1,
-        "monitoring.m_artDist.dist.normal.max":0.5
+        "monitoring.m_artDist.dist.normal.max":0.5,
+        # "diagnosis.AGYWfactor":1.5
     }
 
         #condom use
@@ -293,10 +295,37 @@ def calibration_wrapper_function(parameters = None):
             # "EventPrep.thresholdAGYW":0.95,
             'EventPrepDrop.threshold': 0.8
         }
+    
+    # future scenario
+    vmmc_intro3 = {
+        "time":45, #around 2025
+        "EventVMMC.threshold": 0.1,
+        "EventVMMC.m_vmmcscheduleDist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/vmmc_schedule_twocol_0_1.csv"
+    }
+
+    # prep
+    prep_intro2 = {
+            "time":45.1, #around 2025
+            "EventPrep.enabled": "true",
+            "EventPrep.threshold":0.94, #0.87, # threshold for willingness to start prep. coverage is 13%
+            'EventPrepDrop.threshold': 0.8
+        }
 
     ART_factual = [hiv_testing, conception,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
-                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2, prep_intro1]
+                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
+                   prep_intro1]
+    
+    ART_counterfactual_VMMC = [hiv_testing, conception,
+                   art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
+                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,vmmc_intro3
+                   prep_intro1]
+    
+    ART_counterfactual_PrEP = [hiv_testing, conception,
+                   art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
+                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
+                   prep_intro1,prep_intro2]
+
     
     # running the simulation --------------------------------------------------
     identifier = f'model_{modelid}_seed_{seedid}'
@@ -321,7 +350,7 @@ def calibration_wrapper_function(parameters = None):
     datalist = psh.readthedata(results)
 
     # Specify the file path to save the dictionary object
-    file_path = f'Calibration/final_data/datalist_AGYW_enabled_{identifier}.pkl'
+    file_path = f'Calibration/final_data/datalist_AGYW_enabled_new_{identifier}.pkl'
 
     # Save dictionary to a single file using pickle
     with open(file_path, 'wb') as f:
