@@ -15,7 +15,7 @@ using namespace std;
 
 bool EventPrep::m_prep_enabled = true;
 double EventPrep::s_prepThreshold = 0.5;
-double EventPrep::s_prepAGYWThreshold = 0.5;
+double EventPrep::s_prepAGYWIncrement = 0.5;
 
 EventPrep::EventPrep(Person *pPerson) : SimpactEvent(pPerson)
 {
@@ -53,18 +53,15 @@ bool EventPrep::isEligibleForTreatmentP1(double t, const State *pState, Person *
 }
 
 bool EventPrep::isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *pRndGen, Person *pPerson) {
-    // Person *pPerson = getPerson(0);
     assert(m_prepprobDist);
     double dt = m_prepprobDist->pickNumber();
-    double threshold=0;  
+
     if (pPerson->isWoman() && WOMAN(pPerson)->isAGYW()){
-        threshold = s_prepAGYWThreshold;
-    }
-    else
-    {
-        threshold = s_prepThreshold;
-    }
-    if(dt > threshold){
+        std::cout << "Picking dt value: " << pPerson->getName() << "DT is" <<dt << std::endl;
+        dt = std::min(dt + s_prepAGYWIncrement, 1.0);   // I want to increase this number but I don't want it to exceed 1/ 
+    }/*  */
+
+    if(dt > s_prepThreshold){
         return true;
     }
     return false;
@@ -120,7 +117,7 @@ void EventPrep::processConfig(ConfigSettings &config, GslRandomNumberGenerator *
     // Read the boolean parameter from the config
     std::string enabledStr;
     if (!(r = config.getKeyValue("EventPrep.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false") ||
-        !(r = config.getKeyValue("EventPrep.AGYWthreshold", s_prepAGYWThreshold)) || 
+        !(r = config.getKeyValue("EventPrep.AGYWthreshold", s_prepAGYWIncrement)) || 
         !(r = config.getKeyValue("EventPrep.threshold", s_prepThreshold))){
         abortWithMessage(r.getErrorString());
     }
@@ -132,7 +129,7 @@ void EventPrep::obtainConfig(ConfigWriter &config) {
     bool_t r;
 
     if (!(r = config.addKey("EventPrep.enabled", m_prep_enabled ? "true" : "false")) ||
-        !(r = config.addKey("EventPrep.AGYWthreshold", s_prepAGYWThreshold)) ||
+        !(r = config.addKey("EventPrep.AGYWthreshold", s_prepAGYWIncrement)) ||
         !(r = config.addKey("EventPrep.threshold", s_prepThreshold))){
         abortWithMessage(r.getErrorString());
     }

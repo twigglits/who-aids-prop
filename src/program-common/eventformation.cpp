@@ -116,12 +116,6 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 		population.onNewEvent(pEvtAGYW);
 	}
 
-	EventCondom *pEvtCondom1 = new EventCondom(pPerson1);
-	EventCondom *pEvtCondom2 = new EventCondom(pPerson2);
-
-	population.onNewEvent(pEvtCondom1);
-	population.onNewEvent(pEvtCondom2);
-
 	if (!pPerson1->hiv().isInfected()){  //this is men
 		EventPrep *pEvtPrep1 = new EventPrep(pPerson1);
         population.onNewEvent(pEvtPrep1);
@@ -131,6 +125,12 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 		EventPrep *pEvtPrep2 = new EventPrep(pPerson2);
     	population.onNewEvent(pEvtPrep2);
 	}
+
+	EventCondom *pEvtCondom1 = new EventCondom(pPerson1);
+	EventCondom *pEvtCondom2 = new EventCondom(pPerson2);
+
+	population.onNewEvent(pEvtCondom1);
+	population.onNewEvent(pEvtCondom2);
 
 
 	pPerson1->addRelationship(pPerson2, t);

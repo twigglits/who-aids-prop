@@ -24,7 +24,7 @@ public:
     static bool m_prep_enabled;
 	static ProbabilityDistribution *m_prepprobDist;
 	static double s_prepThreshold;
-	static double s_prepAGYWThreshold;
+	static double s_prepAGYWIncrement;
 
 private:
 	bool isEligibleForTreatmentP1(double t, const State *pState, Person *pPerson);

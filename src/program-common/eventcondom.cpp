@@ -56,16 +56,7 @@ bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *
     assert(m_condomprobDist);
 	double dt = m_condomprobDist->pickNumber();
     Person *pPerson = getPerson(0);
-    double threshold=0;  
-    if (pPerson->isWoman() && WOMAN(pPerson)->isAGYW()){
-        threshold = s_condomAGYWThreshold;
-    }
-    else
-    {
-        threshold = s_condomThreshold;
-    }
-        
-    if(dt > threshold){
+    if(dt > s_condomThreshold){
         return true;
     }
     return false;
