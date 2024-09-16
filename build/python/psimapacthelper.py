@@ -1474,7 +1474,37 @@ def vmmc_calculator(datalist, agegroup, timepoint):
 
     return vmmc_prevalence_all_df
 
-def condom_users_calculator(datalist, agegroup, timepoint):
+def condom_users_calculator(datalist, timewindow):
+    df = datalist['rtable']
+
+    timewindow = [40,41]
+    lwr_time, upr_time = timewindow
+
+    # Filter relationships within the time bounds relationships that are ongoing at some point in this window  
+    df = df[
+        (df["FormTime"]  <= upr_time)
+        & (df["DisTime"].astype(float) >= lwr_time)
+    ].copy() 
+
+    condom_using_formations = df.query('CondomUsingFormation == 1')
+
+    condom_users_male = condom_using_formations['ID1'].nunique()
+    total_males = df['ID1'].nunique()
+    condom_users_female = condom_using_formations['ID2'].nunique()
+    total_females = df['ID2'].nunique()
+    total_condom_users = condom_users_male + condom_users_female
+    total_pop = total_males + total_females
+
+    condom_users_prevalence_all_df = pd.DataFrame({
+                'Gender': [0,1,'Total'],
+                'people_in_relationships': [total_males,total_females, total_pop],
+                'sum_condom_users': [condom_users_male,condom_users_female,total_condom_users ]
+            })
+    condom_users_prevalence_all_df['condom_users_prevalence'] = condom_users_prevalence_all_df['sum_condom_users']/condom_users_prevalence_all_df['people_in_relationships']
+    
+    return condom_users_prevalence_all_df
+
+def condom_use_appetite(datalist, agegroup, timepoint):
     """
     Calculate condom users percentage.
 
@@ -1614,10 +1644,10 @@ def condom_using_formation_calculator(datalist, timewindow):
 
     lwr_time, upr_time = timewindow
 
-    # Filter relationships within the time bounds   
+    # Filter relationships within the time bounds relationships that are ongoing at some point in this window  
     df = df[
         (df["FormTime"]  <= upr_time)
-        & (df["FormTime"] >= lwr_time)
+        & (df["DisTime"].astype(float) >= lwr_time)
     ].copy()
 
     if not df.empty:
@@ -1656,6 +1686,189 @@ def condom_using_formation_calculator(datalist, timewindow):
         })
          
     return condom_using_formation_prevalence_df
+
+def prep_users_calculator_ever(datalist, agegroup, timepoint):
+    """
+    Calculate PrEP users percentage.
+
+    Produces a data frame that contains the overall, age stratified prep users
+    at a specified point in simulation time and for a specific age group.
+
+    Parameters:
+    datalist (dict): The dictionary object produced by readthedata.
+    agegroup (list): Boundaries of the age group (lower bound <= age < upper bound)
+                     that should be retained. Should be expressed as a list of two integers.
+                     e.g., [15, 30].
+    timepoint (int): Point in simulation time at which prep users prevalence should be calculated.
+
+    Returns:
+    pandas.DataFrame: A data frame with prevalence estimate and surrounding confidence
+                      bounds, for the specified time window and age group
+
+    Examples:
+    cfg = {}
+    modeloutput = RSimpactCyan.simpact.run(configParams=cfg, destDir="temp")
+    dl = readthedata(modeloutput)
+    prep_users_df = prep_users_calculator(datalist=dl, agegroup=[15, 30], timepoint=40)
+    prep_users_df
+
+    """
+    # Use personlog from the datalist
+    df = datalist['ptable']
+
+    df_alive = df[
+        (df['TOB'].astype(float) <= timepoint) &             # Keep those born before or at timepoint
+        (df['TOD'].astype(float) > timepoint)               # Keep those died after timepoint
+    ].copy()
+
+    # Retain only those who are in the specified age groups
+    df_alive = df_alive[
+            (timepoint - df_alive['TOB'] >= agegroup[0]) &
+            (timepoint - df_alive['TOB'] < agegroup[1])
+        ]
+    df_alive = df_alive.reset_index(drop=True)
+
+    events = datalist['etable']
+    prep_use_events = events[events['eventname'] == 'Prep_treatment_P1'] #change from formation to PrEP
+    prep_use_events = prep_use_events[prep_use_events['eventtime'] <= timepoint]
+
+    prep_use_events = prep_use_events.drop_duplicates(subset='p1name') #only keep one per person
+
+    # Select only the relevant columns from table2
+    prep_use_events = prep_use_events[['p1ID', 'p1gender']]
+
+    # Merge DataFrames on both id and gender
+    merged_df = df_alive.merge(prep_use_events, left_on=['ID', 'Gender'], right_on=['p1ID', 'p1gender'], how='left', indicator=True)
+
+    # Allocate Prep status to all alive people in our table
+    df_alive.loc[:,'Prep_user'] = merged_df['_merge'] == 'both'
+
+    if not df_alive.empty:
+        # Create summary table of prevalence by gender
+        prep_users_prevalence_df = df_alive.groupby('Gender').agg(
+            popsize=('TOB', 'size'),  # Total observations for each gender
+            sum_prep_users=('Prep_user', 'sum')  # Total condom_users for each gender
+        ).reset_index()
+
+        # Check for missing genders
+        missing_genders = [gender for gender in [0, 1] if gender not in prep_users_prevalence_df['Gender'].values]
+
+        # Add missing genders with NaN values
+        for gender in missing_genders:
+            prep_users_prevalence_df = pd.concat([prep_users_prevalence_df, pd.DataFrame({'Gender': [gender], 'popsize': [np.nan], 'sum_prep_users': [np.nan]})], ignore_index=True)
+
+        # Sort by Gender for readability
+        prep_users_prevalence_df = prep_users_prevalence_df.sort_values(by='Gender').reset_index(drop=True)
+
+        # Calculate point prevalence and confidence intervals
+        prep_users_prevalence_df['prep_users_prevalence'] = prep_users_prevalence_df['sum_prep_users'] / prep_users_prevalence_df['popsize']
+
+        lower_bounds_1 = []
+        upper_bounds_2 = []
+        
+        for index, row in prep_users_prevalence_df.iterrows():
+            if not np.isnan(row['sum_prep_users']) and not np.isnan(row['popsize']) and row['popsize'] >= 1:
+                result = binomtest(int(row['sum_prep_users']), int(row['popsize']))
+                ci = result.proportion_ci(confidence_level=0.95)
+                lower_bounds_1.append(ci.low)
+                upper_bounds_2.append(ci.high)
+            else:
+                lower_bounds_1.append(np.nan)
+                upper_bounds_2.append(np.nan)
+
+        prep_users_prevalence_df['prep_users_prevalence.95.ll'] = lower_bounds_1
+        prep_users_prevalence_df['prep_users_prevalence.95.ul'] = upper_bounds_2
+
+        # Calculate overall prevalence
+        prep_users_prevalence_df_all_df = pd.DataFrame({
+            'Gender': ['Total'],
+            'popsize': [df_alive.shape[0]],
+            'sum_prep_users': [df_alive['Prep_user'].sum()],
+            'prep_users_prevalence': [df_alive['Prep_user'].sum() / df_alive.shape[0]]
+        })
+
+        # Calculate confidence intervals for overall prevalence
+
+        lower_bounds = []
+        upper_bounds = []
+        
+        for index, row in prep_users_prevalence_df_all_df.iterrows():
+            if not np.isnan(row['sum_prep_users']) and not np.isnan(row['popsize']) and row['popsize'] >= 1:
+                result = binomtest(int(row['sum_prep_users']), int(row['popsize']))
+                ci = result.proportion_ci(confidence_level=0.95)
+                lower_bounds.append(ci.low)
+                upper_bounds.append(ci.high)
+            else:
+                lower_bounds.append(np.nan)
+                upper_bounds.append(np.nan)
+
+        prep_users_prevalence_df_all_df['prep_users_prevalence.95.ll'] = lower_bounds
+        prep_users_prevalence_df_all_df['prep_users_prevalence.95.ul'] = upper_bounds
+
+        # Combine stratified and overall prevalence data frames
+        prep_users_prevalence_df = pd.concat([prep_users_prevalence_df, prep_users_prevalence_df_all_df], ignore_index=True)
+
+    else:
+        # In case there are no observations in the specified age group
+        prep_users_prevalence_df = pd.DataFrame({
+            'Gender': ['Total'],
+            'popsize': [np.nan],
+            'sum_prep_users': [np.nan],
+            'prep_users_prevalence': [np.nan],
+            'prep_users_prevalence.95.ll': [np.nan],
+            'prep_users_prevalence.95.ul': [np.nan]
+        })
+    return prep_users_prevalence_df
+
+def person_years_on_prep(datalist, agegroup, timewindow):
+
+    # Extract time window boundaries
+    lwr_time = timewindow[0]
+    upr_time = timewindow[1]
+
+    events = datalist['etable']
+    prep_use_events = events[events['eventname'] == 'Prep_treatment_P1'] 
+    prep_use_events = prep_use_events.rename(columns={'eventtime':'Prep_Start_Date'})
+
+    # Retain only those who are in the specified age groups
+    prep_use_events = prep_use_events[
+            (prep_use_events['p1age'] >= agegroup[0]) &
+            (prep_use_events['p1age'] < agegroup[1])
+        ]
+    prep_use_events = prep_use_events.reset_index(drop=True)
+
+    prep_drop = events[events['eventname'] == 'PrepDrop']
+    prep_drop = prep_drop.rename(columns={'eventtime':'Prep_Stop_Date'})
+
+    # Step 1: Merge the two tables on Patient_ID
+    merged_table = pd.merge(prep_use_events, prep_drop, on='p1name', how='left')
+
+    # Step 2: Filter to keep only the rows where Prep_Stop_Date is after Prep_Start_Date
+    merged_table = merged_table[merged_table['Prep_Stop_Date'] >= merged_table['Prep_Start_Date']]
+
+    # Step 3: Sort by Patient_ID, Prep_Start_Date, and Prep_Stop_Date
+    merged_table = merged_table.sort_values(by=['p1name', 'Prep_Start_Date', 'Prep_Stop_Date'])
+
+    # Step 4: Group by Patient_ID and Prep_Start_Date, then take the first matching Prep_Stop_Date
+    result = merged_table.groupby(['p1name', 'Prep_Start_Date']).first().reset_index()
+
+    # Step 5: Merge this result back with the original prep_start_times table to get the final table
+    prep_start_times_with_end = pd.merge(prep_use_events, 
+                                        result[['p1name', 'Prep_Start_Date', 'Prep_Stop_Date']], 
+                                        on=['p1name', 'Prep_Start_Date'], how='left')
+
+    # Rename the Prep_Stop_Date column to Prep_End_Date
+    prep_start_times_with_end = prep_start_times_with_end.rename(columns={'Prep_Stop_Date': 'Prep_End_Date'})
+
+    prep_start_times_with_end = prep_start_times_with_end[(prep_start_times_with_end['Prep_Start_Date'] >= lwr_time) & (prep_start_times_with_end['Prep_Start_Date'] <= upr_time)]
+    prep_start_times_with_end['New_Prep_End_Date'] = np.where(
+    prep_start_times_with_end['Prep_End_Date'].notna(),
+    np.minimum(prep_start_times_with_end['Prep_End_Date'], upr_time),
+    upr_time)
+    
+    prep_start_times_with_end['duration'] = prep_start_times_with_end['New_Prep_End_Date'] - prep_start_times_with_end['Prep_Start_Date']
+    total_person_years_on_prep = prep_start_times_with_end['duration'].sum()
+    return total_person_years_on_prep
 
 def prep_users_calculator(datalist, agegroup, timewindow):
     """
@@ -1704,6 +1917,9 @@ def prep_users_calculator(datalist, agegroup, timewindow):
 
     events = datalist['etable']
     prep_use_events = events[events['eventname'] == 'Prep_treatment_P1'] #change from formation to PrEP
+    prep_use_events = prep_use_events[(prep_use_events['eventtime'] >= lwr_time) & (prep_use_events['eventtime'] <= upr_time)]
+
+    prep_use_events = prep_use_events.drop_duplicates(subset='p1name') #only keep one per person
 
     # Select only the relevant columns from table2
     prep_use_events = prep_use_events[['p1ID', 'p1gender']]

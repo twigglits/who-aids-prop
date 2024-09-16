@@ -84,7 +84,7 @@ def calibration_wrapper_function(parameters = None):
     # prep
     cfg_list["EventPrep.enabled"] = "false" #current code can't switch prep off
     cfg_list["EventPrep.threshold"] = 1 # threshold for willingness to start prep. Nobody starts
-    # cfg_list["EventPrep.thresholdAGYW"] = 1 # threshold for willingness to start prep. Nobody starts
+    cfg_list["EventPrep.AGYWthreshold"] = 0.3 # threshold for willingness to start prep. Nobody starts
     cfg_list['EventPrep.m_prepprobDist.dist.type'] ='uniform' # willingness to start prep
     cfg_list['EventPrep.m_prepprobDist.dist.uniform.min'] = 0
     cfg_list['EventPrep.m_prepprobDist.dist.uniform.max'] = 1
@@ -318,7 +318,7 @@ def calibration_wrapper_function(parameters = None):
     
     ART_counterfactual_VMMC = [hiv_testing, conception,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
-                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,vmmc_intro3
+                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,vmmc_intro3,
                    prep_intro1]
     
     ART_counterfactual_PrEP = [hiv_testing, conception,
@@ -350,7 +350,7 @@ def calibration_wrapper_function(parameters = None):
     datalist = psh.readthedata(results)
 
     # Specify the file path to save the dictionary object
-    file_path = f'Calibration/final_data/datalist_AGYW_enabled_new_{identifier}.pkl'
+    file_path = f'Calibration/final_data/datalist_AGYW_PrEP_0_3_{identifier}.pkl'
 
     # Save dictionary to a single file using pickle
     with open(file_path, 'wb') as f:
