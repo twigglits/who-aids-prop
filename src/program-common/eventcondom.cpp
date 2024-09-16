@@ -14,7 +14,7 @@ using namespace std;
 
 bool EventCondom::m_condom_enabled = false; // line here exists only for declartion, does not set default to false, that is set in cofig JSON at the bottom
 double EventCondom::s_condomThreshold = 0.5; // Initialize with the default threshold value
-double EventCondom::s_condomAGYWThreshold = 0.5;
+double EventCondom::s_condomAGYWIncrement = 0.5;
 
 EventCondom::EventCondom(Person *pPerson) : SimpactEvent(pPerson)
 {
@@ -56,6 +56,12 @@ bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *
     assert(m_condomprobDist);
 	double dt = m_condomprobDist->pickNumber();
     Person *pPerson = getPerson(0);
+
+    if (pPerson->isWoman() && WOMAN(pPerson)->isAGYW()){
+        std::cout << "Picking dt value: " << pPerson->getName() << "DT is" <<dt << std::endl;
+        dt = std::min(dt + s_condomAGYWIncrement, 1.0);   // I want to increase this number but I don't want it to exceed 1/ 
+    }/*  */
+
     if(dt > s_condomThreshold){
         return true;
     }
@@ -115,7 +121,7 @@ void EventCondom::processConfig(ConfigSettings &config, GslRandomNumberGenerator
     // Read the boolean parameter from the config
     std::string enabledStr;
     if (!(r = config.getKeyValue("EventCondom.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false") ||
-        !(r = config.getKeyValue("EventCondom.AGYWthreshold", s_condomAGYWThreshold)) || 
+        !(r = config.getKeyValue("EventCondom.AGYWthreshold", s_condomAGYWIncrement)) || 
         !(r = config.getKeyValue("EventCondom.threshold", s_condomThreshold))){
         abortWithMessage(r.getErrorString());
     }
@@ -126,7 +132,7 @@ void EventCondom::obtainConfig(ConfigWriter &config) {
     bool_t r;
 
     if (!(r = config.addKey("EventCondom.enabled", m_condom_enabled ? "true" : "false")) ||
-        !(r = config.addKey("EventCondom.AGYWthreshold", s_condomAGYWThreshold)) || 
+        !(r = config.addKey("EventCondom.AGYWthreshold", s_condomAGYWIncrement)) || 
         !(r = config.addKey("EventCondom.threshold", s_condomThreshold))) {
         abortWithMessage(r.getErrorString());
     }

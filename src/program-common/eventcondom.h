@@ -34,7 +34,7 @@ private:
 	static bool m_interventionsProcessed;
     static bool m_enabled; // Add this static member
 	static double s_condomThreshold; // New static variable for the threshold
-	static double s_condomAGYWThreshold;
+	static double s_condomAGYWIncrement;
 };
 
 #endif // EVENTCONDOM_H
