@@ -1474,35 +1474,90 @@ def vmmc_calculator(datalist, agegroup, timepoint):
 
     return vmmc_prevalence_all_df
 
-def condom_users_calculator(datalist, timewindow):
-    df = datalist['rtable']
+# Function to calculate statistics for a given ID (ID1 or ID2)
+def condom_usage_calculator(datalist, Agegroup, timewindow):
 
-    timewindow = [40,41]
-    lwr_time, upr_time = timewindow
+    def calculate_condom_usage(datalist, timewindow, Agegroup, group_col, gender):
+        df = datalist['rtable']
 
-    # Filter relationships within the time bounds relationships that are ongoing at some point in this window  
-    df = df[
-        (df["FormTime"]  <= upr_time)
-        & (df["DisTime"].astype(float) >= lwr_time)
-    ].copy() 
+        # introduce age in the relationship data
+        # Add TOB for ID1 and ID2
 
-    condom_using_formations = df.query('CondomUsingFormation == 1')
+        ptable =  datalist['ptable'][['ID','Gender','TOB']]
+        ptable.head()
 
-    condom_users_male = condom_using_formations['ID1'].nunique()
-    total_males = df['ID1'].nunique()
-    condom_users_female = condom_using_formations['ID2'].nunique()
-    total_females = df['ID2'].nunique()
-    total_condom_users = condom_users_male + condom_users_female
-    total_pop = total_males + total_females
+        # Filter for males (Gender = 0) and females (Gender = 1)
+        ptable_male = ptable[ptable['Gender'] == 0].copy()
+        ptable_female = ptable[ptable['Gender'] == 1].copy()
 
-    condom_users_prevalence_all_df = pd.DataFrame({
-                'Gender': [0,1,'Total'],
-                'people_in_relationships': [total_males,total_females, total_pop],
-                'sum_condom_users': [condom_users_male,condom_users_female,total_condom_users ]
-            })
-    condom_users_prevalence_all_df['condom_users_prevalence'] = condom_users_prevalence_all_df['sum_condom_users']/condom_users_prevalence_all_df['people_in_relationships']
-    
-    return condom_users_prevalence_all_df
+        # Rename columns to avoid confusion during the merge
+        ptable_male.rename(columns={'ID': 'ID1', 'TOB': 'TOBID1'}, inplace=True)
+        ptable_female.rename(columns={'ID': 'ID2', 'TOB': 'TOBID2'}, inplace=True)
+
+        # Merge TOBID1 for males
+        df = df.merge(ptable_male[['ID1', 'TOBID1']], on='ID1', how='left')
+
+        # Merge TOBID2 for females
+        df = df.merge(ptable_female[['ID2', 'TOBID2']], on='ID2', how='left')
+
+        lwr_time, upr_time = timewindow
+
+        if group_col == 'ID1':
+            df['Age_at_form_time'] = df['FormTime'] - df['TOBID1']
+        else:
+            df['Age_at_form_time'] = df['FormTime'] - df['TOBID1']
+
+        # Filter relationships within the time bounds that are ongoing at some point in this window
+        df = df[
+            (df["FormTime"] <= upr_time) & 
+            (df["DisTime"].astype(float) >= lwr_time)
+        ].copy()
+
+        df = df[df['Age_at_form_time'].between(Agegroup[0], Agegroup[1])].copy()
+
+        # Group by the specified column (ID1 for men, ID2 for women)
+        grouped = df.groupby(group_col)['CondomUsingFormation'].agg(['all', 'any']).reset_index()
+        
+        pop_size = len(grouped)
+        condom_all_partners = grouped['all'].sum()
+        condom_at_least_one_partner = grouped['any'].sum()
+        
+        percent_all_partners = (condom_all_partners / pop_size) if pop_size > 0 else 0
+        percent_at_least_one_partner = (condom_at_least_one_partner / pop_size) if pop_size > 0 else 0
+        
+        return {
+            'Gender': gender,
+            'pop_size': pop_size,
+            'condom_users_with_all_partners': condom_all_partners,
+            'condom_users_with_at_least_one_partner': condom_at_least_one_partner,
+            'percent_condom_users_all_partners': percent_all_partners,
+            'percent_condom_users_at_least_one_partner': percent_at_least_one_partner
+        }
+
+    # Calculate statistics for men (ID1), women (ID2), and total population
+    men_stats = calculate_condom_usage(datalist=datalist, timewindow=timewindow, Agegroup=Agegroup, group_col='ID1', gender='Male')
+    women_stats = calculate_condom_usage(datalist=datalist, timewindow=timewindow, Agegroup=Agegroup, group_col='ID2', gender='Female')
+
+    # Combine male and female data for total population
+    # total_pop_size = len(datalist['rtable']['ID1'].unique()) + len(datalist['rtable']['ID2'].unique())
+    total_pop_size = men_stats['pop_size'] + women_stats['pop_size']
+    total_condom_all_partners = men_stats['condom_users_with_all_partners'] + women_stats['condom_users_with_all_partners']
+    total_condom_at_least_one_partner = men_stats['condom_users_with_at_least_one_partner'] + women_stats['condom_users_with_at_least_one_partner']
+
+    total_stats = {
+        'Gender': 'Total',
+        'pop_size': total_pop_size,
+        'condom_users_with_all_partners': total_condom_all_partners,
+        'condom_users_with_at_least_one_partner': total_condom_at_least_one_partner,
+        'percent_condom_users_all_partners': (total_condom_all_partners / total_pop_size) if total_pop_size > 0 else 0,
+        'percent_condom_users_at_least_one_partner': (total_condom_at_least_one_partner / total_pop_size) if total_pop_size > 0 else 0
+    }
+
+    # Create the final DataFrame
+    final_df = pd.DataFrame([men_stats, women_stats, total_stats])
+
+    # Return the DataFrame
+    return final_df
 
 def condom_use_appetite(datalist, agegroup, timepoint):
     """

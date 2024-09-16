@@ -75,7 +75,7 @@ def calibration_wrapper_function(parameters = None):
     cfg_list["EventCondom.m_condomprobDist.dist.uniform.min"] = 0
     cfg_list["EventCondom.m_condomprobDist.dist.uniform.max"] = 1
     cfg_list["EventCondom.threshold"] = 0.8
-    #cfg_list["EventCondom.thresholdAGYW"] = 0.8
+    cfg_list["EventCondom.AGYWthreshold"] = 0.5
     cfg_list["hivtransmission.m_condomformationdist.dist.type"] = "discrete.csv.twocol"
     cfg_list["hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file"] = "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_1.csv"
     cfg_list["hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.floor"] = "yes"
@@ -84,7 +84,7 @@ def calibration_wrapper_function(parameters = None):
     # prep
     cfg_list["EventPrep.enabled"] = "false" #current code can't switch prep off
     cfg_list["EventPrep.threshold"] = 1 # threshold for willingness to start prep. Nobody starts
-    cfg_list["EventPrep.AGYWthreshold"] = 0.3 # threshold for willingness to start prep. Nobody starts
+    cfg_list["EventPrep.AGYWthreshold"] = 0 # threshold for willingness to start prep. Nobody starts
     cfg_list['EventPrep.m_prepprobDist.dist.type'] ='uniform' # willingness to start prep
     cfg_list['EventPrep.m_prepprobDist.dist.uniform.min'] = 0
     cfg_list['EventPrep.m_prepprobDist.dist.uniform.max'] = 1
@@ -253,7 +253,7 @@ def calibration_wrapper_function(parameters = None):
             "time": 18, #before 2000
             "EventCondom.enabled": "true",
             "EventCondom.threshold": 0.8,
-            # "EventCondom.thresholdAGYW": 0.8,
+            "EventCondom.AGYWthreshold": 0.5,
             "hivtransmission.threshold": 0.2 #relationships using condoms consistently
         }
 
@@ -261,7 +261,6 @@ def calibration_wrapper_function(parameters = None):
             "time": 25, 
             "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_2.csv", 
             "EventCondom.threshold": 0.85,
-            # "EventCondom.thresholdAGYW": 0.85,
             "hivtransmission.threshold": 0.15
     }
 
@@ -269,7 +268,7 @@ def calibration_wrapper_function(parameters = None):
             "time": 31, 
             "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_3.csv",
             "EventCondom.threshold": 0.9,
-            # "EventCondom.thresholdAGYW": 0.9,
+            "EventCondom.AGYWthreshold": 0.5,
             "hivtransmission.threshold": 0.1
     }
     
@@ -350,7 +349,7 @@ def calibration_wrapper_function(parameters = None):
     datalist = psh.readthedata(results)
 
     # Specify the file path to save the dictionary object
-    file_path = f'Calibration/final_data/datalist_AGYW_PrEP_0_3_{identifier}.pkl'
+    file_path = f'Calibration/final_data/datalist_AGYW_Cond_0_5_{identifier}.pkl'
 
     # Save dictionary to a single file using pickle
     with open(file_path, 'wb') as f:
