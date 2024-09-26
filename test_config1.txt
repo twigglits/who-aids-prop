@@ -2298,3 +2298,15 @@ population.msm                                               = no
 # when a debut event fires, to limit the newly scheduled formation events.
 population.eyecap.fraction                                   = 0.2
 EventAGYW.agywage                                            = 25
+EventDVR.m_DVRprobDist.dist.type                             = uniform
+EventDVR.m_DVRprobDist.dist.uniform.max                      = 1
+EventDVR.m_DVRprobDist.dist.uniform.min                      = 0
+EventDVR.enabled                                             = true
+EventDVR.threshold                                           = 0.5
+
+EventDVRDROP.m_DVRprobDist.dist.type                         = uniform
+EventDVRDROP.m_DVRprobDist.dist.uniform.max                  = 1
+EventDVRDROP.m_DVRprobDist.dist.uniform.min                  = 0
+EventDVRDROP.enabled                                         = true
+EventDVRDROP.threshold                                       = 0.9
+hivtransmission.param.p1                                     = -0.5

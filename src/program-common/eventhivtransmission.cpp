@@ -174,6 +174,7 @@ double EventHIVTransmission::s_g2 = 0;
 double EventHIVTransmission::s_v1 = 0;
 double EventHIVTransmission::s_k = 0;
 double EventHIVTransmission::s_p = 0;
+double EventHIVTransmission::s_p1 = 0;
 double EventHIVTransmission::s_tMaxAgeRefDiff = -1;
 
 double EventHIVTransmission::calculateInternalTimeInterval(const State *pState, double t0, double dt)
@@ -241,6 +242,25 @@ int EventHIVTransmission::getP(const Person *pPerson2)
     return p ? 1 : 0;  //converts the true false, to 1 or 0.
 }
 
+int EventHIVTransmission::getP1(Person *pPerson2)
+{
+	bool p = false;  // initialize p bool var
+	if (pPerson2->isWoman() && !pPerson2->hiv().isInfected() && !pPerson2->isPrep()){
+	p = WOMAN(pPerson2)->isDVR();
+    return p ? 1 : 0;  //converts the true false, to 1 or 0.
+	}
+	return 0;
+}
+
+// int EventHIVTransmission::getP2(Person *pPerson2)
+// {
+// 	bool c = false;  // initialize p bool var
+// 	c = WOMAN(pPerson2)->isCAB();
+//     return c ? 1 : 0;
+// 	}
+// 	return 0;
+// }
+
 double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &population, double t0)
 {
 	// Person1 is the infected person and his/her viral load (set-point or acute) determines
@@ -259,7 +279,7 @@ double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &popu
 	assert(s_c != 0);
 
 	//here we multiply by number of relationships,  so here we getparam H from person class
-	double logh = (s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter() + s_v1*getV(pPerson2) + s_k*getK(pPerson1, pPerson2) + s_p*getP(pPerson2));  //need to add in logic where if both s_v1 and sv2 are not 0. then we use combination factor.
+	double logh = (s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter() + s_v1*getV(pPerson2) + s_k*getK(pPerson1, pPerson2) + s_p*getP(pPerson2) + s_p1*getP1(pPerson2)); // + s_p2*getP2(pPerson2));  //need to add in logic where if both s_v1 and sv2 are not 0. then we use combination factor.
 
 	if (s_f1 != 0 && pPerson2->isWoman())
 	{
@@ -308,6 +328,7 @@ void EventHIVTransmission::processConfig(ConfigSettings &config, GslRandomNumber
 		!(r = config.getKeyValue("hivtransmission.param.v1", s_v1)) ||
 		!(r = config.getKeyValue("hivtransmission.param.k", s_k)) ||
         !(r = config.getKeyValue("hivtransmission.param.p", s_p)) ||
+		!(r = config.getKeyValue("hivtransmission.param.p1", s_p1)) ||
         !(r = config.getKeyValue("hivtransmission.threshold", s_condomFormationThreshold)) ||
 		!(r = config.getKeyValue("hivtransmission.maxageref.diff", s_tMaxAgeRefDiff)) )
 		
@@ -334,6 +355,7 @@ void EventHIVTransmission::obtainConfig(ConfigWriter &config)
 		!(r = config.addKey("hivtransmission.param.v1", s_v1)) ||
 		!(r = config.addKey("hivtransmission.param.k", s_k)) ||
         !(r = config.addKey("hivtransmission.param.p", s_p)) ||
+		!(r = config.addKey("hivtransmission.param.p1", s_p1)) ||
         !(r = config.addKey("hivtransmission.threshold", s_condomFormationThreshold)) ||
 		!(r = config.addKey("hivtransmission.maxageref.diff", s_tMaxAgeRefDiff))
 		)
@@ -362,6 +384,7 @@ JSONConfig hivTransmissionJSONConfig(R"JSON(
                 ["hivtransmission.param.v1", -0.916],
                 ["hivtransmission.param.k", -1.6094],
                 ["hivtransmission.param.p", -1.6094],
+				["hivtransmission.param.p1", -1.6094],
                 ["hivtransmission.threshold", 0.5],
                 ["hivtransmission.m_condomformationdist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
                 ["hivtransmission.maxageref.diff", 1] ],

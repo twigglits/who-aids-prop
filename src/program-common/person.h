@@ -141,7 +141,7 @@ public:
 	~Man();
 	
 	void setVmmc(bool f) 								{ m_vmmc = f; }
-	bool isVmmc() const								{ return m_vmmc; }  
+	bool isVmmc() const									{ return m_vmmc; }  
 private:
 	bool m_vmmc;
 };
@@ -156,10 +156,15 @@ public:
 	void setPregnant(bool f)							{ m_pregnant = f; }
 	bool isPregnant() const								{ return m_pregnant; }
 	
-	void setAGYW(bool y)												{ m_AGYW = y; }
-	bool isAGYW() const													{ return m_AGYW; }
+	void setAGYW(bool y)								{ m_AGYW = y; }
+	bool isAGYW() const									{ return m_AGYW;}
+
+	void setDVR(bool d)									{ m_DVR = d; }
+	bool isDVR() const									{ return m_DVR; }
+
 private:
 	bool m_AGYW;
+	bool m_DVR;
 	bool m_pregnant;
 	
 };

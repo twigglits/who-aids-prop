@@ -6,6 +6,8 @@
 #include "eventprep.h"
 #include "eventprepdrop.h"
 #include "eventcondom.h"
+#include "eventdvr.h"
+#include "eventdvrdrop.h"
 #include "eventagyw.h"
 #include "simpactpopulation.h"
 #include "simpactevent.h"
@@ -116,14 +118,24 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 		population.onNewEvent(pEvtAGYW);
 	}
 
-	if (!pPerson1->hiv().isInfected()){  //this is men
+	if (!pPerson1->hiv().isInfected()){  // this is men
 		EventPrep *pEvtPrep1 = new EventPrep(pPerson1);
         population.onNewEvent(pEvtPrep1);
 	}
 
-	if (!pPerson2->hiv().isInfected()){  //this is women in most cases unless MSM
+	if (!pPerson2->hiv().isInfected()){  // this is women in most cases unless MSM
 		EventPrep *pEvtPrep2 = new EventPrep(pPerson2);
     	population.onNewEvent(pEvtPrep2);
+	}
+
+	if (!pPerson2->hiv().isInfected() && pPerson2->isWoman()){
+		EventDVR *pEvtDvr = new EventDVR(pPerson2);
+    	population.onNewEvent(pEvtDvr);
+	}
+
+	if (pPerson2->isWoman()){
+		EventDVRDROP *pEvtDvrop = new EventDVRDROP(pPerson2);
+    	population.onNewEvent(pEvtDvrop);
 	}
 
 	EventCondom *pEvtCondom1 = new EventCondom(pPerson1);
@@ -277,5 +289,3 @@ JSONConfig formationMSMTypesJSONConfig(R"JSON(
             "params": [ ["formationmsm.hazard.type", "agegap", [ "simple", "agegap", "agegapry" ] ] ],
             "info": null 
         })JSON");
-
-
