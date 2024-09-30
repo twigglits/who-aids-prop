@@ -62,7 +62,6 @@ double EventDVR::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen,
     return dt;
 }
 
-
 void EventDVR::fire(Algorithm *pAlgorithm, State *pState, double t) {
     SimpactPopulation &population = SIMPACTPOPULATION(pState);
     double interventionTime;

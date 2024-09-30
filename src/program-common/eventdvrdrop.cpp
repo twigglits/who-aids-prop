@@ -48,27 +48,32 @@ bool EventDVRDROP::isEligibleForTreatment(double t, const State *pState, Person 
 bool EventDVRDROP::isHardDropOut(double t, const State *pState, Person *pPerson){
     const SimpactPopulation &population = SIMPACTPOPULATION(pState);
 
-    if (pPerson->isWoman() && WOMAN(pPerson)->isDVR() && ( pPerson->hiv().isInfected() || pPerson->isPrep() ) )  // here we check age and woman again, if person is infected with HIV we drop out, if person is on Oral prep we also drop out
+    if (pPerson->isWoman() && WOMAN(pPerson)->isDVR() && ( pPerson->hiv().isInfected() || pPerson->isPrep()))  // here we check age and woman again, if person is infected with HIV we drop out, if person is on Oral prep we also drop out
         {
             return true;
         }
     return false;
 }
 
-bool EventDVRDROP::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen, Person *pPerson) {
-    assert(m_DVRDROPprobDist);
-    double dt = m_DVRDROPprobDist->pickNumber();
+bool EventDVRDROP::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen, Person *pPerson, const State *pState) {
+    const SimpactPopulation &population = SIMPACTPOPULATION(pState);
+    double curTime = population.getTime();
 
-    if(dt > s_DVRDROPThreshold){
-        return true;
+    while (curTime==getNewInternalTimeDifference(pRndGen, pState)){  // dropoutevent is only possible at this time in population
+        assert(m_DVRDROPprobDist);
+        double dt = m_DVRDROPprobDist->pickNumber();
+
+        if(dt > s_DVRDROPThreshold){
+            return true;
+        }
     }
     return false;
 }
 
 double EventDVRDROP::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-    double dt = 1.0;
-    return dt;
+	double dt = 30.0/365.0;
+	return dt;
 }
 
 
@@ -81,7 +86,7 @@ void EventDVRDROP::fire(Algorithm *pAlgorithm, State *pState, double t) {
     Person *pPerson = getPerson(0);
 
     if (m_DVRDROP_enabled){
-        if ((isEligibleForTreatment(t, pState, pPerson) && isWillingToStartTreatment(t, pRndGen, pPerson)) || isHardDropOut(t, pState, pPerson))   // here we drop out do to normal conditions
+        if ((isEligibleForTreatment(t, pState, pPerson) && isWillingToStartTreatment(t, pRndGen, pPerson, pState)) || isHardDropOut(t, pState, pPerson))   // here we drop out do to normal conditions
         {
         WOMAN(pPerson)->setDVR(false);
         std::cout << "DVR DROP: " << pPerson->getName() << "Gender"<< pPerson->getGender() << std::endl;
