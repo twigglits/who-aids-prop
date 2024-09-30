@@ -14,6 +14,7 @@ def simpact_parallel(model=calibration_wrapper_function,
     
     # Read the actual input matrix from a CSV file
     actual_input_matrix = pd.read_csv(input_csv)
+    # actual_input_matrix = actual_input_matrix.iloc[0:5]
     # Add model number column
     actual_input_matrix['model_id'] = [i + 1 for i in range(len(actual_input_matrix))]
     
@@ -42,6 +43,6 @@ def simpact_parallel(model=calibration_wrapper_function,
 # Example usage:
 if __name__ == "__main__":
     result = simpact_parallel(input_csv='Calibration/data/posterior_distributions-Copy1.csv', 
-                              n_cluster=128, 
-                              repeat=20)
+                              n_cluster=80, 
+                              repeat=1)
     print(result)
