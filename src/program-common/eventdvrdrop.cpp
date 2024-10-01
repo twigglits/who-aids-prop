@@ -76,7 +76,7 @@ double EventDVRDROP::getNewInternalTimeDifference(GslRandomNumberGenerator *pRnd
 {
     // we want an array of numbers where we can adjust the max limit in this array
     int randomNum = 0;
-    randomNum = pRndGen->pickRandomInt(1, 10);
+    randomNum = pRndGen->pickRandomInt(s_DVRDROPScheduleMin, s_DVRDROPScheduleMax);
     // Multiply by 30.0 to get the time difference
     double dt = (randomNum * 30.0) / 365.0;
 	return dt;
@@ -103,7 +103,7 @@ void EventDVRDROP::fire(Algorithm *pAlgorithm, State *pState, double t) {
 
 ProbabilityDistribution *EventDVRDROP::m_DVRDROPprobDist = 0;
 
-
+pickRandomInt
 void EventDVRDROP::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen) {
     bool_t r;
 
