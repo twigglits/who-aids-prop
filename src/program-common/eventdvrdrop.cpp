@@ -15,6 +15,8 @@ using namespace std;
 
 bool EventDVRDROP::m_DVRDROP_enabled = true;
 double EventDVRDROP::s_DVRDROPThreshold = 0.5;
+int EventDVRDROP::s_DVRDROPScheduleMax = 5;
+int EventDVRDROP::s_DVRDROPScheduleMin = 1;
 
 EventDVRDROP::EventDVRDROP(Person *pPerson) : SimpactEvent(pPerson)
 {
@@ -72,7 +74,11 @@ bool EventDVRDROP::isWillingToStartTreatment(double t, GslRandomNumberGenerator 
 
 double EventDVRDROP::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-	double dt = 30.0/365.0;
+    // we want an array of numbers where we can adjust the max limit in this array
+    int randomNum = 0;
+    randomNum = pRndGen->pickRandomInt(1, 10);
+    // Multiply by 30.0 to get the time difference
+    double dt = (randomNum * 30.0) / 365.0;
 	return dt;
 }
 
@@ -111,7 +117,9 @@ void EventDVRDROP::processConfig(ConfigSettings &config, GslRandomNumberGenerato
     // Read the boolean parameter from the config
     std::string enabledStr;
     if (!(r = config.getKeyValue("EventDVRDROP.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false") ||
-        !(r = config.getKeyValue("EventDVRDROP.threshold", s_DVRDROPThreshold))){
+        !(r = config.getKeyValue("EventDVRDROP.threshold", s_DVRDROPThreshold)) ||
+        !(r = config.getKeyValue("EventDVRDROP.schedulemin", s_DVRDROPScheduleMin)) ||
+        !(r = config.getKeyValue("EventDVRDROP.schedulemax", s_DVRDROPScheduleMax))){
         abortWithMessage(r.getErrorString());
     }
     m_DVRDROP_enabled = (enabledStr == "true");
@@ -122,7 +130,9 @@ void EventDVRDROP::obtainConfig(ConfigWriter &config) {
     bool_t r;
 
     if (!(r = config.addKey("EventDVRDROP.enabled", m_DVRDROP_enabled ? "true" : "false")) ||
-        !(r = config.addKey("EventDVRDROP.threshold", s_DVRDROPThreshold))){
+        !(r = config.addKey("EventDVRDROP.threshold", s_DVRDROPThreshold)) ||
+        !(r = config.addKey("EventDVRDROP.schedulemin", s_DVRDROPScheduleMin)) ||
+        !(r = config.addKey("EventDVRDROP.schedulemax", s_DVRDROPScheduleMax))){
         abortWithMessage(r.getErrorString());
     }
 
@@ -137,6 +147,8 @@ JSONConfig DVRDROPJSONConfig(R"JSON(
         "params": [
             ["EventDVRDROP.enabled", "true", [ "true", "false"] ],
             ["EventDVRDROP.threshold", 0.5],
+            ["EventDVRDROP.schedulemin", 1],
+            ["EventDVRDROP.schedulemax", 5],
             ["EventDVRDROP.m_DVRDROPprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
         "info": [ 
