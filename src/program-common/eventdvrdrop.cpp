@@ -103,7 +103,6 @@ void EventDVRDROP::fire(Algorithm *pAlgorithm, State *pState, double t) {
 
 ProbabilityDistribution *EventDVRDROP::m_DVRDROPprobDist = 0;
 
-pickRandomInt
 void EventDVRDROP::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen) {
     bool_t r;
 
