@@ -111,7 +111,7 @@ void EventDVRDROP::processConfig(ConfigSettings &config, GslRandomNumberGenerato
         delete m_DVRDROPprobDist;
         m_DVRDROPprobDist = 0;
     }
-    m_DVRDROPprobDist = getDistributionFromConfig(config, pRndGen, "EventDVRDROP.m_DVRprobDist");
+    m_DVRDROPprobDist = getDistributionFromConfig(config, pRndGen, "EventDVRDROP.m_DVRDROPprobDist");
 
     // Read the boolean parameter from the config
     std::string enabledStr;
@@ -135,7 +135,7 @@ void EventDVRDROP::obtainConfig(ConfigWriter &config) {
         abortWithMessage(r.getErrorString());
     }
 
-    addDistributionToConfig(m_DVRDROPprobDist, config, "EventDVRDROP.m_DVRprobDist");
+    addDistributionToConfig(m_DVRDROPprobDist, config, "EventDVRDROP.m_DVRDROPprobDist");
 }
 
 ConfigFunctions DVRDROPConfigFunctions(EventDVRDROP::processConfig, EventDVRDROP::obtainConfig, "EventDVRDROP");
