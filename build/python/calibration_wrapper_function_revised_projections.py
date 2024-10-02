@@ -49,11 +49,14 @@ def calibration_wrapper_function(parameters = None):
     person_eagerness_woman_dist_gamma_b=47.03264158,
     formation_hazard_agegapry_numrel_man= -0.649752699,
     formation_hazard_agegapry_numrel_woman= -0.61526928)
+    
+    cfg_list["hivtransmission.param.k"] = -1.203
+    cfg_list["hivtransmission.param.p"] = -1.7147 #prep effectivenss in preventing HIV (82%, remaining risk ln(18))
             
     cfg_list["population.agedistfile"] = "/home/jupyter/who-aids-prop/build/python/eswatini_1980.csv"
     cfg_list['diagnosis.eagernessfactor'] = np.log(1.025)
     cfg_list['diagnosis.pregnancyfactor'] = 0
-    cfg_list['EventAGYW.enabled']='true'
+    cfg_list['EventAGYW.enabled']='false'
     cfg_list['diagnosis.AGYWfactor'] = 0
     cfg_list["mortality.aids.survtime.art_e.dist.type"] = "uniform"
     cfg_list["mortality.aids.survtime.art_e.dist.uniform.min"] = 5
@@ -74,12 +77,12 @@ def calibration_wrapper_function(parameters = None):
     cfg_list["EventCondom.m_condomprobDist.dist.type"] = "uniform"
     cfg_list["EventCondom.m_condomprobDist.dist.uniform.min"] = 0
     cfg_list["EventCondom.m_condomprobDist.dist.uniform.max"] = 1
-    cfg_list["EventCondom.threshold"] = 0.8
-    cfg_list["EventCondom.AGYWthreshold"] = 0.5
+    cfg_list["EventCondom.threshold"] = 9999 # 0.8 #nobody uses condoms at the beginning, so threshold set very high
+    cfg_list["EventCondom.AGYWthreshold"] = 0
     cfg_list["hivtransmission.m_condomformationdist.dist.type"] = "discrete.csv.twocol"
-    cfg_list["hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file"] = "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_1.csv"
+    cfg_list["hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file"] = "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_0.csv"
     cfg_list["hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.floor"] = "yes"
-    cfg_list["hivtransmission.threshold"] = 0.3
+    cfg_list["hivtransmission.threshold"] = 9999 #0.3 #no relationship uses condoms at the beginning, so threshold set very high
 
     # prep
     cfg_list["EventPrep.enabled"] = "false" #current code can't switch prep off
@@ -92,6 +95,12 @@ def calibration_wrapper_function(parameters = None):
     cfg_list['EventPrepDrop.interval.dist.type'] ='uniform' # distribution to choose probablity of dropping which will be used alongside number of relationships or hiv status to decide if dropping out
     cfg_list['EventPrepDrop.interval.dist.uniform.min'] = 0#0.25
     cfg_list['EventPrepDrop.interval.dist.uniform.max'] = 1#10.0
+    
+    # prep dvr
+    cfg_list['EventDVR.enabled'] = 'false'
+    cfg_list['EventDVR.threshold'] = 1 # threshold for willingness to start dvr. Nobody starts
+    cfg_list["EventDVRDROP.enabled"] = "false"
+    cfg_list["EventPrepDrop.threshold"] = 1 # threshold for dropping, nobody drops
 
     # Initial values
     mu_cd4 = 800
@@ -156,7 +165,7 @@ def calibration_wrapper_function(parameters = None):
     
     cfg_list["hivtransmission.param.f1"] = round(parameters['hivtransmission_param_f1'],8)
     cfg_list["hivtransmission.param.f2"] = round(math.log(math.log(math.sqrt(parameters['hivtransmission_param_f1'])) / math.log(parameters['hivtransmission_param_f1'])) / 5,8)
-    cfg_list["hivtransmission.param.a"] = round(parameters['hivtransmission_param_a'],8)
+    cfg_list["hivtransmission.param.a"] = round(parameters['hivtransmission_param_a'],8)+0.09
     cfg_list["formation.hazard.agegapry.gap_agescale_man"] = round(parameters['formation_hazard_agegapry_gap_agescale_man'],8)
     cfg_list["formation.hazard.agegapry.gap_agescale_woman"] = round(parameters['formation_hazard_agegapry_gap_agescale_woman'],8)
     cfg_list["person.agegap.man.dist.normal.mu"] = round(parameters['person_agegap_man_dist_normal_mu'],8)
@@ -191,7 +200,6 @@ def calibration_wrapper_function(parameters = None):
     # ART introduction configurations
     art_intro = {
         "time": 20, #around 2000
-        #"EventAGYW.enabled": 'true',
         "diagnosis.pregnancyfactor":0.2,
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'], #-1,
         "monitoring.cd4.threshold": 100
@@ -219,7 +227,7 @@ def calibration_wrapper_function(parameters = None):
 
     art_intro3 = {
         "time": 30, # 2010
-        "diagnosis.pregnancyfactor":0.5,
+        "diagnosis.pregnancyfactor":0.7,#0.5
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3'],#-0.2,
         "monitoring.cd4.threshold": 350,
         "monitoring.m_artDist.dist.normal.mu": 0.35,
@@ -235,7 +243,7 @@ def calibration_wrapper_function(parameters = None):
         "monitoring.cd4.threshold": 500,
         "person.art.accept.threshold.dist.fixed.value": 0.9,
         "conception.alpha_base":  parameters['conception_alpha_base']- parameters['conception_alpha_base_1'] - parameters['conception_alpha_base_2'],
-        # "diagnosis.AGYWfactor":1.2
+        "diagnosis.AGYWfactor":0.2#1.1
     }
 
     art_intro5 = {
@@ -245,31 +253,32 @@ def calibration_wrapper_function(parameters = None):
         "monitoring.m_artDist.dist.normal.mu": 0.3,
         "monitoring.m_artDist.dist.normal.min": 0.1,
         "monitoring.m_artDist.dist.normal.max":0.5,
-        # "diagnosis.AGYWfactor":1.5
+        "diagnosis.AGYWfactor":0.3 
     }
 
         #condom use
     condom_intro1 = { 
-            "time": 18, #before 2000
+            "time": 18, #around 1998
             "EventCondom.enabled": "true",
-            "EventCondom.threshold": 0.8,
-            "EventCondom.AGYWthreshold": 0.5,
-            "hivtransmission.threshold": 0.2 #relationships using condoms consistently
+            "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_1.csv", 
+            "EventCondom.threshold": 0.7, #0.8,
+            "hivtransmission.threshold": 0.5 # 0.2 #relationships using condoms consistently
         }
 
     condom_intro2 = { 
             "time": 25, 
             "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_2.csv", 
-            "EventCondom.threshold": 0.85,
-            "hivtransmission.threshold": 0.15
+            "EventCondom.threshold": 0.8,#0.85,
+            "hivtransmission.threshold": 0.5 #0.15
     }
 
     condom_intro3 = { 
-            "time": 31, 
+            "time": 37.11, # 2011
+            "EventAGYW.enabled": 'true',
             "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_3.csv",
-            "EventCondom.threshold": 0.9,
-            "EventCondom.AGYWthreshold": 0.5,
-            "hivtransmission.threshold": 0.1
+            "EventCondom.threshold": 0.99,
+            "EventCondom.AGYWthreshold": 0.1,
+            "hivtransmission.threshold": 0.5# 0.1
     }
     
     #vmmc
@@ -290,24 +299,69 @@ def calibration_wrapper_function(parameters = None):
     prep_intro1 = {
             "time":37, #around 2017
             "EventPrep.enabled": "true",
-            "EventPrep.threshold":0.98, #0.87, # threshold for willingness to start prep. coverage is 13%
-            # "EventPrep.thresholdAGYW":0.95,
-            'EventPrepDrop.threshold': 0.8
+            "EventPrep.threshold":0.965, #0.87, # threshold for willingness to start prep. coverage is 13%
+            "EventPrep.AGYWthreshold":0.2,
+            'EventPrepDrop.threshold': 0.3#0.8
         }
+    # prep dvr
+    dvr_intro = {
+            "time":45, #around 2025
+            "EventDVR.enabled":"true",
+            "EventDVR.threshold":0.7,
+            "EventDVRDROP.enabled":"true",
+            "EventPrepDrop.threshold":0.5
+    }
     
     # future scenario
     vmmc_intro3 = {
-        "time":45, #around 2025
+        "time":44, #around 2024
         "EventVMMC.threshold": 0.1,
         "EventVMMC.m_vmmcscheduleDist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/vmmc_schedule_twocol_0_1.csv"
     }
 
     # prep
-    prep_intro2 = {
-            "time":45.1, #around 2025
+    prep_intro_halfway_2030 = {
+            "time":44.1, #around 2024
             "EventPrep.enabled": "true",
-            "EventPrep.threshold":0.94, #0.87, # threshold for willingness to start prep. coverage is 13%
-            'EventPrepDrop.threshold': 0.8
+            "EventPrep.threshold":0.945, #0.87, # threshold for willingness to start prep. coverage is 13%
+            'EventPrepDrop.threshold': 0.3#0.4
+        }
+    
+    prep_intro_optimistic_2030 = {
+        "time":44.11, #around 2024
+        "EventPrep.enabled": "true",
+        "EventPrep.threshold":0.91, #0.87, # threshold for willingness to start prep. coverage is 13%
+        'EventPrepDrop.threshold': 0.3
+    }
+    
+    # condom use
+    condom_intro_4 = { 
+            "time": 47, # 2024
+            "EventCondom.threshold": 0.8, #0.99,
+            "hivtransmission.threshold": 0.1# 0.1
+    }
+    
+    # AGYW
+    # A. diagnosis
+    agyw_diagosis_halfway_2030 = {
+        "time":44.111, #around 2024
+        "diagnosis.AGYWfactor":0.9
+    }
+    
+    agyw_diagosis_optimistic_2030 = {
+        "time":44.02, #around 2024
+        "diagnosis.AGYWfactor":1.7 
+    }
+    
+    # B. prep
+    agyw_prep_intro = {
+            "time":44.0101, #around 2024
+            "EventPrep.AGYWthreshold":0.5
+        }
+    # C. condom
+    agyw_condom_intro = {
+            "time":44.0102, #around 2024
+            "EventCondom.AGYWthreshold":0.5
         }
 
     ART_factual = [hiv_testing, conception,
@@ -317,14 +371,62 @@ def calibration_wrapper_function(parameters = None):
     
     ART_counterfactual_VMMC = [hiv_testing, conception,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
-                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,vmmc_intro3,
+                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2, vmmc_intro3,
                    prep_intro1]
     
-    ART_counterfactual_PrEP = [hiv_testing, conception,
+    ART_counterfactual_PrEP_halfway = [hiv_testing, conception,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
                   condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
-                   prep_intro1,prep_intro2]
+                   prep_intro1 ,prep_intro_halfway_2030]
 
+    ART_counterfactual_PrEP_optimistic = [hiv_testing, conception,
+                   art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
+                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
+                   prep_intro1 ,prep_intro_optimistic_2030]
+    
+    ART_counterfactual_PrEP_dvr = [hiv_testing, conception,
+                   art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
+                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
+                   prep_intro1 ,dvr_intro]
+    
+    
+    ART_counterfactual_condom = [hiv_testing, conception,
+                   art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
+                  condom_intro1, condom_intro2, condom_intro3, condom_intro_4, vmmc_intro1,vmmc_intro2,
+                   prep_intro1]
+    
+    AGYW_diagnosis_halfway = [hiv_testing, conception,
+                   art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
+                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
+                   prep_intro1, agyw_diagosis_halfway_2030]
+    
+    AGYW_diagnosis_optimistic = [hiv_testing, conception,
+                   art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
+                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
+                   prep_intro1, agyw_diagosis_optimistic_2030]
+    
+    AGYW_prep = [hiv_testing, conception,
+                   art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
+                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
+                   prep_intro1, agyw_prep_intro]
+    
+    
+    All_combined_halfway = [hiv_testing, conception,
+                   art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
+                  condom_intro1, condom_intro2, condom_intro3, condom_intro_4, vmmc_intro1,vmmc_intro2,
+                   prep_intro1, vmmc_intro3, prep_intro_halfway_2030, agyw_diagosis_halfway_2030,
+                    agyw_prep_intro]
+    
+    All_combined_optimistic = [hiv_testing, conception,
+                   art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
+                  condom_intro1, condom_intro2, condom_intro3, condom_intro_4, vmmc_intro1, vmmc_intro2,
+                   prep_intro1, vmmc_intro3, prep_intro_optimistic_2030, agyw_diagosis_optimistic_2030,
+                  agyw_prep_intro]
+    
+    AGYW_condom = [hiv_testing, conception,
+                   art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
+                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
+                   prep_intro1, agyw_condom_intro]
     
     # running the simulation --------------------------------------------------
     identifier = f'model_{modelid}_seed_{seedid}'
@@ -339,17 +441,17 @@ def calibration_wrapper_function(parameters = None):
     results = simpact.run(
         config=cfg_list,
         destDir=destDir,
-        interventionConfig=ART_factual,
+        interventionConfig=ART_counterfactual_PrEP_dvr,
         seed=seedid,
         #identifierFormat=f'seed {identifier}',
         identifierFormat = identifier,
         quiet=True
     )
 
-    datalist = psh.readthedata(results)
+    datalist = psh.readthedata(results) 
 
     # Specify the file path to save the dictionary object
-    file_path = f'Calibration/final_data/datalist_AGYW_Cond_0_5_{identifier}.pkl'
+    file_path = f'Calibration/final_data/datalist_dvr_target_{identifier}.pkl'
 
     # Save dictionary to a single file using pickle
     with open(file_path, 'wb') as f:
@@ -358,40 +460,3 @@ def calibration_wrapper_function(parameters = None):
     shutil.rmtree(destDir) #deletes the folder with output files
     
     return None
-
-
-#     # running the simulation --------------------------------------------------
-#     identifier = str(seedid)
-#     #rootDir = "/Users/emdominic/Documents/Wimmy/who_hiv_inc_modelling/Calibration/data" 
-#     rootDir = "Calibration/data" 
- 
-#     destDir = os.path.join(rootDir, identifier)
-    
-#     # Print log message
-#     print(f'========== Now running for parameter set with seed {seedid} ===========')
-
-#     results = simpact.run(
-#         config=cfg_list,
-#         destDir=destDir,
-#         interventionConfig=ART_factual,
-#         seed=seedid,
-#         identifierFormat=f'seed {identifier}',
-#         quiet=True
-#     )
-
-#     datalist = psh.readthedata(results)
-
-#     # Specify the file path to save the dictionary object
-#     file_path = f'Calibration/final_data/datalist_AGYW_seed{identifier}.pkl'
-#     #file_path = f'Calibration/final_data/datalist_seed1111.pkl'
-
-#     # Save dictionary to a single file using pickle
-#     with open(file_path, 'wb') as f:
-#         pickle.dump(datalist, f)
-        
-#     shutil.rmtree(destDir) #deletes the folder with output files
-    
-#     return None
-
-
-
