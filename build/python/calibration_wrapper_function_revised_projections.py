@@ -100,7 +100,12 @@ def calibration_wrapper_function(parameters = None):
     cfg_list['EventDVR.enabled'] = 'false'
     cfg_list['EventDVR.threshold'] = 1 # threshold for willingness to start dvr. Nobody starts
     cfg_list["EventDVRDROP.enabled"] = "false"
-    cfg_list["EventPrepDrop.threshold"] = 1 # threshold for dropping, nobody drops
+    cfg_list["EventDVRDROP.threshold"] = 1 # threshold for dropping, nobody drops
+    cfg_list["EventDVRDROP.m_DVRprobDist.dist.type"] = 'uniform'
+    cfg_list["EventDVRDROP.m_DVRprobDist.dist.uniform.min"] = 0
+    cfg_list["EventDVRDROP.m_DVRprobDist.dist.uniform.max"] = 1
+    cfg_list["EventDVRDROP.schedulemin"] = 1 #people can drop out of prep after 1 month
+    cfg_list["EventDVRDROP.schedulemax"] = 6 #people can drop out of prep upto 6 months after starting
 
     # Initial values
     mu_cd4 = 800
@@ -457,6 +462,6 @@ def calibration_wrapper_function(parameters = None):
     with open(file_path, 'wb') as f:
         pickle.dump(datalist, f)
         
-    shutil.rmtree(destDir) #deletes the folder with output files
+    #shutil.rmtree(destDir) #deletes the folder with output files
     
     return None
