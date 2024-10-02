@@ -23,12 +23,14 @@ public:
 	static bool hasNextIntervention();
 	static ProbabilityDistribution *m_DVRDROPprobDist;
 	static double s_DVRDROPThreshold;
+	static int s_DVRDROPScheduleMax;
+	static int s_DVRDROPScheduleMin;
     static bool m_DVRDROP_enabled;
 
 private:
 	bool isEligibleForTreatment(double t, const State *pState, Person *pPerson);
 	bool isHardDropOut(double t, const State *pState, Person *pPerson);
-	bool isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen, Person *pPerson);
+	bool isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen, Person *pPerson, const State *pState);
     double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
     static std::list<double> m_interventionTimes;
 	static std::list<ConfigSettings> m_interventionSettings;

@@ -2310,3 +2310,5 @@ EventDVRDROP.m_DVRprobDist.dist.uniform.min                  = 0
 EventDVRDROP.enabled                                         = true
 EventDVRDROP.threshold                                       = 0.9
 hivtransmission.param.p1                                     = -0.5
+EventDVRDROP.schedulemin                                     = 1
+EventDVRDROP.schedulemax                                     = 5

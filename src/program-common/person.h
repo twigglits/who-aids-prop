@@ -157,10 +157,13 @@ public:
 	bool isPregnant() const								{ return m_pregnant; }
 	
 	void setAGYW(bool y)								{ m_AGYW = y; }
-	bool isAGYW() const									{ return m_AGYW;}
+	bool isAGYW() const									{ return m_AGYW; }
 
-	void setDVR(bool d)									{ m_DVR = d; }
-	bool isDVR() const									{ return m_DVR; }
+	double tNow;
+	double m_lastDVRCheckTime;
+
+	void setDVR(bool d)									{ m_DVR = d; m_lastDVRCheckTime = tNow; }
+	bool isDVR() const									{ return m_DVR; m_lastDVRCheckTime; }
 
 private:
 	bool m_AGYW;
