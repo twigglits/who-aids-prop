@@ -2304,11 +2304,13 @@ EventDVR.m_DVRprobDist.dist.uniform.min                      = 0
 EventDVR.enabled                                             = true
 EventDVR.threshold                                           = 0.5
 
-EventDVRDROP.m_DVRprobDist.dist.type                         = uniform
-EventDVRDROP.m_DVRprobDist.dist.uniform.max                  = 1
-EventDVRDROP.m_DVRprobDist.dist.uniform.min                  = 0
 EventDVRDROP.enabled                                         = true
 EventDVRDROP.threshold                                       = 0.9
 hivtransmission.param.p1                                     = -0.5
 EventDVRDROP.schedulemin                                     = 1
 EventDVRDROP.schedulemax                                     = 5
+
+
+EventDVRDROP.m_DVRDROPprobDist.dist.type                     = uniform
+EventDVRDROP.m_DVRDROPprobDist.dist.uniform.max              = 1
+EventDVRDROP.m_DVRDROPprobDist.dist.uniform.min              = 0
