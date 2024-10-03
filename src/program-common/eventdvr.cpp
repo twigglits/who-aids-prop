@@ -128,14 +128,5 @@ JSONConfig DVRJSONConfig(R"JSON(
             "This parameter is used to set the distribution of subject willing to accept VMMC treatment",
             "and to enable or disable the VMMC event."
         ]
-    },
-    "eventDVR_schedule_dist": { 
-        "depends": null,
-        "params": [  
-            [ "eventDVR.m_prepscheduleDist.dist", "distTypes", ["fixed", [ ["value", 0.246575 ] ] ] ] 
-        ],
-        "info": [ 
-            "This parameter is used to specify the VMMC scheduling duration. The default is fixed."
-        ]
     }
 )JSON");
