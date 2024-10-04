@@ -110,11 +110,6 @@ void EventHSV2Transmission::fire(Algorithm *pAlgorithm, State *pState, double t)
 	assert(!pPerson2->hsv2().isInfected());
 	
 	infectPerson(population, pPerson1, pPerson2, t);
-
-	if (pPerson2->isWoman()){
-		EventDVRDROP *pEvtDvrop = new EventDVRDROP(pPerson2);
-    	population.onNewEvent(pEvtDvrop);
-	}
 }
 
 double EventHSV2Transmission::calculateInternalTimeInterval(const State *pState, double t0, double dt)
