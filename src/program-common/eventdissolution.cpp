@@ -2,6 +2,7 @@
 #include "eventformation.h"
 #include "eventagyw.h"
 #include "eventprepdrop.h"
+#include "eventdvrdrop.h"
 #include "evthazarddissolution.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
@@ -55,6 +56,11 @@ void EventDissolution::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 	pPerson1->removeRelationship(pPerson2, t, false);
 	pPerson2->removeRelationship(pPerson1, t, false);
+
+	if (pPerson2->isWoman()){
+		EventDVRDROP *pEvtDvrop = new EventDVRDROP(pPerson2);
+    	population.onNewEvent(pEvtDvrop);
+	}
 
 	// A new formation event should only be scheduled if neither person is in the
 	// final AIDS stage

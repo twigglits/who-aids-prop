@@ -10,7 +10,6 @@
 #include <iostream>
 #include <cstdlib>
 #include <chrono>
-
 using namespace std;
 
 bool EventDVRDROP::m_DVRDROP_enabled = true;
