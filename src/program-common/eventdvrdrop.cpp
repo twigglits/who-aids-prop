@@ -49,7 +49,7 @@ bool EventDVRDROP::isEligibleForTreatment(double t, const State *pState, Person 
 bool EventDVRDROP::isHardDropOut(double t, const State *pState, Person *pPerson){
     const SimpactPopulation &population = SIMPACTPOPULATION(pState);
 
-    if (( pPerson->hiv().isInfected() || pPerson->isPrep() || pPerson->getNumberOfRelationships()==0) )  // here we check age and woman again, if person is infected with HIV we drop out, if person is on Oral prep we also drop out
+    if ((pPerson->isWoman() && WOMAN(pPerson)->isDVR()) && (pPerson->hiv().isInfected() || pPerson->isPrep() || pPerson->getNumberOfRelationships()==0))  // here we check age and woman again, if person is infected with HIV we drop out, if person is on Oral prep we also drop out
         {
             return true;
         }
@@ -90,7 +90,7 @@ void EventDVRDROP::fire(Algorithm *pAlgorithm, State *pState, double t) {
     Person *pPerson = getPerson(0);
 
     if (m_DVRDROP_enabled){
-        if (isEligibleForTreatment(t, pState, pPerson) && ( isWillingToStartTreatment(t, pRndGen, pPerson) || isHardDropOut(t, pState, pPerson) ))
+        if ((isEligibleForTreatment(t, pState, pPerson) && (isWillingToStartTreatment(t, pRndGen, pPerson) || isHardDropOut(t, pState, pPerson) )))   // here we drop out do to normal conditions
         {
         WOMAN(pPerson)->setDVR(false);
         std::cout << "DVR_DROP FIRE: " << pPerson->getName() << "Gender"<< pPerson->getGender() << std::endl;
