@@ -90,7 +90,7 @@ void EventDVRDROP::fire(Algorithm *pAlgorithm, State *pState, double t) {
     Person *pPerson = getPerson(0);
 
     if (m_DVRDROP_enabled){
-        if ((isEligibleForTreatment(t, pState, pPerson) && (isWillingToStartTreatment(t, pRndGen, pPerson)) || isHardDropOut(t, pState, pPerson)))   // here we drop out do to normal conditions
+        if (isEligibleForTreatment(t, pState, pPerson) && ( isWillingToStartTreatment(t, pRndGen, pPerson) || isHardDropOut(t, pState, pPerson) ))
         {
         WOMAN(pPerson)->setDVR(false);
         std::cout << "DVR_DROP FIRE: " << pPerson->getName() << "Gender"<< pPerson->getGender() << std::endl;
