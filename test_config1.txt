@@ -2314,3 +2314,21 @@ EventDVRDROP.schedulemax                                     = 5
 EventDVRDROP.m_DVRDROPprobDist.dist.type                     = uniform
 EventDVRDROP.m_DVRDROPprobDist.dist.uniform.max              = 1
 EventDVRDROP.m_DVRDROPprobDist.dist.uniform.min              = 0
+
+
+#-------------------------
+EventCAB.m_CABprobDist.dist.type                             = uniform
+EventCAB.m_CABprobDist.dist.uniform.max                      = 1
+EventCAB.m_CABprobDist.dist.uniform.min                      = 0
+EventCAB.enabled                                             = true
+EventCAB.threshold                                           = 0.5
+
+EventCABDROP.enabled                                         = true
+EventCABDROP.threshold                                       = 0.1
+hivtransmission.param.p2                                     = -0.5
+
+EventCABDROP.m_CABDROPprobDist.dist.type                     = uniform
+EventCABDROP.m_CABDROPprobDist.dist.uniform.max              = 1
+EventCABDROP.m_CABDROPprobDist.dist.uniform.min              = 0
+
+

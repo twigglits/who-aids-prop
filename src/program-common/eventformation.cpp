@@ -8,6 +8,8 @@
 #include "eventcondom.h"
 #include "eventdvr.h"
 #include "eventdvrdrop.h"
+#include "eventcab.h"
+#include "eventcabdrop.h"
 #include "eventagyw.h"
 #include "simpactpopulation.h"
 #include "simpactevent.h"
@@ -137,6 +139,22 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 		EventDVRDROP *pEvtDvrop = new EventDVRDROP(pPerson2);
     	population.onNewEvent(pEvtDvrop);
 	}
+
+	// CAB events ----------------------------------
+	EventCAB *pEvtCAB1 = new EventCAB(pPerson1);
+    population.onNewEvent(pEvtCAB1);
+	
+	EventCAB *pEvtCAB2 = new EventCAB(pPerson2);
+    population.onNewEvent(pEvtCAB2);
+	//---------------------------------------------
+	// CAB DROP events
+	EventCABDROP *pEvtCABDROP1 = new EventCABDROP(pPerson1);
+    population.onNewEvent(pEvtCABDROP1);
+	
+	EventCABDROP *pEvtCABDROP2 = new EventCABDROP(pPerson2);
+    population.onNewEvent(pEvtCABDROP2);
+	// --------------------------------------------
+
 
 	EventCondom *pEvtCondom1 = new EventCondom(pPerson1);
 	EventCondom *pEvtCondom2 = new EventCondom(pPerson2);

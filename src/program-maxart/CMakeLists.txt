@@ -29,6 +29,8 @@ set(SOURCES_SIMPACT
     ../program-common/eventvmmc.cpp
 	../program-common/eventdvr.cpp
 	../program-common/eventdvrdrop.cpp
+	../program-common/eventcab.cpp
+	../program-common/eventcabdrop.cpp
 	../program-common/eventprep.cpp
     ../program-common/eventprepdrop.cpp
 	../program-common/eventagyw.cpp

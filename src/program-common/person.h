@@ -80,6 +80,11 @@ public:
     void setPrep(double t)												{ m_relations.setPrep(t); }
 	bool isPrep() const													{ return m_relations.isPrep(); }
 
+	// set and check for if person is on CAB intervention
+    void setCAB(double t)												{ m_relations.setCAB(t); }
+	bool isCAB() const													{ return m_relations.isCAB(); }
+
+
 	double getDebutTime() const														{ return m_relations.getDebutTime(); }
 
 	double getFormationEagernessParameter() const									{ return m_relations.getFormationEagernessParameter(); }
@@ -164,7 +169,7 @@ public:
 
 	void setDVR(bool d)									{ m_DVR = d; m_lastDVRCheckTime = tNow; }
 	bool isDVR() const									{ return m_DVR; m_lastDVRCheckTime; }
-
+	
 private:
 	bool m_AGYW;
 	bool m_DVR;

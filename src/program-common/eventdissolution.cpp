@@ -3,6 +3,7 @@
 #include "eventagyw.h"
 #include "eventprepdrop.h"
 #include "eventdvrdrop.h"
+#include "eventcabdrop.h"
 #include "evthazarddissolution.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
@@ -61,6 +62,14 @@ void EventDissolution::fire(Algorithm *pAlgorithm, State *pState, double t)
 		EventDVRDROP *pEvtDvrop = new EventDVRDROP(pPerson2);
     	population.onNewEvent(pEvtDvrop);
 	}
+
+	// CAB DROP events
+	EventCABDROP *pEvtCABDROP1 = new EventCABDROP(pPerson1);
+    population.onNewEvent(pEvtCABDROP1);
+	
+	EventCABDROP *pEvtCABDROP2 = new EventCABDROP(pPerson2);
+    population.onNewEvent(pEvtCABDROP2);
+	// --------------------------------------------
 
 	// A new formation event should only be scheduled if neither person is in the
 	// final AIDS stage
