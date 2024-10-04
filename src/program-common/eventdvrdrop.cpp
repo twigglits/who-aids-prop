@@ -40,8 +40,6 @@ bool EventDVRDROP::isEligibleForTreatment(double t, const State *pState, Person 
 
     if (pPerson->isWoman() && WOMAN(pPerson)->isDVR()){
         return true;
-    }else{
-        return false;
     }
     return false;
 }
@@ -57,10 +55,6 @@ bool EventDVRDROP::isHardDropOut(double t, const State *pState, Person *pPerson)
 }
 
 bool EventDVRDROP::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRndGen, Person *pPerson){ 
-    // const SimpactPopulation &population = SIMPACTPOPULATION(pState);
-    // double curTime = population.getTime();
-
-    // while (curTime==getNewInternalTimeDifference(pRndGen, pState)){  // dropoutevent is only possible at this time in population
     assert(m_DVRDROPprobDist);
     double dt = m_DVRDROPprobDist->pickNumber();
     if(dt > s_DVRDROPThreshold){

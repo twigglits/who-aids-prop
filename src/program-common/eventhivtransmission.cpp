@@ -5,6 +5,8 @@
 #include "eventchronicstage.h"
 #include "eventdiagnosis.h"
 #include "eventdebut.h"
+#include "eventdvrdrop.h"
+#include "eventdvr.h"
 #include "jsonconfig.h"
 #include "configsettings.h"
 #include "configsettingslog.h"
@@ -157,6 +159,11 @@ void EventHIVTransmission::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 	if (pPerson2->hiv().isInfected()){
 		EventPrepDrop *pEvtPrepDrop2 = new EventPrepDrop(pPerson2, t);
+	}
+
+	if (pPerson2->isWoman()){
+		EventDVRDROP *pEvtDvrop = new EventDVRDROP(pPerson2);
+    	population.onNewEvent(pEvtDvrop);
 	}
 }
 
