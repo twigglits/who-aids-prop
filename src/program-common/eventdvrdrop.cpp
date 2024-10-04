@@ -72,10 +72,11 @@ bool EventDVRDROP::isWillingToStartTreatment(double t, GslRandomNumberGenerator 
 double EventDVRDROP::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
     // we want an array of numbers where we can adjust the max limit in this array
-    int randomNum = 0;
-    randomNum = pRndGen->pickRandomInt(s_DVRDROPScheduleMin, s_DVRDROPScheduleMax);
+    // int randomNum = 0;
+    // randomNum = pRndGen->pickRandomInt(s_DVRDROPScheduleMin, s_DVRDROPScheduleMax);
     // Multiply by 30.0 to get the time difference
-    double dt = (randomNum * 30.0) / 365.0;
+    // double dt = (randomNum * 30.0) / 365.0;
+    double dt = 0.0;
 	return dt;
 }
 
@@ -89,10 +90,9 @@ void EventDVRDROP::fire(Algorithm *pAlgorithm, State *pState, double t) {
     Person *pPerson = getPerson(0);
 
     if (m_DVRDROP_enabled){
-        if ((isEligibleForTreatment(t, pState, pPerson) && isWillingToStartTreatment(t, pRndGen, pPerson)) || isHardDropOut(t, pState, pPerson))   // here we drop out do to normal conditions
+        if ((isEligibleForTreatment(t, pState, pPerson) && (isWillingToStartTreatment(t, pRndGen, pPerson)) || isHardDropOut(t, pState, pPerson)))   // here we drop out do to normal conditions
         {
         WOMAN(pPerson)->setDVR(false);
-        std::cout << "DVR DROP: " << pPerson->getName() << "Gender"<< pPerson->getGender() << std::endl;
         writeEventLogStart(true, "DVR_DROP", t, pPerson, 0);
         }
     }
