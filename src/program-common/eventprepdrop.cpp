@@ -1,7 +1,8 @@
 #include "eventprepdrop.h"
 #include "eventdiagnosis.h"
 #include "configsettings.h"
-#include "configwriter.h"           
+#include "configwriter.h"  
+#include "eventdvrdrop.h"
 #include "configdistributionhelper.h"
 #include "gslrandomnumbergenerator.h"
 #include "jsonconfig.h"
@@ -51,6 +52,11 @@ void EventPrepDrop::fire(Algorithm *pAlgorithm, State *pState, double t)
     {
     pPerson->setPrep(false);
     writeEventLogStart(true, "PrepDrop", t, pPerson, 0);
+    
+    if (pPerson->isWoman()){
+		EventDVRDROP *pEvtDvrop = new EventDVRDROP(pPerson);
+    	population.onNewEvent(pEvtDvrop);
+	}
     // std::cout << "After PrepDrop status: " << pPerson->isPrep() << " for: " << pPerson->getName() << std::endl;  //maybe should change to getPrep?
     }
 }
