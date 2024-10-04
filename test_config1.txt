@@ -2305,7 +2305,7 @@ EventDVR.enabled                                             = true
 EventDVR.threshold                                           = 0.5
 
 EventDVRDROP.enabled                                         = true
-EventDVRDROP.threshold                                       = 0.9
+EventDVRDROP.threshold                                       = 0.1
 hivtransmission.param.p1                                     = -0.5
 EventDVRDROP.schedulemin                                     = 1
 EventDVRDROP.schedulemax                                     = 5
