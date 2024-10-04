@@ -47,7 +47,7 @@ bool EventDVRDROP::isEligibleForTreatment(double t, const State *pState, Person 
 bool EventDVRDROP::isHardDropOut(double t, const State *pState, Person *pPerson){
     const SimpactPopulation &population = SIMPACTPOPULATION(pState);
 
-    if ((pPerson->isWoman() && WOMAN(pPerson)->isDVR()) && (pPerson->hiv().isInfected() || pPerson->isPrep() || pPerson->getNumberOfRelationships()==0))  // here we check age and woman again, if person is infected with HIV we drop out, if person is on Oral prep we also drop out
+    if ((pPerson->isWoman() && WOMAN(pPerson)->isDVR()) && (pPerson->hiv().isInfected() || pPerson->isPrep() || pPerson->getNumberOfRelationships()==0 || pPerson->isCAB()))  // here we check age and woman again, if person is infected with HIV we drop out, if person is on Oral prep we also drop out
         {
             return true;
         }

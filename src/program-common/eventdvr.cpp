@@ -39,7 +39,7 @@ bool EventDVR::isEligibleForTreatment(double t, const State *pState, Person *pPe
 {
     const SimpactPopulation &population = SIMPACTPOPULATION(pState);
 
-    if (pPerson->isWoman() && !WOMAN(pPerson)->isDVR() && !pPerson->hiv().isInfected() && !pPerson->isPrep()){
+    if (pPerson->isWoman() && !WOMAN(pPerson)->isDVR() && !pPerson->hiv().isInfected() && !pPerson->isPrep() && !pPerson->isCAB()){
         return true;
     }else{
         return false;
