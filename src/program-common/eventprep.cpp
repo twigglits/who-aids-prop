@@ -43,7 +43,7 @@ bool EventPrep::isEligibleForTreatmentP1(double t, const State *pState, Person *
     // Person *pPerson1 = getPerson(0);
     // Person *pPerson2 = getPerson(1);
 
-    if (!pPerson->hiv().isInfected() && !pPerson->isPrep()){  //&& pPerson2->hiv().isInfected()  we check that a person is in a relationship
+    if (!pPerson->hiv().isInfected() && !pPerson->isPrep() && !pPerson->isCAB()){  //&& pPerson2->hiv().isInfected()  we check that a person is in a relationship
         if ( pPerson->isWoman() && !WOMAN(pPerson)->isDVR() ){
             return true;
         }else if(pPerson->isMan()){
