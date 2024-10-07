@@ -159,6 +159,7 @@ double EventHIVTransmission::s_f1 = 0;
 double EventHIVTransmission::s_f2 = 0;
 double EventHIVTransmission::s_g1 = 0;
 double EventHIVTransmission::s_g2 = 0;
+double EventHIVTransmission::s_v1 = 0;
 double EventHIVTransmission::s_tMaxAgeRefDiff = -1;
 
 double EventHIVTransmission::calculateInternalTimeInterval(const State *pState, double t0, double dt)
@@ -188,6 +189,19 @@ int EventHIVTransmission::getH(const Person *pPerson)
 	return H;
 } 
 
+int EventHIVTransmission::getV(const Person *pPerson)
+{
+	if (!pPerson->isMan()) {
+        return 0; // If not a man, VMMC status does not apply; return 0
+    }
+	// Cast the Person instance to a Man
+    const Man *man = dynamic_cast<const Man *>(pPerson);
+	// Call the isVmmc() method on the Man instance
+    bool v = man->isVmmc();
+    // Return 1 if the man is circumsized, 0 otherwise
+    return v ? 1 : 0;  //converts the true false, to 1 or 0.
+}
+
 double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &population, double t0)
 {
 	// Person1 is the infected person and his/her viral load (set-point or acute) determines
@@ -205,7 +219,7 @@ double EventHIVTransmission::calculateHazardFactor(const SimpactPopulation &popu
 	assert(s_b != 0);
 	assert(s_c != 0);
 
-	double logh = s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter();
+	double logh = s_a + s_b * std::pow(V,-s_c) + s_d1*Pi + s_d2*Pj + s_e1*getH(pPerson1) + s_e2*getH(pPerson2) + s_g1*pPerson2->hiv().getHazardB0Parameter() + s_g2*pPerson2->hiv().getHazardB1Parameter() + + s_v1*getV(pPerson2);
 
 	if (s_f1 != 0 && pPerson2->isWoman())
 	{
@@ -241,6 +255,7 @@ void EventHIVTransmission::processConfig(ConfigSettings &config, GslRandomNumber
 	    !(r = config.getKeyValue("hivtransmission.param.f2", s_f2)) ||
 	    !(r = config.getKeyValue("hivtransmission.param.g1", s_g1)) ||
 	    !(r = config.getKeyValue("hivtransmission.param.g2", s_g2)) ||
+		!(r = config.getKeyValue("hivtransmission.param.v1", s_v1)) ||
 		!(r = config.getKeyValue("hivtransmission.maxageref.diff", s_tMaxAgeRefDiff)) )
 		
 		abortWithMessage(r.getErrorString());
@@ -261,6 +276,7 @@ void EventHIVTransmission::obtainConfig(ConfigWriter &config)
 		!(r = config.addKey("hivtransmission.param.f2", s_f2)) ||
 		!(r = config.addKey("hivtransmission.param.g1", s_g1)) ||
 		!(r = config.addKey("hivtransmission.param.g2", s_g2)) ||
+		!(r = config.addKey("hivtransmission.param.v1", s_v1)) ||
 		!(r = config.addKey("hivtransmission.maxageref.diff", s_tMaxAgeRefDiff))
 		)
 		
@@ -285,6 +301,7 @@ JSONConfig hivTransmissionJSONConfig(R"JSON(
                 ["hivtransmission.param.f2", 0],
 			["hivtransmission.param.g1", 0],
 			["hivtransmission.param.g2", 0],
+			["hivtransmission.param.v1", -0.916],
                 ["hivtransmission.maxageref.diff", 1] ],
             "info": [ 
                 "The hazard of transmission is h = exp(a + b * V^(-c) + d1*Pi + d2*Pj + e1*Hi + e2*Hj + g1*b0_j + g2*b1_j), ",

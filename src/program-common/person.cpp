@@ -27,7 +27,6 @@ Person::Person(double dateOfBirth, Gender g) : PersonBase(g, dateOfBirth), m_rel
 
 	m_pPersonImpl = new PersonImpl(*this);
 }
-
 Person::~Person()
 {
 	delete m_pPersonImpl;
@@ -43,13 +42,13 @@ void Person::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRn
 
 	// Population distribution
 	delete m_pPopDist;
-	m_pPopDist = getDistribution2DFromConfig(config, pRndGen, "person.geo");
+	m_pPopDist = getDistribution2DFromConfig(config, pRndGen, "person.geo");  // here this is how we make it accessible...
 }
 
 void Person::obtainConfig(ConfigWriter &config)
 {
 	assert(m_pPopDist);
-	addDistribution2DToConfig(m_pPopDist, config, "person.geo");
+	addDistribution2DToConfig(m_pPopDist, config, "person.geo");   // here this is how we make it accessible...
 }
 
 void Person::writeToPersonLog()
@@ -144,6 +143,7 @@ void Person::writeToTreatmentLog(double dropoutTime, bool justDied)
 
 Man::Man(double dateOfBirth) : Person(dateOfBirth, Male)
 {
+	m_vmmc = false;
 }
 
 Man::~Man()
@@ -153,6 +153,9 @@ Man::~Man()
 Woman::Woman(double dateOfBirth) : Person(dateOfBirth, Female)
 {
 	m_pregnant = false;
+	m_DVR = false;
+	m_AGYW = true;
+	m_lastDVRCheckTime;
 }
 
 Woman::~Woman()
@@ -160,4 +163,3 @@ Woman::~Woman()
 }
 
 ConfigFunctions personConfigFunctions(Person::processConfig, Person::obtainConfig, "Person");
-

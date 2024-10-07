@@ -37,6 +37,13 @@ public:
 
 	void setSexuallyActive(double t)															{ m_sexuallyActive = true; assert(t >= 0); m_debutTime = t; }
 	bool isSexuallyActive()	const																{ return m_sexuallyActive;}
+
+	void setPrep(double t)															{ m_prep = true; }
+	bool isPrep()	const																{ return m_prep; }
+
+	void setCAB(double t)															{ m_cab = true; }
+	bool isCAB()	const																{ return m_cab; }
+
 	double getDebutTime() const																	{ return m_debutTime; }
 
 	double getFormationEagernessParameter() const												{ return m_formationEagernessHetero; }
@@ -89,6 +96,8 @@ private:
 	std::set<Relationship>::const_iterator m_relationshipsIterator;
 	double m_lastRelationChangeTime;
 	bool m_sexuallyActive;
+	bool m_prep;
+	bool m_cab;
 	double m_debutTime;
 
 	double m_formationEagernessHetero;

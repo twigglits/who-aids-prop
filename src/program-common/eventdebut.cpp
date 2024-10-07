@@ -4,6 +4,7 @@
 #include "jsonconfig.h"
 #include "configfunctions.h"
 #include "util.h"
+#include "eventvmmc.h"
 #include <iostream>
 
 EventDebut::EventDebut(Person *pPerson) : SimpactEvent(pPerson)
@@ -46,15 +47,23 @@ void EventDebut::fire(Algorithm *pAlgorithm, State *pState, double t)
 {
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	assert(getNumberOfPersons() == 1);
-
 	Person *pPerson = getPerson(0);
 	assert(pPerson != 0);
+	
 
 	pPerson->setSexuallyActive(t);
 
 	// No relationships will be scheduled if the person is already in the final AIDS stage
-	if (pPerson->hiv().getInfectionStage() != Person_HIV::AIDSFinal)
+	if (pPerson->hiv().getInfectionStage() != Person_HIV::AIDSFinal){
+		
+		if (pPerson->isMan())
+		{
+			EventVMMC *pEvtVMMC = new EventVMMC(pPerson);
+            population.onNewEvent(pEvtVMMC);
+		}
 		population.initializeFormationEvents(pPerson, false, false, t);
+	}
+		
 }
 
 double EventDebut::m_debutAge = -1;

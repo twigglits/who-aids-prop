@@ -14,6 +14,7 @@ set(SOURCES_SIMPACT
 	../program-common/eventformation.cpp
 	../program-common/eventdissolution.cpp
 	../program-common/eventdebut.cpp
+	../program-common/eventvmmc.cpp
 	../program-common/eventhivtransmission.cpp
 	../program-common/eventhsv2transmission.cpp
 	../program-common/eventchronicstage.cpp

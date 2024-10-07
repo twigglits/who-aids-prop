@@ -67,8 +67,24 @@ public:
 	// result is negative if no relations formed yet
 	double getLastRelationshipChangeTime() const									{ return m_relations.getLastRelationshipChangeTime(); }
 
+	// set and check for if person is sexually active
 	void setSexuallyActive(double t)												{ m_relations.setSexuallyActive(t); }
 	bool isSexuallyActive() const													{ return m_relations.isSexuallyActive(); }
+
+	// set and check for if person is uses condoms
+	bool m_condom;
+	void setCondomUse(bool f)														{ m_condom = f; }
+	bool isCondomUsing() const														{ return m_condom; }
+
+	// set and check for if person is doing prep
+    void setPrep(double t)												{ m_relations.setPrep(t); }
+	bool isPrep() const													{ return m_relations.isPrep(); }
+
+	// set and check for if person is on CAB intervention
+    void setCAB(double t)												{ m_relations.setCAB(t); }
+	bool isCAB() const													{ return m_relations.isCAB(); }
+
+
 	double getDebutTime() const														{ return m_relations.getDebutTime(); }
 
 	double getFormationEagernessParameter() const									{ return m_relations.getFormationEagernessParameter(); }
@@ -128,7 +144,13 @@ class Man : public Person
 public:
 	Man(double dateOfBirth);
 	~Man();
+	
+	void setVmmc(bool f) 								{ m_vmmc = f; }
+	bool isVmmc() const									{ return m_vmmc; }  
+private:
+	bool m_vmmc;
 };
+	
 
 class Woman : public Person
 {
@@ -138,8 +160,21 @@ public:
 
 	void setPregnant(bool f)							{ m_pregnant = f; }
 	bool isPregnant() const								{ return m_pregnant; }
+	
+	void setAGYW(bool y)								{ m_AGYW = y; }
+	bool isAGYW() const									{ return m_AGYW; }
+
+	double tNow;
+	double m_lastDVRCheckTime;
+
+	void setDVR(bool d)									{ m_DVR = d; m_lastDVRCheckTime = tNow; }
+	bool isDVR() const									{ return m_DVR; m_lastDVRCheckTime; }
+	
 private:
+	bool m_AGYW;
+	bool m_DVR;
 	bool m_pregnant;
+	
 };
 
 inline Man *MAN(Person *pPerson)
@@ -177,4 +212,3 @@ inline double Person::getDistanceTo(Person *pPerson)
 }
 
 #endif // PERSON_H
-

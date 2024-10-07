@@ -303,11 +303,14 @@ population.msm                                               = no
 
 population.eyecap.fraction                                   = 0.2
 
+EventVMMC.m_vmmcscheduleDist.dist.type                       = uniform
+EventVMMC.m_vmmcscheduleDist.dist.uniform.min                = 0
+EventVMMC.m_vmmcscheduleDist.dist.uniform.max                = 1
 
+EventVMMC.m_vmmcprobDist.dist.type                           = uniform
+EventVMMC.m_vmmcprobDist.dist.uniform.min                    = 0
+EventVMMC.m_vmmcprobDist.dist.uniform.max                    = 1
+EventVMMC.enabled                                            = true       
+EventVMMC.threshold                                          = 0.3
 
-
-
-
-
-
-
+hivtransmission.param.v1                                     = -1.2

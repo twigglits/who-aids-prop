@@ -3,6 +3,7 @@
 #include "eventaidsmortality.h"
 #include "eventformation.h"
 #include "eventdebut.h"
+#include "eventvmmc.h"
 #include "eventchronicstage.h"
 #include "eventhivseed.h"
 #include "eventhsv2seed.h"
@@ -153,6 +154,16 @@ bool_t SimpactPopulation::scheduleInitialEvents()
 
 		EventMortality *pEvt = new EventMortality(pPerson);
 		onNewEvent(pEvt);
+	}
+
+	// VMMC event. This only takes place for men in the population.
+	for (int i = 0 ; i < numPeople ; i++)
+	{
+		Person *pPerson = ppPeople[i];
+		if (pPerson->isMan() && pPerson->isSexuallyActive()){
+			EventVMMC *pEvt = new EventVMMC(pPerson);
+			onNewEvent(pEvt);
+		}
 	}
 	
 	// Relationship formation. For heterosexual relations, we'll only process 
