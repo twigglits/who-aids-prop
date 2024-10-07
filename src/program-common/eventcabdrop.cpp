@@ -57,10 +57,10 @@ bool EventCABDROP::isWillingToStartTreatment(double t, GslRandomNumberGenerator 
 bool EventCABDROP::isHardDropOut(double t, const State *pState, Person *pPerson){
     const SimpactPopulation &population = SIMPACTPOPULATION(pState);
 
-    if(pPerson->isWoman() && WOMAN(pPerson)->isDVR()){
+    if(pPerson->isWoman() && WOMAN(pPerson)->isDVR() && pPerson->isCAB()){
         return true;
     }
-    else if((pPerson->hiv().isInfected() || pPerson->isPrep() || pPerson->getNumberOfRelationships()==0))
+    else if(pPerson->isCAB() && (pPerson->hiv().isInfected() || pPerson->isPrep() || pPerson->getNumberOfRelationships()==0))
     {
         return true;
     }
