@@ -20,7 +20,7 @@ Person_Relations::Person_Relations(const Person *pSelf) : m_pSelf(pSelf)
 	m_sexuallyActive = false;
     m_prep = false;
 	m_debutTime = -1;
-
+	m_cab = false;
 	m_relationshipsIterator = m_relationshipsSet.begin();
 #ifndef NDEBUG
 	m_relIterationBusy = false;
