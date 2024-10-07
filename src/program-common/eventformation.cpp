@@ -115,7 +115,7 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	Person *pPerson1 = getPerson(0);
 	Person *pPerson2 = getPerson(1);
 
-	if (EventAGYW::m_AGYW_enabled){
+	if (EventAGYW::m_AGYW_enabled && pPerson2->isWoman()){
 		EventAGYW *pEvtAGYW = new EventAGYW(pPerson2);
 		population.onNewEvent(pEvtAGYW);
 	}
