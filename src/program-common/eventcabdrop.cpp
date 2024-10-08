@@ -18,6 +18,7 @@ double EventCABDROP::s_CABDropThreshold = 0.5;
 
 EventCABDROP::EventCABDROP(Person *pPerson) : SimpactEvent(pPerson)
 {
+    assert(pPerson->isCAB());
 }
 
 EventCABDROP::~EventCABDROP()
