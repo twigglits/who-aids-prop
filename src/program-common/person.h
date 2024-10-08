@@ -81,8 +81,9 @@ public:
 	bool isPrep() const													{ return m_relations.isPrep(); }
 
 	// set and check for if person is on CAB intervention
-    void setCAB(double t)												{ m_relations.setCAB(t); }
-	bool isCAB() const													{ return m_relations.isCAB(); }
+	bool m_cab;
+    void setCAB(bool b)												{ m_cab = b; }
+	bool isCAB() const												{ return m_cab; }
 
 
 	double getDebutTime() const														{ return m_relations.getDebutTime(); }

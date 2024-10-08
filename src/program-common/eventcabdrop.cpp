@@ -70,7 +70,8 @@ bool EventCABDROP::isHardDropOut(double t, const State *pState, Person *pPerson)
 
 double EventCABDROP::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-    return std::numeric_limits<double>::infinity();
+    double dt = 0.1;
+    return dt;
 }
 
 void EventCABDROP::fire(Algorithm *pAlgorithm, State *pState, double t) {
