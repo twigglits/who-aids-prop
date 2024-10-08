@@ -70,7 +70,7 @@ bool EventCABDROP::isHardDropOut(double t, const State *pState, Person *pPerson)
 
 double EventCABDROP::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-    double dt = 0.1;
+    double dt = 1.0;
     return dt;
 }
 
