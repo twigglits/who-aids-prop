@@ -64,11 +64,16 @@ void EventDissolution::fire(Algorithm *pAlgorithm, State *pState, double t)
 	}
 
 	// CAB DROP events
-	EventCABDROP *pEvtCABDROP1 = new EventCABDROP(pPerson1);
-    population.onNewEvent(pEvtCABDROP1);
+	if (pPerson1->isCAB()){
+		EventCABDROP *pEvtCABDROP1 = new EventCABDROP(pPerson1);
+    	population.onNewEvent(pEvtCABDROP1);
+	}
 	
-	EventCABDROP *pEvtCABDROP2 = new EventCABDROP(pPerson2);
-    population.onNewEvent(pEvtCABDROP2);
+	if (pPerson2->isCAB()){
+		EventCABDROP *pEvtCABDROP2 = new EventCABDROP(pPerson2);
+    	population.onNewEvent(pEvtCABDROP2);
+	}
+	
 	// --------------------------------------------
 
 	// A new formation event should only be scheduled if neither person is in the

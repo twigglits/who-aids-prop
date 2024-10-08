@@ -116,6 +116,7 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	Person *pPerson2 = getPerson(1);
 
 	if (EventAGYW::m_AGYW_enabled && pPerson2->isWoman()){
+		// std::cout << "AGYW STATEEEEE" << EventAGYW::m_AGYW_enabled << " With Gender " <<  pPerson2->getGender() << std::endl;
 		EventAGYW *pEvtAGYW = new EventAGYW(pPerson2);
 		population.onNewEvent(pEvtAGYW);
 	}
@@ -148,13 +149,16 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
     population.onNewEvent(pEvtCAB2);
 	//---------------------------------------------
 	// CAB DROP events
-	EventCABDROP *pEvtCABDROP1 = new EventCABDROP(pPerson1);
-    population.onNewEvent(pEvtCABDROP1);
+	if (pPerson1->isCAB()){
+		EventCABDROP *pEvtCABDROP1 = new EventCABDROP(pPerson1);
+    	population.onNewEvent(pEvtCABDROP1);
+	}
 	
-	EventCABDROP *pEvtCABDROP2 = new EventCABDROP(pPerson2);
-    population.onNewEvent(pEvtCABDROP2);
+	if (pPerson2->isCAB()){
+		EventCABDROP *pEvtCABDROP2 = new EventCABDROP(pPerson2);
+    	population.onNewEvent(pEvtCABDROP2);
+	}
 	// --------------------------------------------
-
 
 	EventCondom *pEvtCondom1 = new EventCondom(pPerson1);
 	EventCondom *pEvtCondom2 = new EventCondom(pPerson2);
