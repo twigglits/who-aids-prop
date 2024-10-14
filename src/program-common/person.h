@@ -81,10 +81,20 @@ public:
 	bool isPrep() const													{ return m_relations.isPrep(); }
 
 	// set and check for if person is on CAB intervention
-	bool m_cab;
-    void setCAB(bool b)												{ m_cab = b; }
-	bool isCAB() const												{ return m_cab; }
+	// bool m_cab;
+    // void setCAB(bool b)												{ m_cab = b; }
+	// bool isCAB() const												{ return m_cab; }
+    // set and check for if person is on CAB intervention
+    void setCAB(bool b) { 
+        m_cab = b; 
+        if (!b) {
+            setCABDropEventScheduled(false); // Unset the flag when CAB is set to false
+        }
+    }
+    bool isCAB() const { return m_cab; }
 
+    bool hasCABDropEventScheduled() const { return m_hasCABDropEventScheduled; }
+    void setCABDropEventScheduled(bool scheduled) { m_hasCABDropEventScheduled = scheduled; }
 
 	double getDebutTime() const														{ return m_relations.getDebutTime(); }
 
@@ -138,6 +148,8 @@ private:
 	static ProbabilityDistribution2D *m_pPopDist;
 	static double m_popDistWidth;
 	static double m_popDistHeight;
+    bool m_cab;
+    bool m_hasCABDropEventScheduled = false;
 };
 
 class Man : public Person
