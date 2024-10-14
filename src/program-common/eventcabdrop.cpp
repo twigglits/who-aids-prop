@@ -86,7 +86,6 @@ double EventCABDROP::getNewInternalTimeDifference(GslRandomNumberGenerator *pRnd
         return 1.0; // Reschedule after 1.0 time units if still on CAB
     }
     return std::numeric_limits<double>::infinity(); // Do not reschedule otherwise
-
 }
 
 // void EventCABDROP::fire(Algorithm *pAlgorithm, State *pState, double t) {
