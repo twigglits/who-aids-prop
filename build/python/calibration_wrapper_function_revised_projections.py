@@ -51,7 +51,7 @@ def calibration_wrapper_function(parameters = None):
     formation_hazard_agegapry_numrel_woman= -0.61526928)
     
     cfg_list["hivtransmission.param.k"] = -1.203
-    cfg_list["hivtransmission.param.p"] = -1.7147 #prep effectivenss in preventing HIV (82%, remaining risk ln(18))
+    cfg_list["hivtransmission.param.p"] = -1.6094 #prep effectivenss in preventing HIV (80%, remaining risk ln(0.20))
             
     cfg_list["population.agedistfile"] = "/home/jupyter/who-aids-prop/build/python/eswatini_1980.csv"
     cfg_list['diagnosis.eagernessfactor'] = np.log(1.025)
@@ -97,16 +97,33 @@ def calibration_wrapper_function(parameters = None):
     cfg_list['EventPrepDrop.interval.dist.uniform.max'] = 1#10.0
     
     # prep dvr
-    cfg_list['EventDVR.enabled'] = 'false'
+    cfg_list['EventDVR.enabled'] = "false"
+    cfg_list["EventDVR.m_DVRprobDist.dist.type"] = "uniform"
+    cfg_list["EventDVR.m_DVRprobDist.dist.uniform.max"] = 1
+    cfg_list["EventDVR.m_DVRprobDist.dist.uniform.min"] = 0
     cfg_list['EventDVR.threshold'] = 1 # threshold for willingness to start dvr. Nobody starts
     cfg_list["EventDVRDROP.enabled"] = "false"
     cfg_list["EventDVRDROP.threshold"] = 1 # threshold for dropping, nobody drops
-    cfg_list["EventDVRDROP.m_DVRprobDist.dist.type"] = 'uniform'
-    cfg_list["EventDVRDROP.m_DVRprobDist.dist.uniform.min"] = 0
-    cfg_list["EventDVRDROP.m_DVRprobDist.dist.uniform.max"] = 1
-    cfg_list["EventDVRDROP.schedulemin"] = 1 #people can drop out of prep after 1 month
-    cfg_list["EventDVRDROP.schedulemax"] = 6 #people can drop out of prep upto 6 months after starting
-
+    cfg_list["EventDVRDROP.m_DVRDROPprobDist.dist.type"] = 'uniform'
+    cfg_list["EventDVRDROP.m_DVRDROPprobDist.dist.uniform.min"] = 0
+    cfg_list["EventDVRDROP.m_DVRDROPprobDist.dist.uniform.max"] = 1
+    # cfg_list["EventDVRDROP.schedulemin"] = 1 #people can drop out of prep after 1 month
+    # cfg_list["EventDVRDROP.schedulemax"] = 12 #people can drop out of prep upto 6 months after starting
+    cfg_list["hivtransmission.param.p1"] = -0.6931 #dvr effectivenss in preventing HIV (50%, remaining risk ln(0.5))
+    
+    # prep cab
+    cfg_list['EventCAB.enabled'] = "false"
+    cfg_list["EventCAB.m_CABprobDist.dist.type"] = "uniform"
+    cfg_list["EventCAB.m_CABprobDist.dist.uniform.max"] = 1
+    cfg_list["EventCAB.m_CABprobDist.dist.uniform.min"] = 0
+    cfg_list['EventCAB.threshold'] = 1 # threshold for willingness to start cab. Nobody starts
+    cfg_list["EventCABDROP.enabled"] = "false"
+    cfg_list["EventCABDROP.threshold"] = 1 # threshold for dropping, nobody drops
+    cfg_list["EventCABDROP.m_CABDROPprobDist.dist.type"] = 'uniform'
+    cfg_list["EventCABDROP.m_CABDROPprobDist.dist.uniform.min"] = 0
+    cfg_list["EventCABDROP.m_CABDROPprobDist.dist.uniform.max"] = 1
+    cfg_list["hivtransmission.param.p2"] = -2.9957
+    
     # Initial values
     mu_cd4 = 800
     var_cd4 = 200 ** 2
@@ -253,12 +270,15 @@ def calibration_wrapper_function(parameters = None):
 
     art_intro5 = {
         "time": 36.75, #around oct 2016
-        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'] + parameters['diagnosis_baseline_t5'],
+        # "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'],# + parameters['diagnosis_baseline_t5'],
         "monitoring.cd4.threshold":100000, 
-        "monitoring.m_artDist.dist.normal.mu": 0.3,
-        "monitoring.m_artDist.dist.normal.min": 0.1,
-        "monitoring.m_artDist.dist.normal.max":0.5,
-        "diagnosis.AGYWfactor":0.3 
+        # "monitoring.m_artDist.dist.normal.mu": 0.3,
+        # "monitoring.m_artDist.dist.normal.min": 0.1,
+        # "monitoring.m_artDist.dist.normal.max":0.5,
+        # "monitoring.m_artDist.dist.normal.mu": 0.35,
+        # "monitoring.m_artDist.dist.normal.min": 0.15,
+        # "monitoring.m_artDist.dist.normal.max":0.55,
+        # "diagnosis.AGYWfactor":0.3 
     }
 
         #condom use
@@ -304,20 +324,124 @@ def calibration_wrapper_function(parameters = None):
     prep_intro1 = {
             "time":37, #around 2017
             "EventPrep.enabled": "true",
-            "EventPrep.threshold":0.965, #0.87, # threshold for willingness to start prep. coverage is 13%
-            "EventPrep.AGYWthreshold":0.2,
-            'EventPrepDrop.threshold': 0.3#0.8
+            "EventPrep.threshold":0.94, #0.87, # threshold for willingness to start prep. coverage is 13%
+            'EventPrepDrop.threshold': 0.001#0.8
         }
-    # prep dvr
-    dvr_intro = {
-            "time":45, #around 2025
-            "EventDVR.enabled":"true",
-            "EventDVR.threshold":0.7,
-            "EventDVRDROP.enabled":"true",
-            "EventPrepDrop.threshold":0.5
+    
+    prep_intro2 = {
+            "time":40.5, #around mid 2020
+            "EventPrep.threshold":0.85, #0.965, #0.87, # threshold for willingness to start prep. coverage is 13%
+            'EventPrepDrop.threshold': 0.001#0.8
+        }
+    
+    prep_intro3 = {
+            "time":43, #around  2023
+            "EventPrep.threshold":0.8, #0.965, #0.87, # threshold for willingness to start prep. coverage is 13%
+            'EventPrepDrop.threshold': 0.001#0.8
+        }
+    
+    ########## future scenarios config
+    diagnosis_intro = {
+        "time":45.0101,
+        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4']+ 1
     }
     
-    # future scenario
+    # prep cab-la
+    cab_intro = {
+            "time":44.1293, #around 2024
+            "EventCAB.enabled":"true",
+            "EventCAB.threshold": 0.95, #optimistic with 4400 users by 2030
+            "EventPrep.threshold":0.88, #scale down oral prep 
+            "EventCABDROP.enabled":"true",
+            "EventCABDROP.threshold": 0.3
+    }
+    
+    cab_intro_1 = {
+            "time":47.1293, #around 2024
+            "EventCAB.enabled":"true",
+            "EventCAB.threshold": 0.90, #optimistic with 4400 users by 2030
+            "EventPrep.threshold":0.97, #scale down oral prep 
+            "EventCABDROP.enabled":"true",
+            "EventCABDROP.threshold": 0.3
+    }
+    
+    cab_intro_opt = {
+            "time":44.125, #around 2024
+            "EventCAB.enabled":"true",
+            "EventCAB.threshold": 0.93, #optimistic with 4400 users by 2030
+            "EventPrep.threshold":0.85, #scale down oral prep 
+            "EventCABDROP.enabled":"true",
+            "EventCABDROP.threshold": 0.3
+    }
+    
+    cab_intro_opt_1 = {
+            "time":47.125, #around 2024
+            "EventCAB.enabled":"true",
+            "EventCAB.threshold": 0.88, #optimistic with 4400 users by 2030
+            "EventPrep.threshold":0.95, #scale down oral prep 
+            "EventCABDROP.enabled":"true",
+            "EventCABDROP.threshold": 0.3
+    }
+    
+    
+        
+    # prep+cab+dvr
+    dvr_intro = {
+            "time":44.134, #around 2024
+            "EventCAB.enabled":"true",
+            "EventCAB.threshold": 0.94, #optimistic with 4400 users by 2030
+            "EventPrep.threshold":0.87, #scale down oral prep 
+            "EventCABDROP.enabled":"true",
+            "EventCABDROP.threshold": 0.3,
+            "EventDVR.enabled":"true",
+            "EventDVR.threshold": 0.975,
+            "EventDVRDROP.enabled":"true",
+            "EventDVRDROP.threshold": 0.1
+        
+    }
+    
+    dvr_intro_1 = {
+            "time":47.134, #around 2024
+            "EventCAB.enabled":"true",
+            "EventCAB.threshold": 0.89, #optimistic with 4400 users by 2030
+            "EventPrep.threshold":0.96, #scale down oral prep 
+            "EventCABDROP.enabled":"true",
+            "EventCABDROP.threshold": 0.3,
+            "EventDVR.enabled":"true",
+            "EventDVR.threshold": 0.96,
+            "EventDVRDROP.enabled":"true",
+            "EventDVRDROP.threshold": 0.1
+    }
+    
+    dvr_intro_opt = {
+            "time":44.134, #around 2024
+            "EventCAB.enabled":"true",
+            "EventCAB.threshold": 0.93, #optimistic with 4400 users by 2030
+            "EventPrep.threshold":0.85, #scale down oral prep 
+            "EventCABDROP.enabled":"true",
+            "EventCABDROP.threshold": 0.3,
+            "EventDVR.enabled":"true",
+            "EventDVR.threshold": 0.96,
+            "EventDVRDROP.enabled":"true",
+            "EventDVRDROP.threshold": 0.1
+        
+    }
+    
+    dvr_intro_opt_1 = {
+            "time":47.134, #around 2024
+            "EventCAB.enabled":"true",
+            "EventCAB.threshold": 0.90, #optimistic with 4400 users by 2030
+            "EventPrep.threshold":0.97, #scale down oral prep 
+            "EventCABDROP.enabled":"true",
+            "EventCABDROP.threshold": 0.3,
+            "EventDVR.enabled":"true",
+            "EventDVR.threshold": 0.95,
+            "EventDVRDROP.enabled":"true",
+            "EventDVRDROP.threshold": 0.1
+    }
+
+    
+    # vmmc
     vmmc_intro3 = {
         "time":44, #around 2024
         "EventVMMC.threshold": 0.1,
@@ -326,17 +450,31 @@ def calibration_wrapper_function(parameters = None):
 
     # prep
     prep_intro_halfway_2030 = {
-            "time":44.1, #around 2024
+            "time":44.100, #around 2024
             "EventPrep.enabled": "true",
-            "EventPrep.threshold":0.945, #0.87, # threshold for willingness to start prep. coverage is 13%
-            'EventPrepDrop.threshold': 0.3#0.4
+            "EventPrep.threshold":0.75, 
+            'EventPrepDrop.threshold': 0.001#0.4
+        }
+    
+    prep_intro_halfway_2030_1 = {
+            "time":47.100, #around 2027
+            "EventPrep.enabled": "true",
+            "EventPrep.threshold":0.70, 
+            'EventPrepDrop.threshold': 0.001#0.4
         }
     
     prep_intro_optimistic_2030 = {
-        "time":44.11, #around 2024
+        "time":44.150, #around 2024
         "EventPrep.enabled": "true",
-        "EventPrep.threshold":0.91, #0.87, # threshold for willingness to start prep. coverage is 13%
-        'EventPrepDrop.threshold': 0.3
+        "EventPrep.threshold":0.7, #0.87, 
+        'EventPrepDrop.threshold': 0.001
+    }
+    
+    prep_intro_optimistic_2030_1 = {
+        "time":47.150, #around 2024
+        "EventPrep.enabled": "true",
+        "EventPrep.threshold":0.65, #0.87, 
+        'EventPrepDrop.threshold': 0.001
     }
     
     # condom use
@@ -372,66 +510,86 @@ def calibration_wrapper_function(parameters = None):
     ART_factual = [hiv_testing, conception,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
                   condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
-                   prep_intro1]
+                   prep_intro1, prep_intro2, prep_intro3]
     
     ART_counterfactual_VMMC = [hiv_testing, conception,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
                   condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2, vmmc_intro3,
-                   prep_intro1]
+                   prep_intro1,prep_intro2, prep_intro3]
+    
+    ART_counterfactual_diagnosis = [hiv_testing, conception,
+                   art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
+                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
+                   prep_intro1, prep_intro2, prep_intro3, diagnosis_intro]
     
     ART_counterfactual_PrEP_halfway = [hiv_testing, conception,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
                   condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
-                   prep_intro1 ,prep_intro_halfway_2030]
+                   prep_intro1,prep_intro2, prep_intro3, prep_intro_halfway_2030, prep_intro_halfway_2030_1]
 
     ART_counterfactual_PrEP_optimistic = [hiv_testing, conception,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
                   condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
-                   prep_intro1 ,prep_intro_optimistic_2030]
+                   prep_intro1, prep_intro2, prep_intro3, prep_intro_optimistic_2030,
+                   prep_intro_optimistic_2030_1]
     
-    ART_counterfactual_PrEP_dvr = [hiv_testing, conception,
+    ART_counterfactual_PrEP_cab_halfway = [hiv_testing, conception,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
                   condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
-                   prep_intro1 ,dvr_intro]
+                   prep_intro1,prep_intro2, prep_intro3, cab_intro,cab_intro_1]
     
-    
-    ART_counterfactual_condom = [hiv_testing, conception,
+    ART_counterfactual_PrEP_cab_optimistic = [hiv_testing, conception,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
-                  condom_intro1, condom_intro2, condom_intro3, condom_intro_4, vmmc_intro1,vmmc_intro2,
-                   prep_intro1]
+                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
+                   prep_intro1,prep_intro2, prep_intro3, cab_intro_opt,cab_intro_opt_1]
+    
+    ART_counterfactual_PrEP_cab_dvr_halfway = [hiv_testing, conception,
+                   art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
+                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
+                   prep_intro1, prep_intro2, prep_intro3, dvr_intro, dvr_intro_1]
+    
+    ART_counterfactual_PrEP_cab_dvr_optimistic = [hiv_testing, conception,
+                   art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
+                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
+                   prep_intro1, prep_intro2, prep_intro3, dvr_intro_opt, dvr_intro_opt_1]
+    
+#     ART_counterfactual_condom = [hiv_testing, conception,
+#                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
+#                   condom_intro1, condom_intro2, condom_intro3, condom_intro_4, vmmc_intro1,vmmc_intro2,
+#                    prep_intro1, prep_intro2, prep_intro3]
     
     AGYW_diagnosis_halfway = [hiv_testing, conception,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
                   condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
-                   prep_intro1, agyw_diagosis_halfway_2030]
+                   prep_intro1, prep_intro2, prep_intro3, agyw_diagosis_halfway_2030]
     
     AGYW_diagnosis_optimistic = [hiv_testing, conception,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
                   condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
-                   prep_intro1, agyw_diagosis_optimistic_2030]
+                   prep_intro1, prep_intro2, prep_intro3, agyw_diagosis_optimistic_2030]
     
-    AGYW_prep = [hiv_testing, conception,
+    AGYW_condom = [hiv_testing, conception,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
                   condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
-                   prep_intro1, agyw_prep_intro]
+                   prep_intro1, prep_intro2, prep_intro3, agyw_condom_intro]
+    
+    # AGYW_prep = [hiv_testing, conception,
+    #                art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
+    #               condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
+    #                prep_intro1, agyw_prep_intro]
     
     
     All_combined_halfway = [hiv_testing, conception,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
                   condom_intro1, condom_intro2, condom_intro3, condom_intro_4, vmmc_intro1,vmmc_intro2,
-                   prep_intro1, vmmc_intro3, prep_intro_halfway_2030, agyw_diagosis_halfway_2030,
-                    agyw_prep_intro]
+                   prep_intro1,prep_intro2, prep_intro3, vmmc_intro3, diagnosis_intro,  dvr_intro, dvr_intro_1,
+                    agyw_diagosis_halfway_2030]
     
     All_combined_optimistic = [hiv_testing, conception,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
                   condom_intro1, condom_intro2, condom_intro3, condom_intro_4, vmmc_intro1, vmmc_intro2,
-                   prep_intro1, vmmc_intro3, prep_intro_optimistic_2030, agyw_diagosis_optimistic_2030,
-                  agyw_prep_intro]
-    
-    AGYW_condom = [hiv_testing, conception,
-                   art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
-                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
-                   prep_intro1, agyw_condom_intro]
+                   prep_intro1, prep_intro2, prep_intro3, vmmc_intro3, diagnosis_intro,
+                     dvr_intro_opt, dvr_intro_opt_1, agyw_diagosis_optimistic_2030]
     
     # running the simulation --------------------------------------------------
     identifier = f'model_{modelid}_seed_{seedid}'
@@ -446,7 +604,7 @@ def calibration_wrapper_function(parameters = None):
     results = simpact.run(
         config=cfg_list,
         destDir=destDir,
-        interventionConfig=ART_counterfactual_PrEP_dvr,
+        interventionConfig=AGYW_condom,
         seed=seedid,
         #identifierFormat=f'seed {identifier}',
         identifierFormat = identifier,
@@ -456,12 +614,12 @@ def calibration_wrapper_function(parameters = None):
     datalist = psh.readthedata(results) 
 
     # Specify the file path to save the dictionary object
-    file_path = f'Calibration/final_data/datalist_dvr_target_{identifier}.pkl'
+    file_path = f'Calibration/final_data/datalist_agyw_condom_{identifier}.pkl'
 
     # Save dictionary to a single file using pickle
     with open(file_path, 'wb') as f:
         pickle.dump(datalist, f)
         
-    #shutil.rmtree(destDir) #deletes the folder with output files
+    shutil.rmtree(destDir) #deletes the folder with output files
     
     return None
