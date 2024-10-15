@@ -314,3 +314,15 @@ EventVMMC.enabled                                            = true
 EventVMMC.threshold                                          = 0.3
 
 hivtransmission.param.v1                                     = -1.2
+
+EventAGYW.agywage                                            = 25
+EventAGYW.enabled                                            = true
+EventCondom.m_condomprobDist.dist.type                       = uniform
+EventCondom.m_condomprobDist.dist.uniform.min                = 0
+EventCondom.m_condomprobDist.dist.uniform.max                = 1
+EventCondom.m_condomscheduleDist.dist.type                   = uniform
+EventCondom.m_condomscheduleDist.dist.uniform.min            = 0
+EventCondom.m_condomscheduleDist.dist.uniform.max            = 1
+EventCondom.enabled                                          = true
+EventCondom.AGYWthreshold                                    = 0.3
+EventCondom.threshold                                        = 0.3
