@@ -48,15 +48,13 @@ void EventDebut::fire(Algorithm *pAlgorithm, State *pState, double t)
 	SimpactPopulation &population = SIMPACTPOPULATION(pState);
 	assert(getNumberOfPersons() == 1);
 	Person *pPerson = getPerson(0);
-	EventVMMC *pEvtVMMC = new EventVMMC(pPerson);  // initialize VMMC class here
-	// EventCondom *pEvtCondom = new EventCondom(pPerson);		// initialize Condom class here
 	pPerson->setSexuallyActive(t);
 
-	// No relationships will be scheduled if the person is already in the final AIDS stage
 	if (pPerson->hiv().getInfectionStage() != Person_HIV::AIDSFinal)
 	{
         if (pPerson->isMan())
 		{
+			EventVMMC *pEvtVMMC = new EventVMMC(pPerson);  // initialize VMMC class here
             population.onNewEvent(pEvtVMMC);  // now we first trigger VMMC event
 		}
 		// population.onNewEvent(pEvtCondom);  // Set the condom preference value for each individual

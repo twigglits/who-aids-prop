@@ -169,8 +169,10 @@ HazardFunctionDiagnosis::HazardFunctionDiagnosis(Person *pPerson, double baselin
 	int P = (pPerson->isWoman() && WOMAN(pPerson)->isPregnant())?1:0;
 	int Y = (pPerson->isWoman() && WOMAN(pPerson)->isAGYW())?1:0;
 
-	std::cout << "For human int Y:" << Y << " AGYW status:" << WOMAN(pPerson)->isAGYW() << " with Factor:" << AGYWFactor << std::endl;
-
+	if (pPerson->isWoman()){
+		std::cout << "For human int Y:" << Y << " AGYW status:" << WOMAN(pPerson)->isAGYW() << " with Factor:" << AGYWFactor << std::endl;
+	}
+	
 	double A = baseline - ageFactor*tb + genderFactor*G + diagPartnersFactor*D + isDiagnosedFactor*hasBeenDiagnosed - beta*tinf + HSV2factor*HSV2 - eagernessFactor*E + pregnancyFactor*P+ AGYWFactor*Y;
 	double B = ageFactor + beta;
 

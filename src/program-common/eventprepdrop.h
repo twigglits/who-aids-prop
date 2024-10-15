@@ -25,7 +25,7 @@ public:
 private:
 	// double getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState);
 	double calculateInternalTimeInterval(const State *pState, double t0, double dt);
-	double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);
+	// double solveForRealTimeInterval(const State *pState, double Tdiff, double t0);
 
 	// double m_treatmentStartTime;
 

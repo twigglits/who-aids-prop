@@ -65,7 +65,7 @@ bool EventCAB::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRn
 
 double EventCAB::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-    double dt = 1.0;
+    double dt = 0.0000001;
     return dt;
 }
 
@@ -80,7 +80,7 @@ void EventCAB::fire(Algorithm *pAlgorithm, State *pState, double t) {
     if (m_CAB_enabled){
         if (isEligibleForTreatment(t, pState, pPerson) && isWillingToStartTreatment(t, pRndGen, pPerson)) 
         {
-        WOMAN(pPerson)->setCAB(true);
+        pPerson->setCAB(true);
         std::cout << "CAB FIRE: " << pPerson->getName() << "Gender"<< pPerson->getGender() << std::endl;
         writeEventLogStart(true, "CAB_treatment", t, pPerson, 0);
         }

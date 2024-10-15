@@ -72,7 +72,8 @@ bool EventPrep::isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *
 
 double EventPrep::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-    double dt = 1.0;
+    // double dt = 1.0;
+    double dt = 0.001;
     return dt;
 }
 

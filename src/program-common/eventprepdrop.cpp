@@ -52,18 +52,13 @@ void EventPrepDrop::fire(Algorithm *pAlgorithm, State *pState, double t)
     {
     pPerson->setPrep(false);
     writeEventLogStart(true, "PrepDrop", t, pPerson, 0);
-    // std::cout << "After PrepDrop status: " << pPerson->isPrep() << " for: " << pPerson->getName() << std::endl;  //maybe should change to getPrep?
     }
 }
 
 double EventPrepDrop::calculateInternalTimeInterval(const State *pState, double t0, double dt)
 {
+    dt = 0.3;
 	return dt;
-}
-
-double EventPrepDrop::solveForRealTimeInterval(const State *pState, double Tdiff, double t0)
-{
-	return Tdiff;
 }
 
 ProbabilityDistribution *EventPrepDrop::m_prepDropDistribution = 0;
@@ -71,7 +66,10 @@ ProbabilityDistribution *EventPrepDrop::m_prepDropDistribution = 0;
 void EventPrepDrop::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen)
 {
     bool_t r;
-	delete m_prepDropDistribution;
+    if (m_prepDropDistribution){
+        delete m_prepDropDistribution;
+        m_prepDropDistribution = 0;
+    }
 	m_prepDropDistribution = getDistributionFromConfig(config, pRndGen, "EventPrepDrop.interval");
 
     if (!(r = config.getKeyValue("EventPrepDrop.threshold", s_prepdropThreshold))){
@@ -94,7 +92,7 @@ JSONConfig prepdropJSONConfig(R"JSON(
             "depends": null,
             "params": [ 
                 ["EventPrepDrop.threshold", 0.2],
-                [ "EventPrepDrop.interval.dist", "distTypes", [ "uniform", [ [ "min", 0.25  ], [ "max", 10.0 ] ] ] ]
+                [ "EventPrepDrop.interval.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
             ],
             "info": [
                 "Distribution to schedule dropout of prep intervention."
