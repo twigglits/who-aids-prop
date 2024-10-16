@@ -22,9 +22,8 @@ public:
 	static void obtainConfig(ConfigWriter &config);
 	static bool hasNextIntervention();
 	static ProbabilityDistribution *m_DVRDROPprobDist;
+	static ProbabilityDistribution *m_DVRDROPscheduleDist;
 	static double s_DVRDROPThreshold;
-	static int s_DVRDROPScheduleMax;
-	static int s_DVRDROPScheduleMin;
     static bool m_DVRDROP_enabled;
 
 private:

@@ -17,7 +17,6 @@ bool EventVMMC::m_VMMC_enabled = false; // line here exists only for declartion,
 
 EventVMMC::EventVMMC(Person *pMan) : SimpactEvent(pMan)
 {
-	assert(pMan->isMan());
 }
 
 EventVMMC::~EventVMMC()
@@ -79,7 +78,6 @@ void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t) {
     assert(pMan->isMan());
     double curTime = population.getTime();
     double age = pMan->getAgeAt(curTime);
-    assert(interventionTime == t);
 
     if (m_VMMC_enabled) {
         if (isEligibleForTreatment(t, pState) && isWillingToStartTreatment(t, pRndGen) && pMan->isMan()) {

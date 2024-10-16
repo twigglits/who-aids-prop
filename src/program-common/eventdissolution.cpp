@@ -64,15 +64,15 @@ void EventDissolution::fire(Algorithm *pAlgorithm, State *pState, double t)
 	}
 
 	// CAB DROP events
-	// if (pPerson1->isCAB()){
-	// 	EventCABDROP *pEvtCABDROP1 = new EventCABDROP(pPerson1);
-    // 	population.onNewEvent(pEvtCABDROP1);
-	// }
+	if (pPerson1->isCAB()){
+		EventCABDROP *pEvtCABDROP1 = new EventCABDROP(pPerson1);
+    	population.onNewEvent(pEvtCABDROP1);
+	}
 	
-	// if (pPerson2->isCAB()){
-	// 	EventCABDROP *pEvtCABDROP2 = new EventCABDROP(pPerson2);
-    // 	population.onNewEvent(pEvtCABDROP2);
-	// }
+	if (pPerson2->isCAB()){
+		EventCABDROP *pEvtCABDROP2 = new EventCABDROP(pPerson2);
+    	population.onNewEvent(pEvtCABDROP2);
+	}
 	
 	// --------------------------------------------
 

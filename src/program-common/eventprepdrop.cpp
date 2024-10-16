@@ -16,7 +16,7 @@ double EventPrepDrop::s_prepdropThreshold = 0.2;
 
 EventPrepDrop::EventPrepDrop(Person *pPerson, double t) : SimpactEvent(pPerson)
 {
-    assert(pPerson->isPrep());
+    // assert(pPerson->isPrep());
 }
 
 EventPrepDrop::~EventPrepDrop()
@@ -57,7 +57,7 @@ void EventPrepDrop::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 double EventPrepDrop::calculateInternalTimeInterval(const State *pState, double t0, double dt)
 {
-    dt = 0.3;
+    dt = 0.003;
 	return dt;
 }
 

@@ -64,7 +64,8 @@ bool EventCAB::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRn
 
 double EventCAB::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-    double dt = 0.0000001;
+    assert(m_CABscheduleDist);
+    double dt = m_CABscheduleDist->pickNumber();
     return dt;
 }
 
@@ -87,7 +88,7 @@ void EventCAB::fire(Algorithm *pAlgorithm, State *pState, double t) {
 }
 
 ProbabilityDistribution *EventCAB::m_CABprobDist = 0;
-
+ProbabilityDistribution *EventCAB::m_CABscheduleDist = 0;
 
 void EventCAB::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen) {
     bool_t r;
@@ -98,6 +99,12 @@ void EventCAB::processConfig(ConfigSettings &config, GslRandomNumberGenerator *p
         m_CABprobDist = 0;
     }
     m_CABprobDist = getDistributionFromConfig(config, pRndGen, "EventCAB.m_CABprobDist");
+
+    if (m_CABscheduleDist) {
+        delete m_CABscheduleDist;
+        m_CABscheduleDist = 0;
+    }
+    m_CABscheduleDist = getDistributionFromConfig(config, pRndGen, "EventCAB.m_CABscheduleDist");
 
     // Read the boolean parameter from the config
     std::string enabledStr;
@@ -118,6 +125,8 @@ void EventCAB::obtainConfig(ConfigWriter &config) {
     }
 
     addDistributionToConfig(m_CABprobDist, config, "EventCAB.m_CABprobDist");
+    addDistributionToConfig(m_CABscheduleDist, config, "EventCAB.m_CABscheduleDist");
+    
 }
 
 ConfigFunctions CABConfigFunctions(EventCAB::processConfig, EventCAB::obtainConfig, "EventCAB");
@@ -128,7 +137,8 @@ JSONConfig CABJSONConfig(R"JSON(
         "params": [
             ["EventCAB.enabled", "true", [ "true", "false"] ],
             ["EventCAB.threshold", 0.5],
-            ["EventCAB.m_CABprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
+            ["EventCAB.m_CABprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
+            ["EventCAB.m_CABscheduleDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
         "info": [ 
             "This parameter is used to set the distribution of subject willing to accept CAB treatment",

@@ -14,8 +14,6 @@ using namespace std;
 
 bool EventDVRDROP::m_DVRDROP_enabled = true;
 double EventDVRDROP::s_DVRDROPThreshold = 0.5;
-int EventDVRDROP::s_DVRDROPScheduleMax = 5;
-int EventDVRDROP::s_DVRDROPScheduleMin = 1;
 
 EventDVRDROP::EventDVRDROP(Person *pPerson) : SimpactEvent(pPerson)
 {
@@ -65,7 +63,8 @@ bool EventDVRDROP::isWillingToStartTreatment(double t, GslRandomNumberGenerator 
 
 double EventDVRDROP::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-    double dt = 0.0;
+    assert(m_DVRDROPscheduleDist);
+    double dt = m_DVRDROPscheduleDist->pickNumber();
 	return dt;
 }
 
@@ -97,40 +96,42 @@ void EventDVRDROP::fire(Algorithm *pAlgorithm, State *pState, double t) {
 }
 
 ProbabilityDistribution *EventDVRDROP::m_DVRDROPprobDist = 0;
+ProbabilityDistribution *EventDVRDROP::m_DVRDROPscheduleDist = 0;
 
 void EventDVRDROP::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen) {
     bool_t r;
 
-    // Process DRV probability distribution
     if (m_DVRDROPprobDist) {
         delete m_DVRDROPprobDist;
         m_DVRDROPprobDist = 0;
     }
     m_DVRDROPprobDist = getDistributionFromConfig(config, pRndGen, "EventDVRDROP.m_DVRDROPprobDist");
 
+    if (m_DVRDROPscheduleDist) {
+        delete m_DVRDROPscheduleDist;
+        m_DVRDROPscheduleDist = 0;
+    }
+    m_DVRDROPscheduleDist = getDistributionFromConfig(config, pRndGen, "EventDVRDROP.m_DVRDROPscheduleDist");
+
     // Read the boolean parameter from the config
     std::string enabledStr;
     if (!(r = config.getKeyValue("EventDVRDROP.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false") ||
-        !(r = config.getKeyValue("EventDVRDROP.threshold", s_DVRDROPThreshold)) ||
-        !(r = config.getKeyValue("EventDVRDROP.schedulemin", s_DVRDROPScheduleMin)) ||
-        !(r = config.getKeyValue("EventDVRDROP.schedulemax", s_DVRDROPScheduleMax))){
+        !(r = config.getKeyValue("EventDVRDROP.threshold", s_DVRDROPThreshold))){
         abortWithMessage(r.getErrorString());
     }
     m_DVRDROP_enabled = (enabledStr == "true");
-
 }
 
 void EventDVRDROP::obtainConfig(ConfigWriter &config) {
     bool_t r;
 
     if (!(r = config.addKey("EventDVRDROP.enabled", m_DVRDROP_enabled ? "true" : "false")) ||
-        !(r = config.addKey("EventDVRDROP.threshold", s_DVRDROPThreshold)) ||
-        !(r = config.addKey("EventDVRDROP.schedulemin", s_DVRDROPScheduleMin)) ||
-        !(r = config.addKey("EventDVRDROP.schedulemax", s_DVRDROPScheduleMax))){
+        !(r = config.addKey("EventDVRDROP.threshold", s_DVRDROPThreshold))){
         abortWithMessage(r.getErrorString());
     }
 
     addDistributionToConfig(m_DVRDROPprobDist, config, "EventDVRDROP.m_DVRDROPprobDist");
+    addDistributionToConfig(m_DVRDROPscheduleDist, config, "EventDVRDROP.m_DVRDROPscheduleDist");
 }
 
 ConfigFunctions DVRDROPConfigFunctions(EventDVRDROP::processConfig, EventDVRDROP::obtainConfig, "EventDVRDROP");
@@ -141,8 +142,7 @@ JSONConfig DVRDROPJSONConfig(R"JSON(
         "params": [
             ["EventDVRDROP.enabled", "true", [ "true", "false"] ],
             ["EventDVRDROP.threshold", 0.5],
-            ["EventDVRDROP.schedulemin", 1],
-            ["EventDVRDROP.schedulemax", 5],
+            ["EventDVRDROP.m_DVRDROPscheduleDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ] ],
             ["EventDVRDROP.m_DVRDROPprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
         "info": [ 

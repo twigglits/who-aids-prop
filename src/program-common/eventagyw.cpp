@@ -33,7 +33,7 @@ double EventAGYW::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen
     // double age = pPerson->getDateOfBirth() + m_AGYW_age;
 	// double dt = population.getTime() - age;
 
-    double dt = 0.0;
+    double dt = 0.005;
     return dt;
 }
 

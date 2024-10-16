@@ -58,7 +58,7 @@ bool EventDVR::isWillingToStartTreatment(double t, GslRandomNumberGenerator *pRn
 
 double EventDVR::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-    double dt = 1.0;
+    double dt = 0.001;
     return dt;
 }
 

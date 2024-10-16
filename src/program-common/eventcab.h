@@ -22,6 +22,7 @@ public:
 	static void obtainConfig(ConfigWriter &config);
 	static bool hasNextIntervention();
 	static ProbabilityDistribution *m_CABprobDist;
+	static ProbabilityDistribution *m_CABscheduleDist;
 	static double s_CABThreshold;
     static bool m_CAB_enabled;
 

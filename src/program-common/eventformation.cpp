@@ -154,16 +154,16 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
     	population.onNewEvent(pEvtCABDROP1);
 	}
 	
-	if (pPerson2->isCAB()){
-		EventCABDROP *pEvtCABDROP2 = new EventCABDROP(pPerson2);
-    	population.onNewEvent(pEvtCABDROP2);
-	}
+	// if (pPerson2->isCAB()){
+	// 	EventCABDROP *pEvtCABDROP2 = new EventCABDROP(pPerson2);
+    // 	population.onNewEvent(pEvtCABDROP2);
+	// }
 	// --------------------------------------------
 
 	EventCondom *pEvtCondom1 = new EventCondom(pPerson1);
 	EventCondom *pEvtCondom2 = new EventCondom(pPerson2);
 
-	population.onNewEvent(pEvtCondom1);
+	// population.onNewEvent(pEvtCondom1);
 	population.onNewEvent(pEvtCondom2);
 
 

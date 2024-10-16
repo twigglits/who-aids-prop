@@ -22,7 +22,7 @@ double EventCondom::s_condomAGYWIncrement = 0.5;
 EventCondom::EventCondom(Person *pPerson) : SimpactEvent(pPerson)
 {
     assert(pPerson->isSexuallyActive());
-    assert(!pPerson->isCondomUsing());
+    // assert(!pPerson->isCondomUsing());
 }
 
 EventCondom::~EventCondom()
@@ -88,11 +88,9 @@ void EventCondom::fire(Algorithm *pAlgorithm, State *pState, double t) {
     Person *pPerson = getPerson(0);
     double curTime = population.getTime();
     double age = pPerson->getAgeAt(curTime);
-    assert(interventionTime == t);
 
     if (m_condom_enabled) {
         if (isEligibleForTreatment(t, pState) && isWillingToStartTreatment(t, pRndGen)) {
-            assert(!pPerson->isCondomUsing());
             pPerson->setCondomUse(true);
             writeEventLogStart(true, "(Condom_Programming)", t, pPerson, 0);
         }else if (isEligibleForTreatment(t, pState) && !isWillingToStartTreatment(t, pRndGen))

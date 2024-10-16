@@ -19,14 +19,6 @@ double EventCABDROP::s_CABDropThreshold = 0.5;
 EventCABDROP::EventCABDROP(Person *pPerson) : SimpactEvent(pPerson)
 {
     assert(pPerson->isCAB());
-    if (!pPerson->isCAB()) {
-        // Handle the error: avoid creating an invalid event
-        // Option 1: Throw an exception
-        throw std::invalid_argument("Attempted to create EventCABDROP for person not on CAB.");
-        // Option 2: Log an error and set CAB to false (if throwing exceptions is not feasible)
-        std::cerr << "Error: EventCABDROP created for person not on CAB: " << pPerson->getName() << std::endl;
-        // Optionally, you can decide not to proceed further
-    }
 }
 
 EventCABDROP::~EventCABDROP()
@@ -77,12 +69,10 @@ bool EventCABDROP::isHardDropOut(double t, const State *pState, Person *pPerson)
 }
 
 double EventCABDROP::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
-{
-    Person *pPerson = getPerson(0);
-    if (pPerson->isCAB()) {
-        return 1.0; // Reschedule after 1.0 time units if still on CAB
-    }
-    return 1.0;
+{   
+    assert(m_CABDROPschedDist);
+    double dt = m_CABDROPschedDist->pickNumber();
+    return dt;
 }
 
 void EventCABDROP::fire(Algorithm *pAlgorithm, State *pState, double t) {
@@ -95,20 +85,19 @@ void EventCABDROP::fire(Algorithm *pAlgorithm, State *pState, double t) {
     if (m_CABDrop_enabled && pPerson->isCAB()) {
         if (isHardDropOut(t, pState, pPerson)) {
             pPerson->setCAB(false);
-            std::cout << "CAB_DROP_HARD FIRE: " << pPerson->getName() 
-                      << " Gender: " << pPerson->getGender() << std::endl;
+            std::cout << "CAB_DROP_HARD FIRE: " << pPerson->getName() << " Gender: " << pPerson->getGender() << std::endl;
             writeEventLogStart(true, "CAB_DROP", t, pPerson, 0);
         }
         else if (isWillingToStartTreatment(t, pRndGen, pPerson)) {
             pPerson->setCAB(false);
-            std::cout << "CAB_DROP_SOFT FIRE: " << pPerson->getName() 
-                      << " Gender: " << pPerson->getGender() << std::endl;
+            std::cout << "CAB_DROP_SOFT FIRE: " << pPerson->getName() << " Gender: " << pPerson->getGender() << std::endl;
             writeEventLogStart(true, "CAB_DROP", t, pPerson, 0);
         }
     }
 }
 
 ProbabilityDistribution *EventCABDROP::m_CABDROPprobDist = 0;
+ProbabilityDistribution *EventCABDROP::m_CABDROPschedDist = 0;
 
 
 void EventCABDROP::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen) {
@@ -120,6 +109,12 @@ void EventCABDROP::processConfig(ConfigSettings &config, GslRandomNumberGenerato
         m_CABDROPprobDist = 0;
     }
     m_CABDROPprobDist = getDistributionFromConfig(config, pRndGen, "EventCABDROP.m_CABDROPprobDist");
+
+    if (m_CABDROPschedDist) {
+        delete m_CABDROPschedDist;
+        m_CABDROPschedDist = 0;
+    }
+    m_CABDROPschedDist = getDistributionFromConfig(config, pRndGen, "EventCABDROP.m_CABDROPschedDist");
 
     // Read the boolean parameter from the config
     std::string enabledStr;
@@ -140,6 +135,7 @@ void EventCABDROP::obtainConfig(ConfigWriter &config) {
     }
 
     addDistributionToConfig(m_CABDROPprobDist, config, "EventCABDROP.m_CABDROPprobDist");
+    addDistributionToConfig(m_CABDROPschedDist, config, "EventCABDROP.m_CABDROPschedDist");
 }
 
 ConfigFunctions CABDROPConfigFunctions(EventCABDROP::processConfig, EventCABDROP::obtainConfig, "EventCABDROP");
@@ -151,6 +147,7 @@ JSONConfig CABDROPJSONConfig(R"JSON(
             ["EventCABDROP.enabled", "true", [ "true", "false"] ],
             ["EventCABDROP.threshold", 0.5],
             ["EventCABDROP.m_CABDROPprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
+            ["EventCABDROP.m_CABDROPschedDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
         "info": [ 
             "This parameter is used to set the distribution of subject willing to accept CAB treatment",
