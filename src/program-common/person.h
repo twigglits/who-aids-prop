@@ -77,24 +77,18 @@ public:
 	bool isCondomUsing() const														{ return m_condom; }
 
 	// set and check for if person is doing prep
-    void setPrep(double t)												{ m_relations.setPrep(t); }
-	bool isPrep() const													{ return m_relations.isPrep(); }
+    // void setPrep(double t)												{ m_relations.setPrep(t); }
+	// bool isPrep() const													{ return m_relations.isPrep(); }
 
-	// set and check for if person is on CAB intervention
-	// bool m_cab;
-    // void setCAB(bool b)												{ m_cab = b; }
-	// bool isCAB() const												{ return m_cab; }
-    // set and check for if person is on CAB intervention
-    void setCAB(bool b) { 
-        m_cab = b; 
-        if (!b) {
-            setCABDropEventScheduled(false); // Unset the flag when CAB is set to false
-        }
-    }
-    bool isCAB() const { return m_cab; }
+	// set and check if person is on Prep
+	bool m_prep=false;	
+	void setPrep(bool f)												{ m_prep = f; }
+	bool isPrep() const													{ return m_prep; }
 
-    bool hasCABDropEventScheduled() const { return m_hasCABDropEventScheduled; }
-    void setCABDropEventScheduled(bool scheduled) { m_hasCABDropEventScheduled = scheduled; }
+	// set and check if person is on CAB
+	bool m_cab=false;
+	void setCAB(bool f)														{ m_cab = f; }
+	bool isCAB() const														{ return m_cab; }
 
 	double getDebutTime() const														{ return m_relations.getDebutTime(); }
 
@@ -148,8 +142,6 @@ private:
 	static ProbabilityDistribution2D *m_pPopDist;
 	static double m_popDistWidth;
 	static double m_popDistHeight;
-    bool m_cab;
-    bool m_hasCABDropEventScheduled = false;
 };
 
 class Man : public Person

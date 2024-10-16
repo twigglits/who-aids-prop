@@ -45,10 +45,8 @@ bool EventVMMC::isEligibleForTreatment(double t, const State *pState)
     assert(pMan->isMan());   // we assert that a person is from the male class
     double curTime = population.getTime();
     double age = pMan->getAgeAt(curTime); 
-    // cout << "Checking eligibility for person " << pMan->getName() << " with age: " << age << endl;
     
     if (pMan->isMan() && !pMan->isVmmc() && age >= 15.0 && age <= 49.0) {
-        // cout << "Person " << pMan->getName() << " eligible with age: " << age << endl;
         return true;  // eligible for treatment
     }
     return false; // not eligible for treatment
@@ -81,7 +79,7 @@ void EventVMMC::fire(Algorithm *pAlgorithm, State *pState, double t) {
     assert(pMan->isMan());
     double curTime = population.getTime();
     double age = pMan->getAgeAt(curTime);
-    assert(interventionTime == t); // make sure we're at the correct time
+    assert(interventionTime == t);
 
     if (m_VMMC_enabled) {
         if (isEligibleForTreatment(t, pState) && isWillingToStartTreatment(t, pRndGen) && pMan->isMan()) {

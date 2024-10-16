@@ -3,12 +3,13 @@
 #include "configdistributionhelper.h"
 #include "util.h"
 #include "configsettings.h"
+#include "eventagyw.h"
 #include "eventprepdrop.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
 #include "configsettingslog.h"
 #include <iostream>
-#include <cstdlib> // for rand() function
+#include <cstdlib>
 #include <chrono>
 
 using namespace std;
@@ -40,10 +41,7 @@ bool EventPrep::isEligibleForTreatmentP1(double t, const State *pState, Person *
 {
     const SimpactPopulation &population = SIMPACTPOPULATION(pState);
 
-    // Person *pPerson1 = getPerson(0);
-    // Person *pPerson2 = getPerson(1);
-
-    if (!pPerson->hiv().isInfected() && !pPerson->isPrep() && !pPerson->isCAB()){  //&& pPerson2->hiv().isInfected()  we check that a person is in a relationship
+    if (!pPerson->hiv().isInfected() && !pPerson->isPrep() && !pPerson->isCAB()){
         if ( pPerson->isWoman() && !WOMAN(pPerson)->isDVR() ){
             return true;
         }else if(pPerson->isMan()){
@@ -59,10 +57,10 @@ bool EventPrep::isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *
     assert(m_prepprobDist);
     double dt = m_prepprobDist->pickNumber();
 
-    if (pPerson->isWoman() && WOMAN(pPerson)->isAGYW()){
+    if (pPerson->isWoman() && WOMAN(pPerson)->isAGYW() && EventAGYW::m_AGYW_enabled){
         std::cout << "Picking dt value: " << pPerson->getName() << "DT is" <<dt << std::endl;
-        dt = std::min(dt + s_prepAGYWIncrement, 1.0);   // I want to increase this number but I don't want it to exceed 1/ 
-    }/*  */
+        dt = std::min(dt + s_prepAGYWIncrement, 1.0); 
+    }
 
     if(dt > s_prepThreshold){
         return true;
@@ -72,7 +70,6 @@ bool EventPrep::isWillingToStartTreatmentP1(double t, GslRandomNumberGenerator *
 
 double EventPrep::getNewInternalTimeDifference(GslRandomNumberGenerator *pRndGen, const State *pState)
 {
-    // double dt = 1.0;
     double dt = 0.001;
     return dt;
 }

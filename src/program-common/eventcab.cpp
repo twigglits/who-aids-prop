@@ -43,8 +43,7 @@ bool EventCAB::isEligibleForTreatment(double t, const State *pState, Person *pPe
             return true;
         }
         return false;
-    }
-    else{
+    }else{
         if(!pPerson->hiv().isInfected() && !pPerson->isPrep() && !pPerson->isCAB()){
             return true;
         }

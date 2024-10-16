@@ -2,6 +2,7 @@
 #include "configsettings.h"
 #include "configwriter.h"
 #include "eventmonitoring.h"
+#include "eventagyw.h"
 #include "configdistributionhelper.h"
 #include "gslrandomnumbergenerator.h"
 #include "jsonconfig.h"
@@ -149,35 +150,38 @@ void EventDiagnosis::obtainConfig(ConfigWriter &config)
 		abortWithMessage(r.getErrorString());
 }
 
-HazardFunctionDiagnosis::HazardFunctionDiagnosis(Person *pPerson, double baseline, double ageFactor,
-		                                                 double genderFactor, double diagPartnersFactor,
-							         double isDiagnosedFactor, double beta, double HSV2factor, double eagernessFactor, double pregnancyFactor, double AGYWFactor)
-	: m_baseline(baseline), m_ageFactor(ageFactor), m_genderFactor(genderFactor),
-	  m_diagPartnersFactor(diagPartnersFactor), m_isDiagnosedFactor(isDiagnosedFactor),
-	  m_beta(beta), m_HSV2factor(HSV2factor), m_eagernessFactor(eagernessFactor), m_pregnancyFactor(pregnancyFactor), m_AGYWFactor(AGYWFactor)
-{
-	assert(pPerson != 0);
-	m_pPerson = pPerson;
+	HazardFunctionDiagnosis::HazardFunctionDiagnosis(Person *pPerson, double baseline, double ageFactor,
+															double genderFactor, double diagPartnersFactor,
+										double isDiagnosedFactor, double beta, double HSV2factor, double eagernessFactor, double pregnancyFactor, double AGYWFactor)
+		: m_baseline(baseline), m_ageFactor(ageFactor), m_genderFactor(genderFactor),
+		m_diagPartnersFactor(diagPartnersFactor), m_isDiagnosedFactor(isDiagnosedFactor),
+		m_beta(beta), m_HSV2factor(HSV2factor), m_eagernessFactor(eagernessFactor), m_pregnancyFactor(pregnancyFactor), m_AGYWFactor(AGYWFactor)
+	{
+		assert(pPerson != 0);
+		m_pPerson = pPerson;
 
-	double tb = pPerson->getDateOfBirth();
-	double tinf = pPerson->hiv().getInfectionTime();
-	double G = (pPerson->isMan())?0:1;
-	int D = pPerson->getNumberOfDiagnosedPartners();
-	int hasBeenDiagnosed = (pPerson->hiv().isDiagnosed())?1:0;
-	int HSV2 = (pPerson->hsv2().isInfected())?1:0;
-	double E = (pPerson->getFormationEagernessParameter());
-	int P = (pPerson->isWoman() && WOMAN(pPerson)->isPregnant())?1:0;
-	int Y = (pPerson->isWoman() && WOMAN(pPerson)->isAGYW())?1:0;
+		double tb = pPerson->getDateOfBirth();
+		double tinf = pPerson->hiv().getInfectionTime();
+		double G = (pPerson->isMan())?0:1;
+		int D = pPerson->getNumberOfDiagnosedPartners();
+		int hasBeenDiagnosed = (pPerson->hiv().isDiagnosed())?1:0;
+		int HSV2 = (pPerson->hsv2().isInfected())?1:0;
+		double E = (pPerson->getFormationEagernessParameter());
+		int P = (pPerson->isWoman() && WOMAN(pPerson)->isPregnant())?1:0;
+		int Y = (pPerson->isWoman() && WOMAN(pPerson)->isAGYW())?1:0;
 
-	if (pPerson->isWoman()){
-		std::cout << "For human int Y:" << Y << " AGYW status:" << WOMAN(pPerson)->isAGYW() << " with Factor:" << AGYWFactor << std::endl;
+		if (pPerson->isWoman()){
+			std::cout << "For human int Y:" << Y << " AGYW status:" << WOMAN(pPerson)->isAGYW() << " with Factor:" << AGYWFactor << std::endl;
+		}
+		
+		double A = baseline - ageFactor*tb + genderFactor*G + diagPartnersFactor*D + isDiagnosedFactor*hasBeenDiagnosed - beta*tinf + HSV2factor*HSV2 - eagernessFactor*E + pregnancyFactor*P;
+		
+		if (EventAGYW::m_AGYW_enabled){
+			A = baseline - ageFactor*tb + genderFactor*G + diagPartnersFactor*D + isDiagnosedFactor*hasBeenDiagnosed - beta*tinf + HSV2factor*HSV2 - eagernessFactor*E + pregnancyFactor*P + AGYWFactor*Y;
+		}
+		double B = ageFactor + beta;
+		setAB(A, B);
 	}
-	
-	double A = baseline - ageFactor*tb + genderFactor*G + diagPartnersFactor*D + isDiagnosedFactor*hasBeenDiagnosed - beta*tinf + HSV2factor*HSV2 - eagernessFactor*E + pregnancyFactor*P+ AGYWFactor*Y;
-	double B = ageFactor + beta;
-
-	setAB(A, B);
-}
 
 // This implementation is not necessary for running, it is provided for testing purposes
 double HazardFunctionDiagnosis::evaluate(double t)

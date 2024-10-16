@@ -15,7 +15,7 @@
 using namespace std;
 
 Person::Person(double dateOfBirth, Gender g) : PersonBase(g, dateOfBirth), m_relations(this), m_hiv(this),
-	                                           m_hsv2(this), m_cab(false), m_hasCABDropEventScheduled(false)
+	                                           m_hsv2(this)
 {
 	assert(g == Male || g == Female);
 

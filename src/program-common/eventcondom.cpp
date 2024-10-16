@@ -3,6 +3,8 @@
 #include "configdistributionhelper.h"
 #include "util.h"
 #include "configsettings.h"
+// #include "config.h"
+#include "eventagyw.h"
 #include "jsonconfig.h"
 #include "configfunctions.h"
 #include "configsettingslog.h"
@@ -15,6 +17,7 @@ using namespace std;
 bool EventCondom::m_condom_enabled = false; // line here exists only for declartion, does not set default to false, that is set in cofig JSON at the bottom
 double EventCondom::s_condomThreshold = 0.5; // Initialize with the default threshold value
 double EventCondom::s_condomAGYWIncrement = 0.5;
+
 
 EventCondom::EventCondom(Person *pPerson) : SimpactEvent(pPerson)
 {
@@ -57,10 +60,10 @@ bool EventCondom::isWillingToStartTreatment(double t, GslRandomNumberGenerator *
 	double dt = m_condomprobDist->pickNumber();
     Person *pPerson = getPerson(0);
 
-    if (pPerson->isWoman() && WOMAN(pPerson)->isAGYW()){
+    if (pPerson->isWoman() && WOMAN(pPerson)->isAGYW() && EventAGYW::m_AGYW_enabled){ 
         std::cout << "Picking dt value: " << pPerson->getName() << "DT is" <<dt << std::endl;
         dt = std::min(dt + s_condomAGYWIncrement, 1.0);   // I want to increase this number but I don't want it to exceed 1/ 
-    }/*  */
+    }
 
     if(dt > s_condomThreshold){
         return true;

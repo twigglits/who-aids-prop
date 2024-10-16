@@ -95,14 +95,12 @@ void EventCABDROP::fire(Algorithm *pAlgorithm, State *pState, double t) {
     if (m_CABDrop_enabled && pPerson->isCAB()) {
         if (isHardDropOut(t, pState, pPerson)) {
             pPerson->setCAB(false);
-            pPerson->setCABDropEventScheduled(false); // Unset the flag
             std::cout << "CAB_DROP_HARD FIRE: " << pPerson->getName() 
                       << " Gender: " << pPerson->getGender() << std::endl;
             writeEventLogStart(true, "CAB_DROP", t, pPerson, 0);
         }
         else if (isWillingToStartTreatment(t, pRndGen, pPerson)) {
             pPerson->setCAB(false);
-            pPerson->setCABDropEventScheduled(false); // Unset the flag
             std::cout << "CAB_DROP_SOFT FIRE: " << pPerson->getName() 
                       << " Gender: " << pPerson->getGender() << std::endl;
             writeEventLogStart(true, "CAB_DROP", t, pPerson, 0);
