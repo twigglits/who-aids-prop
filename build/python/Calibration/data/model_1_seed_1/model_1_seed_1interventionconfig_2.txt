@@ -1,0 +1,1 @@
+conception.alpha_base = -3.507164657888245
