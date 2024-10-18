@@ -2081,8 +2081,8 @@ intervention.enabled                                         = yes
 # then the files used would be 'intconfig_1.txt', 'intconfig_2.txt' and
 # 'intconfig_3.txt'.
 intervention.baseconfigname                                  = model_1_seed_1interventionconfig_%.txt
-intervention.times                                           = 12.0,12.5,18.0,20.0,22.0,23.0,25.0,26.0,26.1,30.0,33.5,36.75,37.11,38.0
-intervention.fileids                                         = 1,2,3,4,5,6,7,8,9,10,11,12,13,14
+intervention.times                                           = 12.0,12.5,18.0,20.0,22.0,23.0,25.0,26.0,26.1,30.0,33.5,36.75,37.11,38.0,44.1293,47.1293
+intervention.fileids                                         = 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
 
 # When a person is diagnosed (or 're-diagnosed' after a dropout), monitoring
 # events will be scheduled using an interval that depends on the CD4 count.
@@ -2489,7 +2489,7 @@ population.eyecap.fraction                                   = 0.2
 # This parameter is used to set the distribution of subject willing to accept CAB treatment
 # and to enable or disable the CAB event.
 # Valid values are: ['true', 'false']
-EventCAB.enabled                                             = false
+EventCAB.enabled                                             = true
 EventCAB.threshold                                           = 1
 # Valid values are: ['fixed', 'uniform', 'beta', 'gamma', 'lognormal', 'normal', 'exponential', 'discrete.inline', 'discrete.csv.onecol', 'discrete.csv.twocol']
 EventCAB.m_CABprobDist.dist.type                             = uniform

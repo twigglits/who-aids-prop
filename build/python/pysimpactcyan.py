@@ -414,7 +414,8 @@ class PySimpactCyan(object):
 
                 paths.append(p2)
 
-            exe = "simpact-cyan-release" # This should always exist
+            # exe = "simpact-cyan-release" # This should always exist
+            exe = "simpact-cyan-debug" # This should always exist
 
             # First see if we can run the executable without a full path
             try:

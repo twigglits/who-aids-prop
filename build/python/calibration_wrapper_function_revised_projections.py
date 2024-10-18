@@ -110,6 +110,9 @@ def calibration_wrapper_function(parameters = None):
     # cfg_list["EventDVRDROP.schedulemin"] = 1 #people can drop out of prep after 1 month
     # cfg_list["EventDVRDROP.schedulemax"] = 12 #people can drop out of prep upto 6 months after starting
     cfg_list["hivtransmission.param.p1"] = -0.6931 #dvr effectivenss in preventing HIV (50%, remaining risk ln(0.5))
+    cfg_list["EventDVRDROP.m_DVRDROPscheduleDist.dist.type"]                 = 'uniform'
+    cfg_list["EventDVRDROP.m_DVRDROPscheduleDist.dist.uniform.min"]          = 0
+    cfg_list["EventDVRDROP.m_DVRDROPscheduleDist.dist.uniform.max"]          = 1
     
     # prep cab
     cfg_list['EventCAB.enabled'] = "false"
@@ -123,6 +126,13 @@ def calibration_wrapper_function(parameters = None):
     cfg_list["EventCABDROP.m_CABDROPprobDist.dist.uniform.min"] = 0
     cfg_list["EventCABDROP.m_CABDROPprobDist.dist.uniform.max"] = 1
     cfg_list["hivtransmission.param.p2"] = -2.9957
+    cfg_list["EventCAB.m_CABscheduleDist.dist.type"]                         = 'uniform'
+    cfg_list["EventCAB.m_CABscheduleDist.dist.uniform.min"]                  = 0
+    cfg_list["EventCAB.m_CABscheduleDist.dist.uniform.max"]                  = 1
+
+    cfg_list["EventCABDROP.m_CABDROPschedDist.dist.type"]                    = 'uniform'
+    cfg_list["EventCABDROP.m_CABDROPschedDist.dist.uniform.min"]             = 0
+    cfg_list["EventCABDROP.m_CABDROPschedDist.dist.uniform.max"]             = 1
     
     # Initial values
     mu_cd4 = 800
@@ -604,7 +614,7 @@ def calibration_wrapper_function(parameters = None):
     results = simpact.run(
         config=cfg_list,
         destDir=destDir,
-        interventionConfig=AGYW_condom,
+        interventionConfig=ART_factual,
         seed=seedid,
         #identifierFormat=f'seed {identifier}',
         identifierFormat = identifier,
@@ -614,7 +624,7 @@ def calibration_wrapper_function(parameters = None):
     datalist = psh.readthedata(results) 
 
     # Specify the file path to save the dictionary object
-    file_path = f'Calibration/final_data/datalist_agyw_condom_{identifier}.pkl'
+    file_path = f'Calibration/final_data/datalist_baseline_{identifier}.pkl'
 
     # Save dictionary to a single file using pickle
     with open(file_path, 'wb') as f:
