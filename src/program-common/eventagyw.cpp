@@ -72,7 +72,8 @@ void EventAGYW::processConfig(ConfigSettings &config, GslRandomNumberGenerator *
 
     // Read the boolean parameter from the config
     std::string enabledStr;
-    if (!(r = config.getKeyValue("EventAGYW.agywage", m_AGYW_age, 0, 100)) ||
+    // if (!(r = config.getKeyValue("EventAGYW.agywage", m_AGYW_age, 0, 100)) ||
+    if (!(r = config.getKeyValue("EventAGYW.agywage", m_AGYW_age)) ||
         !(r = config.getKeyValue("EventAGYW.enabled", enabledStr)) || (enabledStr != "true" && enabledStr != "false"))
         {
         abortWithMessage(r.getErrorString());
@@ -90,13 +91,13 @@ void EventAGYW::obtainConfig(ConfigWriter &config) {
     }
 }
 
-// ["EventAGYW.agywage", 25 ],
 ConfigFunctions AGYWConfigFunctions(EventAGYW::processConfig, EventAGYW::obtainConfig, "EventAGYW");
 
 JSONConfig AGYWJSONConfig(R"JSON(
     "EventAGYW": { 
         "depends": null,
         "params": [
+            ["EventAGYW.agywage", 25 ],
             ["EventAGYW.enabled", "true", [ "true", "false"] ]
         ],
         "info": [ 

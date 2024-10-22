@@ -95,23 +95,23 @@ void EventDVRDROP::fire(Algorithm *pAlgorithm, State *pState, double t) {
     }
 }
 
-ProbabilityDistribution *EventDVRDROP::m_DVRDROPprobDist = 0;
 ProbabilityDistribution *EventDVRDROP::m_DVRDROPscheduleDist = 0;
+ProbabilityDistribution *EventDVRDROP::m_DVRDROPprobDist = 0;
 
 void EventDVRDROP::processConfig(ConfigSettings &config, GslRandomNumberGenerator *pRndGen) {
     bool_t r;
-
-    if (m_DVRDROPprobDist) {
-        delete m_DVRDROPprobDist;
-        m_DVRDROPprobDist = 0;
-    }
-    m_DVRDROPprobDist = getDistributionFromConfig(config, pRndGen, "EventDVRDROP.m_DVRDROPprobDist");
 
     if (m_DVRDROPscheduleDist) {
         delete m_DVRDROPscheduleDist;
         m_DVRDROPscheduleDist = 0;
     }
     m_DVRDROPscheduleDist = getDistributionFromConfig(config, pRndGen, "EventDVRDROP.m_DVRDROPscheduleDist");
+
+    if (m_DVRDROPprobDist) {
+        delete m_DVRDROPprobDist;
+        m_DVRDROPprobDist = 0;
+    }
+    m_DVRDROPprobDist = getDistributionFromConfig(config, pRndGen, "EventDVRDROP.m_DVRDROPprobDist");
 
     // Read the boolean parameter from the config
     std::string enabledStr;
@@ -129,9 +129,8 @@ void EventDVRDROP::obtainConfig(ConfigWriter &config) {
         !(r = config.addKey("EventDVRDROP.threshold", s_DVRDROPThreshold))){
         abortWithMessage(r.getErrorString());
     }
-
-    addDistributionToConfig(m_DVRDROPprobDist, config, "EventDVRDROP.m_DVRDROPprobDist");
     addDistributionToConfig(m_DVRDROPscheduleDist, config, "EventDVRDROP.m_DVRDROPscheduleDist");
+    addDistributionToConfig(m_DVRDROPprobDist, config, "EventDVRDROP.m_DVRDROPprobDist");
 }
 
 ConfigFunctions DVRDROPConfigFunctions(EventDVRDROP::processConfig, EventDVRDROP::obtainConfig, "EventDVRDROP");
@@ -142,7 +141,7 @@ JSONConfig DVRDROPJSONConfig(R"JSON(
         "params": [
             ["EventDVRDROP.enabled", "true", [ "true", "false"] ],
             ["EventDVRDROP.threshold", 0.5],
-            ["EventDVRDROP.m_DVRDROPscheduleDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ] ],
+            ["EventDVRDROP.m_DVRDROPscheduleDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
             ["EventDVRDROP.m_DVRDROPprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
         "info": [ 

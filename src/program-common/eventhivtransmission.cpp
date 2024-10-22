@@ -368,8 +368,6 @@ void EventHIVTransmission::obtainConfig(ConfigWriter &config)
 		abortWithMessage(r.getErrorString());
 }
 
-// ["hivtransmission.m_condomformationdist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
-
 ConfigFunctions hivTransmissionConfigFunctions(EventHIVTransmission::processConfig, EventHIVTransmission::obtainConfig, 
 		                                    "EventHIVTransmission");
 
@@ -393,7 +391,9 @@ JSONConfig hivTransmissionJSONConfig(R"JSON(
                 ["hivtransmission.param.p", -1.6094],
 				["hivtransmission.param.p1", -1.6094],
 				["hivtransmission.param.p2", -2.9957],
+				["hivtransmission.m_condomformationdist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
                 ["hivtransmission.threshold", 0.5],
+				
                 ["hivtransmission.maxageref.diff", 1] ],
             "info": [ 
                 "The hazard of transmission is h = exp(a + b * V^(-c) + d1*Pi + d2*Pj + e1*Hi + e2*Hj + g1*b0_j + g2*b1_j + v1*Vi + k*Ki)",
