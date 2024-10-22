@@ -132,7 +132,7 @@ void EventCAB::obtainConfig(ConfigWriter &config) {
 ConfigFunctions CABConfigFunctions(EventCAB::processConfig, EventCAB::obtainConfig, "EventCAB");
 
 JSONConfig CABJSONConfig(R"JSON(
-    "eventCAB": { 
+    "EventCAB": { 
         "depends": null,
         "params": [
             ["EventCAB.enabled", "true", [ "true", "false"] ],

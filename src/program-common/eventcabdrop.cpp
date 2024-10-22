@@ -141,12 +141,12 @@ void EventCABDROP::obtainConfig(ConfigWriter &config) {
 ConfigFunctions CABDROPConfigFunctions(EventCABDROP::processConfig, EventCABDROP::obtainConfig, "EventCABDROP");
 
 JSONConfig CABDROPJSONConfig(R"JSON(
-    "eventCABDROP": { 
+    "EventCABDROP": { 
         "depends": null,
         "params": [
             ["EventCABDROP.enabled", "true", [ "true", "false"] ],
             ["EventCABDROP.threshold", 0.5],
-            ["EventCABDROP.m_CABDROPprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
+            ["EventCABDROP.m_CABDROPprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
             ["EventCABDROP.m_CABDROPschedDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
         "info": [ 

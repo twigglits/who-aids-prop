@@ -90,13 +90,13 @@ void EventAGYW::obtainConfig(ConfigWriter &config) {
     }
 }
 
+// ["EventAGYW.agywage", 25 ],
 ConfigFunctions AGYWConfigFunctions(EventAGYW::processConfig, EventAGYW::obtainConfig, "EventAGYW");
 
 JSONConfig AGYWJSONConfig(R"JSON(
     "EventAGYW": { 
         "depends": null,
         "params": [
-            ["EventAGYW.agywage", 25 ],
             ["EventAGYW.enabled", "true", [ "true", "false"] ]
         ],
         "info": [ 

@@ -117,7 +117,7 @@ void EventDVR::obtainConfig(ConfigWriter &config) {
 ConfigFunctions DVRConfigFunctions(EventDVR::processConfig, EventDVR::obtainConfig, "EventDVR");
 
 JSONConfig DVRJSONConfig(R"JSON(
-    "eventDVR": { 
+    "EventDVR": { 
         "depends": null,
         "params": [
             ["EventDVR.enabled", "true", [ "true", "false"] ],

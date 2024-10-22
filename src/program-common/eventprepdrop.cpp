@@ -88,7 +88,7 @@ void EventPrepDrop::obtainConfig(ConfigWriter &config)
 ConfigFunctions prepdropConfigFunctions(EventPrepDrop::processConfig, EventPrepDrop::obtainConfig, "EventPrepDrop");
 
 JSONConfig prepdropJSONConfig(R"JSON(
-        "EventPrepDrop_Timing": {
+        "EventPrepDrop": {
             "depends": null,
             "params": [ 
                 ["EventPrepDrop.threshold", 0.2],
