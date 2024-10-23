@@ -1,4 +1,0 @@
-EventCondom.enabled = true
-hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file = /home/jupyter/who-aids-prop/build/python/relationship_condom_use_1.csv
-EventCondom.threshold = 0.7
-hivtransmission.threshold = 0.5
