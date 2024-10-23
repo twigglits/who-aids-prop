@@ -146,7 +146,7 @@ JSONConfig CABDROPJSONConfig(R"JSON(
         "params": [
             ["EventCABDROP.enabled", "true", [ "true", "false"] ],
             ["EventCABDROP.threshold", 0.5],
-            ["EventCABDROP.m_CABDROPprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
+            ["EventCABDROP.m_CABDROPprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
             ["EventCABDROP.m_CABDROPschedDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
         "info": [ 

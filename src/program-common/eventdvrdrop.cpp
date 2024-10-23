@@ -142,7 +142,7 @@ JSONConfig DVRDROPJSONConfig(R"JSON(
         "params": [
             ["EventDVRDROP.enabled", "true", [ "true", "false"] ],
             ["EventDVRDROP.threshold", 0.5],
-            ["EventDVRDROP.m_DVRDROPscheduleDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ] ],
+            ["EventDVRDROP.m_DVRDROPscheduleDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ],
             ["EventDVRDROP.m_DVRDROPprobDist.dist", "distTypes", [ "uniform", [ [ "min", 0  ], [ "max", 1 ] ] ] ]
         ],
         "info": [ 
