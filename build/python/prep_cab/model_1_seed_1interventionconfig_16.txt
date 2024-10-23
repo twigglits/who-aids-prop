@@ -1,2 +1,1 @@
-EventPrep.threshold = 0.85
-EventPrepDrop.threshold = 0.001
+EventCAB.threshold = 0.9

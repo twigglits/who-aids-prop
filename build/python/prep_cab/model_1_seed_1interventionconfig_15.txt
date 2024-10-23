@@ -1,1 +1,4 @@
-EventVMMC.threshold = 0.2
+EventCAB.enabled = true
+EventCAB.threshold = 0.95
+EventCABDROP.enabled = true
+EventCABDROP.threshold = 0.3
