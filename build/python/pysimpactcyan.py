@@ -428,7 +428,7 @@ class PySimpactCyan(object):
             for p in paths:
                 try:
                     subprocess.call([ os.path.join(p,exe) ], stderr=DEVNULL, stdout=DEVNULL)
-                    print("Simpact executables found in %s" % p)
+                    # print("Simpact executables found in %s" % p)
                     return p
                 except:
                     pass
