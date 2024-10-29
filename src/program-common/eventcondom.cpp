@@ -48,7 +48,7 @@ bool EventCondom::isEligibleForTreatment(double t, const State *pState)
     double curTime = population.getTime();
     double age = pPerson->getAgeAt(curTime); 
     
-    if (pPerson->isSexuallyActive()) {
+    if (pPerson->isSexuallyActive() && !pPerson->isCondomUsing()) {
         return true; 
     }else {        
         return false;

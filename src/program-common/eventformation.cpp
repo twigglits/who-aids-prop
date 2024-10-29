@@ -163,7 +163,7 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	EventCondom *pEvtCondom1 = new EventCondom(pPerson1);
 	EventCondom *pEvtCondom2 = new EventCondom(pPerson2);
 
-	// population.onNewEvent(pEvtCondom1);
+	population.onNewEvent(pEvtCondom1);
 	population.onNewEvent(pEvtCondom2);
 
 
