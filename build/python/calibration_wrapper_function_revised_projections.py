@@ -614,7 +614,7 @@ def calibration_wrapper_function(parameters = None):
     results = simpact.run(
         config=cfg_list,
         destDir=destDir,
-        interventionConfig=ART_factual,
+        interventionConfig=ART_counterfactual_VMMC,
         seed=seedid,
         #identifierFormat=f'seed {identifier}',
         identifierFormat = identifier,
@@ -624,7 +624,7 @@ def calibration_wrapper_function(parameters = None):
     datalist = psh.readthedata(results) 
 
     # Specify the file path to save the dictionary object
-    file_path = f'Calibration/final_data/datalist_baseline_{identifier}.pkl'
+    file_path = f'Calibration/final_data/datalist_vmmc_{identifier}.pkl'
 
     # Save dictionary to a single file using pickle
     with open(file_path, 'wb') as f:
