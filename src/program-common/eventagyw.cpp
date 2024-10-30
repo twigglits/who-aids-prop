@@ -51,18 +51,28 @@ void EventAGYW::writeLogs(const SimpactPopulation &pop, double tNow) const
 
 void EventAGYW::fire(Algorithm *pAlgorithm, State *pState, double t) 
 {
-    SimpactPopulation &population = SIMPACTPOPULATION(pState);
+    // SimpactPopulation &population = SIMPACTPOPULATION(pState);
     Person *pWoman = getPerson(0);
-	assert(getNumberOfPersons() == 1);
-    assert(pWoman->isWoman());
-    double age = pWoman->getDateOfBirth() + m_AGYW_age;
-	double ref_age = population.getTime() - age;
-    if (ref_age > 0){
+	// assert(getNumberOfPersons() == 1);
+    // assert(pWoman->isWoman());
+    // double age = pWoman->getDateOfBirth() + m_AGYW_age;
+	// double ref_age = population.getTime() - age;
+
+    const SimpactPopulation &population_const = SIMPACTPOPULATION(pState);
+	double curTime = population_const.getTime();
+    double age = pWoman->getAgeAt(curTime); 
+
+    if (age >= 15.0 && age < 25.0) {
+		WOMAN(pWoman)->setAGYW(true);
+        std::cout << "Setting AGYW: " << pWoman->getName() << "AGYW status: " << WOMAN(pWoman)->isAGYW() << std::endl;
+        writeEventLogStart(true, "AGYW of", t, pWoman, 0);
+    }else
+    {
         WOMAN(pWoman)->setAGYW(false);
         std::cout << "Unsetting AGYW: " << pWoman->getName() << "AGYW status: " << WOMAN(pWoman)->isAGYW() << std::endl;
-        writeEventLogStart(true, "AGYW of", t, pWoman, 0);
-    }     
-}
+        writeEventLogStart(true, "(AGYW_Removal)", t, pWoman, 0);
+    }
+}     
 
 bool EventAGYW::m_AGYW_enabled = false; 
 double EventAGYW::m_AGYW_age = -1;

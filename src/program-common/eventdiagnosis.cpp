@@ -177,6 +177,7 @@ void EventDiagnosis::obtainConfig(ConfigWriter &config)
 		double A = baseline - ageFactor*tb + genderFactor*G + diagPartnersFactor*D + isDiagnosedFactor*hasBeenDiagnosed - beta*tinf + HSV2factor*HSV2 - eagernessFactor*E + pregnancyFactor*P;
 		
 		if (EventAGYW::m_AGYW_enabled){
+			std::cout << "BOOOOOOOOOOO SCARY GHOST!" << std::endl;
 			A = baseline - ageFactor*tb + genderFactor*G + diagPartnersFactor*D + isDiagnosedFactor*hasBeenDiagnosed - beta*tinf + HSV2factor*HSV2 - eagernessFactor*E + pregnancyFactor*P + AGYWFactor*Y;
 		}
 		double B = ageFactor + beta;

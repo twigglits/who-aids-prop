@@ -116,9 +116,16 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 	Person *pPerson2 = getPerson(1);
 
 	if (EventAGYW::m_AGYW_enabled && pPerson2->isWoman()){
-		// std::cout << "AGYW STATEEEEE" << EventAGYW::m_AGYW_enabled << " With Gender " <<  pPerson2->getGender() << std::endl;
-		EventAGYW *pEvtAGYW = new EventAGYW(pPerson2);
-		population.onNewEvent(pEvtAGYW);
+		const SimpactPopulation &population_const = SIMPACTPOPULATION(pState);
+		double curTime = population_const.getTime();
+    	double age = pPerson2->getAgeAt(curTime); 
+		std::cout << "AGE IS:" << age << std::endl;
+    
+    	if (age >= 15.0 && age < 25.0) {
+			std::cout << "WAMBAM" << std::endl;
+			EventAGYW *pEvtAGYW = new EventAGYW(pPerson2);
+			population.onNewEvent(pEvtAGYW);	  
+    	}
 	}
 
 	// PREP events
