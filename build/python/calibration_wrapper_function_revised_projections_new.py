@@ -59,8 +59,8 @@ def calibration_wrapper_function(parameters = None):
     cfg_list['EventAGYW.enabled']='false'
     cfg_list['diagnosis.AGYWfactor'] = 0
     cfg_list["mortality.aids.survtime.art_e.dist.type"] = "uniform"
-    cfg_list["mortality.aids.survtime.art_e.dist.uniform.min"] = 5
-    cfg_list["mortality.aids.survtime.art_e.dist.uniform.max"] = 20 #24
+    cfg_list["mortality.aids.survtime.art_e.dist.uniform.min"] =  0#5
+    cfg_list["mortality.aids.survtime.art_e.dist.uniform.max"] = 10# 20 #24
     
     # vmmc
     cfg_list["EventVMMC.enabled"] = "false"
@@ -187,7 +187,7 @@ def calibration_wrapper_function(parameters = None):
     
     cfg_list["hivtransmission.param.f1"] = round(parameters['hivtransmission_param_f1'],8)
     cfg_list["hivtransmission.param.f2"] = round(math.log(math.log(math.sqrt(parameters['hivtransmission_param_f1'])) / math.log(parameters['hivtransmission_param_f1'])) / 5,8)
-    cfg_list["hivtransmission.param.a"] = round(parameters['hivtransmission_param_a'],8) + 0.23 
+    cfg_list["hivtransmission.param.a"] = round(parameters['hivtransmission_param_a'],8) + 0.2 #+ 0.23 
     cfg_list["formation.hazard.agegapry.gap_agescale_man"] = round(parameters['formation_hazard_agegapry_gap_agescale_man'],8)
     cfg_list["formation.hazard.agegapry.gap_agescale_woman"] = round(parameters['formation_hazard_agegapry_gap_agescale_woman'],8)
     cfg_list["person.agegap.man.dist.normal.mu"] = round(parameters['person_agegap_man_dist_normal_mu'],8)
@@ -203,8 +203,8 @@ def calibration_wrapper_function(parameters = None):
     cfg_list["formation.hazard.agegapry.baseline"] = round(parameters['formation_hazard_agegapry_baseline'],8)
     cfg_list["formation.hazard.agegapry.numrel_man"] = round(parameters['formation_hazard_agegapry_numrel_man'],8)
     cfg_list["formation.hazard.agegapry.numrel_woman"] = round(parameters['formation_hazard_agegapry_numrel_woman'],8)
-    cfg_list["conception.alpha_base"] = round(parameters['conception_alpha_base'],8) + 0.17
-    cfg_list["dissolution.alpha_0"] = round(parameters['dissolution_alpha_0'],8) + 0.1
+    cfg_list["conception.alpha_base"] = round(parameters['conception_alpha_base'],8)# + 0.17
+    cfg_list["dissolution.alpha_0"] = round(parameters['dissolution_alpha_0'],8)# + 0.1
     cfg_list['diagnosis.eagernessfactor'] = round(math.log(parameters['diagnosis_eagernessfactor']),8)
 
         # hiv testing configurations
@@ -216,7 +216,7 @@ def calibration_wrapper_function(parameters = None):
     # birth rate reduction
     conception_1 = {
     "time": 10,#12.5, #aroung 1992
-    "conception.alpha_base": parameters['conception_alpha_base'] +0.17 - parameters['conception_alpha_base_1'] + 0.03
+    "conception.alpha_base": parameters['conception_alpha_base'] - parameters['conception_alpha_base_1'] #+0.17+ 0.03
     }
     
     # conception_2 = {
@@ -246,10 +246,10 @@ def calibration_wrapper_function(parameters = None):
 
     art_intro2_2 = {
         "time": 26, #around 2006
-        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + 0.1, #-0.4,
+        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'], #+ 0.1, #-0.4,
         "person.art.accept.threshold.dist.fixed.value": 0.35, #0.7,
-        "mortality.aids.survtime.art_e.dist.uniform.min":15,
-        "mortality.aids.survtime.art_e.dist.uniform.max":30
+        "mortality.aids.survtime.art_e.dist.uniform.min":0,#15,
+        "mortality.aids.survtime.art_e.dist.uniform.max":20,#30
         # "mortality.aids.survtime.art_e.dist.uniform.min":20,
         # "mortality.aids.survtime.art_e.dist.uniform.max":30
     }
@@ -257,21 +257,21 @@ def calibration_wrapper_function(parameters = None):
     art_intro3 = {
         "time": 30, # 2010
         "diagnosis.pregnancyfactor":0.7,#0.5
-        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']  + 0.1 + 0.15,#-0.2,
+        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3'],#  + 0.1 + 0.15,#-0.2,
         "monitoring.cd4.threshold": 350,
         "person.art.accept.threshold.dist.fixed.value": 0.25,#0.7,
         # "monitoring.m_artDist.dist.normal.mu": 0.35,
         # "monitoring.m_artDist.dist.normal.min": 0.15,
         # "monitoring.m_artDist.dist.normal.max":0.55,
-        "mortality.aids.survtime.art_e.dist.uniform.min":25,
-        "mortality.aids.survtime.art_e.dist.uniform.max":35
+        "mortality.aids.survtime.art_e.dist.uniform.min":10,#25,
+        "mortality.aids.survtime.art_e.dist.uniform.max":20,#35
         # "mortality.aids.survtime.art_e.dist.uniform.min":30,#25,
         # "mortality.aids.survtime.art_e.dist.uniform.max":40#45
     }
 
     art_intro4 = {
         "time": 33.5, #around 2013
-        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'] + 0.1 +0.15+0.5, #-0.1,
+        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'],# + 0.1 +0.15+0.5, #-0.1,
         "monitoring.cd4.threshold": 500,
         "person.art.accept.threshold.dist.fixed.value": 0.5,
         # "conception.alpha_base":  parameters['conception_alpha_base']- parameters['conception_alpha_base_1'] - parameters['conception_alpha_base_2'],
@@ -282,7 +282,7 @@ def calibration_wrapper_function(parameters = None):
 
     art_intro5 = {
         "time": 36.75, #around oct 2016
-        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'] + parameters['diagnosis_baseline_t5']+ 0.1 +0.15+0.5+0.2,
+        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'] + parameters['diagnosis_baseline_t5'],#+ 0.1 +0.15+0.5+0.2,
         "monitoring.cd4.threshold":100000, 
         # "monitoring.m_artDist.dist.normal.mu": 0.3,
         # "monitoring.m_artDist.dist.normal.min": 0.1,

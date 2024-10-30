@@ -349,7 +349,7 @@ def calibration_wrapper_function(parameters = None):
         }
 
     
-    ART_factual = [hiv_testing, conception_1,conception_2,
+    ART_factual = [hiv_testing, conception_1,#conception_2,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
                   condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
                    prep_intro1, prep_intro2, prep_intro3]
