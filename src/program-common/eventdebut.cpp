@@ -52,7 +52,7 @@ void EventDebut::fire(Algorithm *pAlgorithm, State *pState, double t)
 
 	if (pPerson->hiv().getInfectionStage() != Person_HIV::AIDSFinal)
 	{
-        if (pPerson->isMan())
+        if (pPerson->isMan() && !MAN(pPerson)->isVmmc() && EventVMMC::m_VMMC_enabled)
 		{
 			EventVMMC *pEvtVMMC = new EventVMMC(pPerson);  // initialize VMMC class here
             population.onNewEvent(pEvtVMMC);  // now we first trigger VMMC event

@@ -1,6 +1,7 @@
 #include "eventdissolution.h"
 #include "eventformation.h"
 #include "eventagyw.h"
+#include "eventprep.h"
 #include "eventprepdrop.h"
 #include "eventdvrdrop.h"
 #include "eventcabdrop.h"
@@ -58,7 +59,7 @@ void EventDissolution::fire(Algorithm *pAlgorithm, State *pState, double t)
 	pPerson1->removeRelationship(pPerson2, t, false);
 	pPerson2->removeRelationship(pPerson1, t, false);
 
-	if (pPerson2->isWoman()){
+	if (pPerson2->isWoman() && WOMAN(pPerson2)->isDVR()){
 		EventDVRDROP *pEvtDvrop = new EventDVRDROP(pPerson2);
     	population.onNewEvent(pEvtDvrop);
 	}
@@ -85,11 +86,15 @@ void EventDissolution::fire(Algorithm *pAlgorithm, State *pState, double t)
 		population.onNewEvent(pFormationEvent);
 	}
 
-	EventPrepDrop *pEvtPrepDrop1 = new EventPrepDrop(pPerson1, t);
-	EventPrepDrop *pEvtPrepDrop2 = new EventPrepDrop(pPerson2, t);
+	if (pPerson1->isPrep() && EventPrep::m_prep_enabled){
+		EventPrepDrop *pEvtPrepDrop1 = new EventPrepDrop(pPerson1, t);
+		population.onNewEvent(pEvtPrepDrop1);
+	}
 
-	population.onNewEvent(pEvtPrepDrop1);
-	population.onNewEvent(pEvtPrepDrop2);
+	if (pPerson2->isPrep() && EventPrep::m_prep_enabled){
+		EventPrepDrop *pEvtPrepDrop2 = new EventPrepDrop(pPerson2, t);
+		population.onNewEvent(pEvtPrepDrop2);
+	}
 }
 
 double EventDissolution::calculateInternalTimeInterval(const State *pState, double t0, double dt)

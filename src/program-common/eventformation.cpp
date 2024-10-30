@@ -121,51 +121,61 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 		population.onNewEvent(pEvtAGYW);
 	}
 
-	if (!pPerson1->hiv().isInfected()){  // this is men
+	// PREP events
+	if (!pPerson1->hiv().isInfected() && !pPerson1->isPrep() && !pPerson1->isCAB() && EventPrep::m_prep_enabled){
 		EventPrep *pEvtPrep1 = new EventPrep(pPerson1);
         population.onNewEvent(pEvtPrep1);
 	}
-
-	if (!pPerson2->hiv().isInfected()){  // this is women in most cases unless MSM
+ 
+	if (pPerson2->isWoman() && !WOMAN(pPerson2)->isDVR() && !pPerson2->hiv().isInfected() && !pPerson2->isPrep() && !pPerson2->isCAB() && EventPrep::m_prep_enabled){
 		EventPrep *pEvtPrep2 = new EventPrep(pPerson2);
     	population.onNewEvent(pEvtPrep2);
 	}
+	// PREP events -----------
 
-	if (!pPerson2->hiv().isInfected() && pPerson2->isWoman()){
+	// DVR events -----------
+
+	if (pPerson2->isWoman() && !WOMAN(pPerson2)->isDVR() && !pPerson2->hiv().isInfected() && !pPerson2->isPrep() && !pPerson2->isCAB() && EventDVR::m_DVR_enabled){
 		EventDVR *pEvtDvr = new EventDVR(pPerson2);
     	population.onNewEvent(pEvtDvr);
 	}
 
-	if (pPerson2->isWoman()){
+	if (pPerson2->isWoman() && WOMAN(pPerson2)->isDVR()){
 		EventDVRDROP *pEvtDvrop = new EventDVRDROP(pPerson2);
     	population.onNewEvent(pEvtDvrop);
 	}
+	// DVR events -----------
 
-	// CAB events ----------------------------------
-	EventCAB *pEvtCAB1 = new EventCAB(pPerson1);
-    population.onNewEvent(pEvtCAB1);
-	
-	EventCAB *pEvtCAB2 = new EventCAB(pPerson2);
-    population.onNewEvent(pEvtCAB2);
-	//---------------------------------------------
+	if (!pPerson1->hiv().isInfected() && !pPerson1->isPrep() && !pPerson1->isCAB() && EventCAB::m_CAB_enabled){
+		EventCAB *pEvtCAB1 = new EventCAB(pPerson1);
+    	population.onNewEvent(pEvtCAB1);
+	}
+
+	if (pPerson2->isWoman() && !WOMAN(pPerson2)->isDVR() && !pPerson2->hiv().isInfected() && !pPerson2->isPrep() && !pPerson2->isCAB() && EventCAB::m_CAB_enabled){
+		EventCAB *pEvtCAB2 = new EventCAB(pPerson2);
+    	population.onNewEvent(pEvtCAB2);
+	}
+
 	// CAB DROP events
 	if (pPerson1->isCAB()){
 		EventCABDROP *pEvtCABDROP1 = new EventCABDROP(pPerson1);
     	population.onNewEvent(pEvtCABDROP1);
 	}
-	
-	// if (pPerson2->isCAB()){
-	// 	EventCABDROP *pEvtCABDROP2 = new EventCABDROP(pPerson2);
-    // 	population.onNewEvent(pEvtCABDROP2);
-	// }
-	// --------------------------------------------
 
-	EventCondom *pEvtCondom1 = new EventCondom(pPerson1);
-	EventCondom *pEvtCondom2 = new EventCondom(pPerson2);
+	if (pPerson2->isCAB()){
+		EventCABDROP *pEvtCABDROP2 = new EventCABDROP(pPerson2);
+    	population.onNewEvent(pEvtCABDROP2);
+	}
 
-	population.onNewEvent(pEvtCondom1);
-	population.onNewEvent(pEvtCondom2);
+	if (!pPerson1->isCondomUsing() && EventCondom::m_condom_enabled){
+		EventCondom *pEvtCondom1 = new EventCondom(pPerson1);
+		population.onNewEvent(pEvtCondom1);
+	}
 
+	if (!pPerson2->isCondomUsing() && EventCondom::m_condom_enabled){
+		EventCondom *pEvtCondom2 = new EventCondom(pPerson2);
+		population.onNewEvent(pEvtCondom2);
+	}
 
 	pPerson1->addRelationship(pPerson2, t);
 	pPerson2->addRelationship(pPerson1, t);

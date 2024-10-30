@@ -1889,8 +1889,57 @@ intervention.enabled                                         = yes
 # then the files used would be 'intconfig_1.txt', 'intconfig_2.txt' and
 # 'intconfig_3.txt'.
 intervention.baseconfigname                                  = seed 1interventionconfig_%.txt
-intervention.times                                           = 12.0,12.5,18.0,20.0,22.0,23.0,25.0,26.0,26.1,30.0,31.0,33.5,36.75,37.0,38.0
-intervention.fileids                                         = 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+#CONDOM ENABLED
+#intervention.times                                           = 12.0,
+#                                                               12.5,
+#                                                               18.0,
+#                                                               20.0,
+#                                                               22.0,
+#                                                               23.0,
+#                                                               25.0,
+#                                                               26.0,
+#                                                               26.1,
+#                                                               30.0,
+#                                                               31.0,
+#                                                               33.5,
+#                                                               36.75,
+#                                                               37.0,
+#                                                               38.0
+
+#intervention.times                                           = 12.0,12.5,18.0,20.0,22.0,23.0,25.0,26.0,26.1,30.0,31.0,33.5,36.75,37.0,38.0
+#intervention.fileids                                         = 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+
+#DVR ENABLED
+#intervention.times                                           = 12.0,12.5,20.0,22.0,23.0,26.0,30.0,31.0,33.5,36.75
+#intervention.fileids                                         = 1,2,4,5,6,8,10,11,12,13
+
+#DVR DISABLED
+#intervention.times                                           = 12.0,12.5,20.0,22.0,23.0,26.0,30.0,33.5,36.75
+#intervention.fileids                                         = 1,2,4,5,6,8,10,12,13
+
+#CAB ENABLED
+#intervention.times                                           = 12.0,12.5,20.0,22.0,23.0,26.0,30.0,30.5,33.5,36.75
+#intervention.fileids                                         = 1,2,4,5,6,8,10,16,12,13
+
+#CAB DISABLED
+intervention.times                                           = 12.0,12.5,20.0,22.0,23.0,26.0,30.0,33.5,36.75
+intervention.fileids                                         = 1,2,4,5,6,8,10,12,13
+
+#PREP ENABLED
+#intervention.times                                           = 12.0,12.5,20.0,22.0,23.0,26.0,30.0,33.5,36.75,37.0 
+#intervention.fileids                                         = 1,2,4,5,6,8,10,12,13,14
+
+#PREP DISABLED
+#intervention.times                                           = 12.0,12.5,20.0,22.0,23.0,26.0,30.0,33.5,36.75
+#intervention.fileids                                         = 1,2,4,5,6,8,10,12,13
+
+#VMMC ENABLED
+#intervention.times                                           = 12.0,12.5,20.0,22.0,23.0,26.0,26.1,30.0,33.5,36.75,37.0 
+#intervention.fileids                                         = 1,2,4,5,6,8,9,10,12,13,14
+
+#VMMC DISABLED
+#intervention.times                                           = 12.0,12.5,20.0,22.0,23.0,26.0,30.0,33.5,36.75,37.0 
+#intervention.fileids                                         = 1,2,4,5,6,8,10,12,13,14
 
 # When a person is diagnosed (or 're-diagnosed' after a dropout), monitoring
 # events will be scheduled using an interval that depends on the CD4 count.
@@ -2301,10 +2350,10 @@ EventAGYW.agywage                                            = 25
 EventDVR.m_DVRprobDist.dist.type                             = uniform
 EventDVR.m_DVRprobDist.dist.uniform.max                      = 1
 EventDVR.m_DVRprobDist.dist.uniform.min                      = 0
-EventDVR.enabled                                             = true
+EventDVR.enabled                                             = false
 EventDVR.threshold                                           = 0.5
 
-EventDVRDROP.enabled                                         = true
+EventDVRDROP.enabled                                         = false
 EventDVRDROP.threshold                                       = 0.1
 hivtransmission.param.p1                                     = -0.5
 
@@ -2317,10 +2366,10 @@ EventDVRDROP.m_DVRDROPprobDist.dist.uniform.min              = 0
 EventCAB.m_CABprobDist.dist.type                             = uniform
 EventCAB.m_CABprobDist.dist.uniform.max                      = 1
 EventCAB.m_CABprobDist.dist.uniform.min                      = 0
-EventCAB.enabled                                             = true
+EventCAB.enabled                                             = false
 EventCAB.threshold                                           = 0.5
 
-EventCABDROP.enabled                                         = true
+EventCABDROP.enabled                                         = false
 EventCABDROP.threshold                                       = 0.1
 hivtransmission.param.p2                                     = -0.5
 
