@@ -60,7 +60,7 @@ def calibration_wrapper_function(parameters = None):
     cfg_list['diagnosis.AGYWfactor'] = 0
     cfg_list["mortality.aids.survtime.art_e.dist.type"] = "uniform"
     cfg_list["mortality.aids.survtime.art_e.dist.uniform.min"] =  0#5
-    cfg_list["mortality.aids.survtime.art_e.dist.uniform.max"] = 10# 20 #24
+    cfg_list["mortality.aids.survtime.art_e.dist.uniform.max"] = 15# 20 #24
     
     # vmmc
     cfg_list["EventVMMC.enabled"] = "false"
@@ -166,7 +166,7 @@ def calibration_wrapper_function(parameters = None):
     cfg_list["person.agegap.woman.dist.type"] = "normal"
 
     cfg_list["monitoring.cd4.threshold"] = 1
-    cfg_list["person.art.accept.threshold.dist.fixed.value"] = 0.3 #0.45
+    cfg_list["person.art.accept.threshold.dist.fixed.value"] = 0.15 #0.45
     cfg_list["diagnosis.baseline"] = -99999
     cfg_list["periodiclogging.interval"] = 0.25
     cfg_list["dropout.interval.dist.fixed.value"] = 500 #cfg_list["dropout.interval.dist.exponential.lambda"] = 0.1
@@ -187,7 +187,7 @@ def calibration_wrapper_function(parameters = None):
     
     cfg_list["hivtransmission.param.f1"] = round(parameters['hivtransmission_param_f1'],8)
     cfg_list["hivtransmission.param.f2"] = round(math.log(math.log(math.sqrt(parameters['hivtransmission_param_f1'])) / math.log(parameters['hivtransmission_param_f1'])) / 5,8)
-    cfg_list["hivtransmission.param.a"] = round(parameters['hivtransmission_param_a'],8) + 0.2 #+ 0.23 
+    cfg_list["hivtransmission.param.a"] = round(parameters['hivtransmission_param_a'],8) + 0.09 #+ 0.23 
     cfg_list["formation.hazard.agegapry.gap_agescale_man"] = round(parameters['formation_hazard_agegapry_gap_agescale_man'],8)
     cfg_list["formation.hazard.agegapry.gap_agescale_woman"] = round(parameters['formation_hazard_agegapry_gap_agescale_woman'],8)
     cfg_list["person.agegap.man.dist.normal.mu"] = round(parameters['person_agegap_man_dist_normal_mu'],8)
@@ -203,7 +203,7 @@ def calibration_wrapper_function(parameters = None):
     cfg_list["formation.hazard.agegapry.baseline"] = round(parameters['formation_hazard_agegapry_baseline'],8)
     cfg_list["formation.hazard.agegapry.numrel_man"] = round(parameters['formation_hazard_agegapry_numrel_man'],8)
     cfg_list["formation.hazard.agegapry.numrel_woman"] = round(parameters['formation_hazard_agegapry_numrel_woman'],8)
-    cfg_list["conception.alpha_base"] = round(parameters['conception_alpha_base'],8)# + 0.17
+    cfg_list["conception.alpha_base"] = round(parameters['conception_alpha_base'],8) + 0.15
     cfg_list["dissolution.alpha_0"] = round(parameters['dissolution_alpha_0'],8)# + 0.1
     cfg_list['diagnosis.eagernessfactor'] = round(math.log(parameters['diagnosis_eagernessfactor']),8)
 
@@ -216,7 +216,7 @@ def calibration_wrapper_function(parameters = None):
     # birth rate reduction
     conception_1 = {
     "time": 10,#12.5, #aroung 1992
-    "conception.alpha_base": parameters['conception_alpha_base'] - parameters['conception_alpha_base_1'] #+0.17+ 0.03
+    "conception.alpha_base": parameters['conception_alpha_base'] - parameters['conception_alpha_base_1'] +0.15
     }
     
     # conception_2 = {
@@ -247,9 +247,9 @@ def calibration_wrapper_function(parameters = None):
     art_intro2_2 = {
         "time": 26, #around 2006
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'], #+ 0.1, #-0.4,
-        "person.art.accept.threshold.dist.fixed.value": 0.35, #0.7,
-        "mortality.aids.survtime.art_e.dist.uniform.min":0,#15,
-        "mortality.aids.survtime.art_e.dist.uniform.max":20,#30
+        "person.art.accept.threshold.dist.fixed.value": 0.2, #0.35, #0.7,
+        "mortality.aids.survtime.art_e.dist.uniform.min":10,#15,
+        "mortality.aids.survtime.art_e.dist.uniform.max":25,#30
         # "mortality.aids.survtime.art_e.dist.uniform.min":20,
         # "mortality.aids.survtime.art_e.dist.uniform.max":30
     }
@@ -259,12 +259,12 @@ def calibration_wrapper_function(parameters = None):
         "diagnosis.pregnancyfactor":0.7,#0.5
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3'],#  + 0.1 + 0.15,#-0.2,
         "monitoring.cd4.threshold": 350,
-        "person.art.accept.threshold.dist.fixed.value": 0.25,#0.7,
+        "person.art.accept.threshold.dist.fixed.value": 0.5, #0.25,#0.7,
         # "monitoring.m_artDist.dist.normal.mu": 0.35,
         # "monitoring.m_artDist.dist.normal.min": 0.15,
         # "monitoring.m_artDist.dist.normal.max":0.55,
-        "mortality.aids.survtime.art_e.dist.uniform.min":10,#25,
-        "mortality.aids.survtime.art_e.dist.uniform.max":20,#35
+        "mortality.aids.survtime.art_e.dist.uniform.min":15,#25,
+        "mortality.aids.survtime.art_e.dist.uniform.max":30,#35
         # "mortality.aids.survtime.art_e.dist.uniform.min":30,#25,
         # "mortality.aids.survtime.art_e.dist.uniform.max":40#45
     }
@@ -273,7 +273,7 @@ def calibration_wrapper_function(parameters = None):
         "time": 33.5, #around 2013
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'],# + 0.1 +0.15+0.5, #-0.1,
         "monitoring.cd4.threshold": 500,
-        "person.art.accept.threshold.dist.fixed.value": 0.5,
+        "person.art.accept.threshold.dist.fixed.value": 0.9, #0.3,
         # "conception.alpha_base":  parameters['conception_alpha_base']- parameters['conception_alpha_base_1'] - parameters['conception_alpha_base_2'],
         "EventAGYW.enabled": 'true',
         "diagnosis.AGYWfactor":0.1,#0.5,#1.1
@@ -284,6 +284,7 @@ def calibration_wrapper_function(parameters = None):
         "time": 36.75, #around oct 2016
         "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'] + parameters['diagnosis_baseline_t5'],#+ 0.1 +0.15+0.5+0.2,
         "monitoring.cd4.threshold":100000, 
+        "person.art.accept.threshold.dist.fixed.value": 0.99,# 0.45,
         # "monitoring.m_artDist.dist.normal.mu": 0.3,
         # "monitoring.m_artDist.dist.normal.min": 0.1,
         # "monitoring.m_artDist.dist.normal.max":0.5,
@@ -354,7 +355,7 @@ def calibration_wrapper_function(parameters = None):
     ########## future scenarios config
     diagnosis_intro = {
         "time":44,
-        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'] + parameters['diagnosis_baseline_t5']+ 0.1 +0.15+0.5+0.2 + 1,
+        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'] + parameters['diagnosis_baseline_t5']+ 0.7,
     }
     
     # prep cab-la
@@ -370,8 +371,8 @@ def calibration_wrapper_function(parameters = None):
     cab_intro_1 = {
             "time":47.1, #around 2024
             "EventCAB.enabled":"true",
-            "EventCAB.threshold": 0.90, #optimistic with 4400 users by 2030
-            "EventPrep.threshold":0.978, #scale down oral prep 
+            "EventCAB.threshold": 0.91, #optimistic with 4400 users by 2030
+            "EventPrep.threshold":0.98, #scale down oral prep 
             "EventCABDROP.enabled":"true",
             "EventCABDROP.threshold": 0.3
     }
@@ -400,12 +401,12 @@ def calibration_wrapper_function(parameters = None):
     dvr_intro = {
             "time":44.12, #around 2024
             "EventCAB.enabled":"true",
-            "EventCAB.threshold": 0.96, #optimistic with 4400 users by 2030
-            "EventPrep.threshold":0.95, #scale down oral prep 
+            "EventCAB.threshold": 0.93,#0.96, #optimistic with 4400 users by 2030
+            "EventPrep.threshold":0.90,#0.95, #scale down oral prep 
             "EventCABDROP.enabled":"true",
             "EventCABDROP.threshold": 0.3,
             "EventDVR.enabled":"true",
-            "EventDVR.threshold": 0.975,
+            "EventDVR.threshold": 0.95,#0.975,
             "EventDVRDROP.enabled":"true",
             "EventDVRDROP.threshold": 0.1
         
@@ -414,12 +415,12 @@ def calibration_wrapper_function(parameters = None):
     dvr_intro_1 = {
             "time":47.12, #around 2024
             "EventCAB.enabled":"true",
-            "EventCAB.threshold": 0.91, #optimistic with 4400 users by 2030
-            "EventPrep.threshold":0.978, #scale down oral prep 
+            "EventCAB.threshold": 0.89,#0.915, #optimistic with 4400 users by 2030
+            "EventPrep.threshold":0.85,#0.99, #scale down oral prep 
             "EventCABDROP.enabled":"true",
             "EventCABDROP.threshold": 0.3,
             "EventDVR.enabled":"true",
-            "EventDVR.threshold": 0.96,
+            "EventDVR.threshold": 0.90,#0.95,
             "EventDVRDROP.enabled":"true",
             "EventDVRDROP.threshold": 0.1
     }
@@ -462,9 +463,7 @@ def calibration_wrapper_function(parameters = None):
     # prep
     prep_intro_halfway_2030 = {
             "time":44.15, #around 2024
-            "EventPrep.enabled": "true",
-            "EventPrep.threshold":0.85, 
-            'EventPrepDrop.threshold': 0.001#0.4
+            "EventPrep.threshold":0.88, 
         }
     
     # prep_intro_halfway_2030_1 = {
@@ -491,7 +490,7 @@ def calibration_wrapper_function(parameters = None):
     # condom use
     condom_intro_4 = { 
             "time": 47.17, # 2024
-            "EventCondom.threshold": 0.8, #0.99,
+            "EventCondom.threshold": 0.3, #0.99,
             "hivtransmission.threshold": 0.1# 0.1
     }
     
@@ -499,7 +498,7 @@ def calibration_wrapper_function(parameters = None):
     # A. diagnosis
     agyw_diagosis_halfway_2030 = {
         "time":44.18, #around 2024
-        "diagnosis.AGYWfactor":0.9
+        "diagnosis.AGYWfactor":1.7
     }
     
     agyw_diagosis_optimistic_2030 = {
@@ -620,7 +619,7 @@ def calibration_wrapper_function(parameters = None):
     results = simpact.run(
         config=cfg_list,
         destDir=destDir,
-        interventionConfig=ART_factual,
+        interventionConfig=All_combined,
         seed=seedid,
         #identifierFormat=f'seed {identifier}',
         identifierFormat = identifier,
@@ -630,7 +629,7 @@ def calibration_wrapper_function(parameters = None):
     datalist = psh.readthedata(results) 
 
     # Specify the file path to save the dictionary object
-    file_path = f'Calibration/final_data/datalist_baseline_{identifier}.pkl'
+    file_path = f'Calibration/final_data/datalist_all_combined_{identifier}.pkl'
 
     # Save dictionary to a single file using pickle
     with open(file_path, 'wb') as f:
