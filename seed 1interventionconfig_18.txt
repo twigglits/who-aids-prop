@@ -1,0 +1,4 @@
+EventAGYW.enabled = true
+diagnosis.AGYWfactor = 0.5
+EventPrep.AGYWthreshold = 0.5
+EventCondom.AGYWthreshold = 0.5

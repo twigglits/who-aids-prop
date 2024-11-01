@@ -1,0 +1,4 @@
+EventDVR.enabled = true
+EventDVR.threshold = 0.95
+EventDVRDROP.enabled = true
+EventDVRDROP.threshold = 0.3
