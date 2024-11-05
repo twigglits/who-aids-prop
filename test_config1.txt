@@ -1856,8 +1856,6 @@ hsv2transmission.hazard.c                                    = 0
 hsv2transmission.hazard.d                                    = 0
 hsv2transmission.hazard.e1                                   = 0
 hsv2transmission.hazard.e2                                   = 0
-hsv2transmission.hazard.v2                                   = -0.916
-hsv2transmission.hazard.k2                                   = -1.6094
 hsv2transmission.hazard.t_max                                = 200
 
 # If you enable the intervention event, you need to specify a number of times
@@ -2336,8 +2334,8 @@ person.vsp.model.logdist2d.dist2d.binormalsymm.max           = 6
 # By default, the 'maxevents' parameter is negative, causing it to be
 # ignored. Set this to a positive value to make sure the simulation stops
 # when this number of events has been exceeded.
-population.nummen                                            = 1000
-population.numwomen                                          = 1000
+population.nummen                                            = 200
+population.numwomen                                          = 200
 population.simtime                                           = 71
 
 population.maxevents                                         = -1
