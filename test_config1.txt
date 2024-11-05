@@ -1914,8 +1914,8 @@ intervention.baseconfigname                                  = seed 1interventio
 #intervention.fileids                                         = 1,2,4,5,6,8,10,12,13
 
 #AGYW ENABLED
-intervention.times                                           = 12.0,12.5,20.0,22.0,23.0,26.0,30.0,33.5,36.75,37.0
-intervention.fileids                                         = 1,2,4,5,6,8,10,12,13,18
+#intervention.times                                           = 12.0,12.5,20.0,22.0,23.0,26.0,30.0,33.5,36.75,37.0
+#intervention.fileids                                         = 1,2,4,5,6,8,10,12,13,18
 
 #DVR ENABLED
 #intervention.times                                           = 12.0,12.5,20.0,22.0,23.0,26.0,30.0,31.0,33.5,36.75
@@ -1942,12 +1942,12 @@ intervention.fileids                                         = 1,2,4,5,6,8,10,12
 #intervention.fileids                                         = 1,2,4,5,6,8,10,12,13
 
 #VMMC ENABLED
-#intervention.times                                           = 12.0,12.5,20.0,22.0,23.0,26.0,26.1,30.0,33.5,36.75,37.0 
-#intervention.fileids                                         = 1,2,4,5,6,8,9,10,12,13,14
+#intervention.times                                            = 12.0,12.5,20.0,22.0,23.0,26.0,26.1,30.0,31.0,33.5,36.75 
+#intervention.fileids                                          = 1,2,4,5,6,8,10,12,9,13,14
 
-#VMMC DISABLED
-#intervention.times                                           = 12.0,12.5,20.0,22.0,23.0,26.0,30.0,33.5,36.75,37.0 
-#intervention.fileids                                         = 1,2,4,5,6,8,10,12,13,14
+#VMMC ENABLED-SCALEDUP
+intervention.times                                             = 12.0,12.5,20.0,22.0,23.0,26.0,26.1,30.0,31.0,33.5,36.75,40.0
+intervention.fileids                                           = 1,2,4,5,6,8,10,12,9,13,14,15
 
 # When a person is diagnosed (or 're-diagnosed' after a dropout), monitoring
 # events will be scheduled using an interval that depends on the CD4 count.
@@ -2336,11 +2336,8 @@ person.vsp.model.logdist2d.dist2d.binormalsymm.max           = 6
 # By default, the 'maxevents' parameter is negative, causing it to be
 # ignored. Set this to a positive value to make sure the simulation stops
 # when this number of events has been exceeded.
-# population.nummen                                            = 1000
-# population.numwomen                                          = 1000
-# population.simtime                                           = 71
-population.nummen                                            = 200
-population.numwomen                                          = 200
+population.nummen                                            = 1000
+population.numwomen                                          = 1000
 population.simtime                                           = 71
 
 population.maxevents                                         = -1

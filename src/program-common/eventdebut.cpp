@@ -57,7 +57,7 @@ void EventDebut::fire(Algorithm *pAlgorithm, State *pState, double t)
 			EventVMMC *pEvtVMMC = new EventVMMC(pPerson);  // initialize VMMC class here
             population.onNewEvent(pEvtVMMC);  // now we first trigger VMMC event
 		}
-		// population.onNewEvent(pEvtCondom);  // Set the condom preference value for each individual
+		std::cout << "DRAGONS ARE HERE, FIGHT THEM: " << std::endl;
 		population.initializeFormationEvents(pPerson, false, false, t);
 	}
 }
