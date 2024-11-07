@@ -72,7 +72,7 @@ public:
 	bool isSexuallyActive() const													{ return m_relations.isSexuallyActive(); }
 
 	// set and check for if person is uses condoms
-	bool m_condom;
+	bool m_condom=false;
 	void setCondomUse(bool f)														{ m_condom = f; }
 	bool isCondomUsing() const														{ return m_condom; }
 
