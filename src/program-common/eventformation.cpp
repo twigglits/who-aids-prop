@@ -3,6 +3,7 @@
 #include "eventhivtransmission.h"
 #include "eventhsv2transmission.h"
 #include "eventdebut.h"
+#include "eventvmmc.h"
 #include "eventprep.h"
 #include "eventprepdrop.h"
 #include "eventcondom.h"
@@ -126,6 +127,12 @@ void EventFormation::fire(Algorithm *pAlgorithm, State *pState, double t)
 			EventAGYW *pEvtAGYW = new EventAGYW(pPerson2);
 			population.onNewEvent(pEvtAGYW);	  
     	}
+	}
+
+	if (pPerson1->isMan() && !MAN(pPerson1)->isVmmc() && EventVMMC::m_VMMC_enabled)
+	{
+		EventVMMC *pEvtVMMC = new EventVMMC(pPerson1);  // initialize VMMC class here
+        population.onNewEvent(pEvtVMMC);  // now we first trigger VMMC event
 	}
 
 	// PREP events
