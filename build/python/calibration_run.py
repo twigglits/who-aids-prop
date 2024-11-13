@@ -33,7 +33,7 @@ else:
 # the parameters need to be named and not just passed as a vector # loc is lower bound, scale = upper - lower
 
 prior = pyabc.Distribution(hivtransmission_param_f1=pyabc.RV("uniform", 2, 1),
-                           hivtransmission_param_a=pyabc.RV("uniform", -2.18, 0.2),
+                           hivtransmission_param_a=pyabc.RV("uniform", -2.2, 0.25),
                            formation_hazard_agegapry_gap_agescale_man=pyabc.RV("uniform", 0.2, 0.08),
                            formation_hazard_agegapry_gap_agescale_woman=pyabc.RV("uniform", 0.25, 0.1),
                            person_agegap_man_dist_normal_mu=pyabc.RV("uniform", -2.5, 1.5),
