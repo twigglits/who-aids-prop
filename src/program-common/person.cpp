@@ -60,6 +60,7 @@ void Person::writeToPersonLog()
 	int gender = (isMan())?0:1;
 	double timeOfBirth = getDateOfBirth();
 	double timeOfDeath = (hasDied())?getTimeOfDeath():infinity;
+	double timeOfDeathAids = (hiv().wasAIDSDeath())?getTimeOfDeath():infinity;
 
 	Man *pFather = getFather();
 	Woman *pMother = getMother();
@@ -113,8 +114,8 @@ void Person::writeToPersonLog()
 	double cd4AtInfection = (m_hiv.isInfected())?m_hiv.getCD4CountAtInfectionStart() : (-1);
 	double cd4AtDeath = (m_hiv.isInfected())?m_hiv.getCD4CountAtDeath() : (-1);
 
-	LogPerson.print("%d,%d,%10.10f,%10.10f,%d,%d,%10.10f,%10.10f,%10.10f,%10.10f,%d,%d,%10.10f,%10.10f,%10.10f,%10.10f,%d,%10.10f,%d,%10.10f,%10.10f",
-		        id, gender, timeOfBirth, timeOfDeath, fatherID, motherID, debutTime,
+	LogPerson.print("%d,%d,%10.10f,%10.10f,%10.10f,%d,%d,%10.10f,%10.10f,%10.10f,%10.10f,%d,%d,%10.10f,%10.10f,%10.10f,%10.10f,%d,%10.10f,%d,%10.10f,%10.10f",
+		        id, gender, timeOfBirth, timeOfDeath, timeOfDeathAids, fatherID, motherID, debutTime,
 		        formationEagerness,formationEagernessMSM,
 		        infectionTime, origin, infectionType, log10SPVLoriginal, treatmentTime,
 				m_location.x, m_location.y, aidsDeath,
