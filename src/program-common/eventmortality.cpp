@@ -4,6 +4,7 @@
 #include "configfunctions.h"
 #include <stdio.h>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -49,6 +50,15 @@ double EventMortality::getNewInternalTimeDifference(GslRandomNumberGenerator *pR
 	assert(ageOffset >= 0);
 
 	dt = pRndGen->pickWeibull(scale, shape, ageOffset) - ageOffset; // time left to live
+
+	// Write to a .txt file (person_id, dt value)
+    std::ofstream outFile("scheduled_death_times.txt", std::ios::app); // Open in append mode
+    if (outFile.is_open()) {
+        outFile << "Person ID: " << pPerson->getName() << ", DT: " << dt << std::endl;
+        outFile.close();
+    } else {
+        std::cerr << "Error: Unable to open file for writing!" << std::endl;
+    }
 
 	return dt;
 }
