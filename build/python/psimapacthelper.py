@@ -62,6 +62,8 @@ def readthedata(modeloutput):
     inputparamfile = DestDir + outputID + "settingslog.csv"
     periodicfile = DestDir + outputID + "periodiclog.csv"
     viralloadfile = DestDir + outputID + "hivviralloadlog.csv"
+    scheduledTODfile = DestDir + "scheduled_death_times.txt"
+
     # facilitiesxyfile = DestDir + outputID + "facilitypositions.csv"
 
     # Reading the CSV files into DataFrames
@@ -71,6 +73,7 @@ def readthedata(modeloutput):
     etable = pd.read_csv(eventfile, low_memory=False, header=None, names=list(range(14)))
     ttable = pd.read_csv(treatmentfile)
     itable = pd.read_csv(inputparamfile)
+    sTOD = pd.read_csv(scheduledTODfile, delimiter=',', header=None)
 
     # Naming columns in the event log DataFrame
     if etable.shape[1] == 10:
@@ -84,6 +87,11 @@ def readthedata(modeloutput):
         etable.columns = ["eventtime", "eventname", "p1name", "p1ID", "p1gender",
                           "p1age", "p2name", "p2ID", "p2gender", "p2age",
                           "extradescript", "value","relationage","value1"]
+    # Preprocessing sTOD
+    sTOD.columns = ['id_gender', 'scheduled_TOD']
+    sTOD['id_gender'] = sTOD['id_gender'].str.replace("Person ID: ", "", regex=False)
+    sTOD['scheduled_TOD'] = sTOD['scheduled_TOD'].str.replace("DT: ", "", regex=False).astype(float)
+    sTOD['ID'] = sTOD['id_gender'].str.extract(r'(\d+)').astype(int)
 
     # Checking for existence of optional logs
     if os.path.exists(periodicfile): #or os.path.exists(facilitiesxyfile):
@@ -96,7 +104,8 @@ def readthedata(modeloutput):
             'ttable': ttable,
             'itable': itable,
             'ltable': ltable,
-            'vltable': vltable
+            'vltable': vltable,
+            'sTOD': sTOD
             # 'ftable': ftable
         }
     else:
@@ -106,7 +115,8 @@ def readthedata(modeloutput):
             'etable': etable,
             'ttable': ttable,
             'itable': itable,
-            'vltable': vltable
+            'vltable': vltable,
+            'sTOD': sTOD
         }
 
     return outputtables
@@ -147,6 +157,7 @@ def readthedata_from_folder(folder_path):
     inputparamfile = os.path.join(folder_path, f'{folder_name}settingslog.csv')
     periodicfile = os.path.join(folder_path, f'{folder_name}periodiclog.csv')
     viralloadfile = os.path.join(folder_path, f'{folder_name}hivviralloadlog.csv')
+    scheduledTODfile = os.path.join(folder_path, f'{folder_name}scheduled_death_times.txt')
     # facilitiesxyfile = os.path.join(folder_path, f'{folder_name}facilitypositions.csv')
 
     # Reading the CSV files into DataFrames
@@ -156,6 +167,7 @@ def readthedata_from_folder(folder_path):
     etable = pd.read_csv(eventfile, low_memory=False, header=None, names=list(range(14)))
     ttable = pd.read_csv(treatmentfile)
     itable = pd.read_csv(inputparamfile)
+    sTOD = pd.read_csv(scheduledTODfile, delimiter=',', header=None)
 
     # Naming columns in the event log DataFrame
     if etable.shape[1] == 10:
@@ -169,6 +181,13 @@ def readthedata_from_folder(folder_path):
         etable.columns = ["eventtime", "eventname", "p1name", "p1ID", "p1gender",
                           "p1age", "p2name", "p2ID", "p2gender", "p2age",
                           "extradescript", "value", "relationage", "value1"]
+        
+    # Preprocessing sTOD
+    sTOD.columns = ['id_gender', 'scheduled_TOD']
+    sTOD['id_gender'] = sTOD['id_gender'].str.replace("Person ID: ", "", regex=False)
+    sTOD['scheduled_TOD'] = sTOD['scheduled_TOD'].str.replace("DT: ", "", regex=False).astype(float)
+    sTOD['ID'] = sTOD['id_gender'].str.extract(r'(\d+)').astype(int)
+
 
     # Checking for existence of optional logs
     if os.path.exists(periodicfile):  # or os.path.exists(facilitiesxyfile):
@@ -181,7 +200,8 @@ def readthedata_from_folder(folder_path):
             'ttable': ttable,
             'itable': itable,
             'ltable': ltable,
-            'vltable': vltable
+            'vltable': vltable,
+            'sTOD': sTOD
             # 'ftable': ftable
         }
     else:
@@ -191,7 +211,8 @@ def readthedata_from_folder(folder_path):
             'etable': etable,
             'ttable': ttable,
             'itable': itable,
-            'vltable': vltable
+            'vltable': vltable,
+            'sTOD': sTOD
         }
 
     return outputtables
@@ -238,6 +259,7 @@ def readthedata_from_multiple_folders(main_folder_path):
                 inputparamfile = os.path.join(subfolder_path, f'{subfolder}settingslog.csv')
                 periodicfile = os.path.join(subfolder_path, f'{subfolder}periodiclog.csv')
                 viralloadfile = os.path.join(subfolder_path, f'{subfolder}hivviralloadlog.csv')
+                scheduledTODfile = os.path.join(subfolder_path, f'{subfolder}scheduled_death_times.txt')
                 # facilitiesxyfile = os.path.join(subfolder_path, f'{subfolder}facilitypositions.csv')
 
                 # Reading the CSV files into DataFrames
@@ -247,6 +269,7 @@ def readthedata_from_multiple_folders(main_folder_path):
                 etable = pd.read_csv(eventfile, low_memory=False, header=None, names=list(range(14)))
                 ttable = pd.read_csv(treatmentfile)
                 itable = pd.read_csv(inputparamfile)
+                sTOD = pd.read_csv(scheduledTODfile, delimiter=',', header=None)
 
                 # Naming columns in the event log DataFrame
                 if etable.shape[1] == 10:
@@ -260,6 +283,14 @@ def readthedata_from_multiple_folders(main_folder_path):
                     etable.columns = ["eventtime", "eventname", "p1name", "p1ID", "p1gender",
                                       "p1age", "p2name", "p2ID", "p2gender", "p2age",
                                       "extradescript", "value", "relationage", "value1"]
+                    
+                    
+                # Preprocessing sTOD
+                sTOD.columns = ['id_gender', 'scheduled_TOD']
+                sTOD['id_gender'] = sTOD['id_gender'].str.replace("Person ID: ", "", regex=False)
+                sTOD['scheduled_TOD'] = sTOD['scheduled_TOD'].str.replace("DT: ", "", regex=False).astype(float)
+                sTOD['ID'] = sTOD['id_gender'].str.extract(r'(\d+)').astype(int)
+
 
                 # Checking for existence of optional logs
                 if os.path.exists(periodicfile):  # or os.path.exists(facilitiesxyfile):
@@ -272,7 +303,8 @@ def readthedata_from_multiple_folders(main_folder_path):
                         'ttable': ttable,
                         'itable': itable,
                         'ltable': ltable,
-                        'vltable': vltable
+                        'vltable': vltable,
+                        'sTOD': sTOD
                         # 'ftable': ftable
                     }
                 else:
@@ -282,7 +314,8 @@ def readthedata_from_multiple_folders(main_folder_path):
                         'etable': etable,
                         'ttable': ttable,
                         'itable': itable,
-                        'vltable': vltable
+                        'vltable': vltable,
+                        'sTOD': sTOD
                     }
 
                 data[subfolder] = outputtables
@@ -2765,3 +2798,255 @@ def remove_files_in_folder(folder_path):
                 # print(f"Removed directory and its contents: {file_path}")
             except Exception as e:
                 print(f"Error removing directory {file_path}: {e}")
+
+
+def life_years_lost_df(datalist, timewindow):
+    # this function calculates the life years lost due to premature AIDS deaths
+
+    lwr_time, upr_time = timewindow
+
+    ptable = datalist['ptable']
+    stable = datalist['sTOD']
+    ext_ptable = pd.merge(ptable, stable, how='left', on = 'ID')
+    aids_deaths = ext_ptable.query('AIDSDeath == 1').copy()
+
+    aids_deaths['LYL'] = aids_deaths['scheduled_TOD'] - aids_deaths['TOD'].astype(float)
+
+    # filter for time
+    aids_deaths = aids_deaths[(aids_deaths['TOD'].astype(float) >= lwr_time) & (aids_deaths['TOD'].astype(float) <= upr_time)] #filter right time
+    
+
+    return aids_deaths #LYL_df
+
+def life_years_lost(datalist, timewindow):
+    lwr_time, upr_time = timewindow
+
+    # Population and survival data
+    ptable = datalist['ptable']
+    stable = datalist['sTOD']
+    
+    # Merge data to include scheduled time of death
+    ext_ptable = pd.merge(ptable, stable, how='left', on='ID')
+    
+    # Filter for HIV-infected individuals
+    hiv_infected = ptable[ptable['InfectTime'].astype(float) < np.inf]
+
+    # Calculate LYL for those who died of AIDS within the time window
+    hiv_infected['LYL'] = 0  # Default is 0 for individuals still alive
+    hiv_infected.loc[
+        (hiv_infected['AIDSDeath'] == 1) &
+        (hiv_infected['TOD'].astype(float) >= lwr_time) &
+        (hiv_infected['TOD'].astype(float) <= upr_time),
+        'LYL'
+    ] = hiv_infected['scheduled_TOD'] - hiv_infected['TOD'].astype(float)
+    
+    
+    # Create summary table of prevalence by gender
+    if not hiv_infected.empty:
+        LYL_df = hiv_infected.groupby('Gender').agg(
+            LYL=('LYL', 'sum')  # Total cases for each gender
+        ).reset_index()
+
+        # Check for missing genders
+        missing_genders = [gender for gender in [0, 1] if gender not in LYL_df['Gender'].values]
+
+        # Add missing genders with NaN values
+        for gender in missing_genders:
+            LYL_df = pd.concat([LYL_df, pd.DataFrame({'Gender': [gender], 'LYL': [np.nan]})], ignore_index=True)
+
+        # Sort by Gender for readability
+        LYL_df = LYL_df.sort_values(by='Gender').reset_index(drop=True)
+
+        # Calculate overall deaths
+        LYL_all_df = pd.DataFrame({
+            'Gender': ['Total'],
+            'LYL': [hiv_infected['LYL'].sum()]
+        })
+
+        # Combine stratified and overall prevalence data frames
+        LYL_df = pd.concat([LYL_df, LYL_all_df], ignore_index=True)
+
+    return LYL_df
+
+
+def calculate_yld(datalist, timewindow):
+
+    lwr_time, upr_time = timewindow
+    
+    # Years living with disability 
+    monitoring_df = datalist['etable'][datalist['etable'].eventname == 'monitoring']
+    monitoring_df = monitoring_df.copy()
+    monitoring_df.loc[:, 'CD4less200'] = monitoring_df['value'] < 200
+    cd4less200 = monitoring_df.query('CD4less200 == True')
+
+    # sort by eventtime, and p1ID
+    cd4less200 = cd4less200.sort_values(by=['eventtime','p1ID'])
+    # first timepoint
+    cd4less200_unique = cd4less200.drop_duplicates(subset='p1ID', keep='first')
+
+    ptable = datalist['ptable']
+    hiv_infected = ptable[ptable['InfectTime'].astype(float) < np.inf]
+    hiv_infected = pd.merge(hiv_infected, cd4less200_unique[['eventtime','p1ID','CD4less200']], how='left', left_on='ID', right_on='p1ID')
+    hiv_infected['InfectTime'] = hiv_infected['InfectTime'].astype(float)
+    hiv_infected['TreatTime'] = hiv_infected['TreatTime'].astype(float)
+    hiv_infected['TOD'] = hiv_infected['TOD'].astype(float)
+
+    # Calculate EarlyStageDurationWindow correctly
+    # this gets the first event that happened after infection (whether treatment, death or cd4 being lower than 200)
+    hiv_infected['EarlyStageDurationWindow'] = (
+        hiv_infected[['eventtime', 'TreatTime', 'TOD']].min(axis=1).clip(upper=upr_time)
+        - hiv_infected[['InfectTime']].max(axis=1).clip(lower=lwr_time)
+    ).clip(lower=0)
+
+
+    # Late-stage duration within the time window
+    hiv_infected['LateStageDurationWindow'] = (
+        hiv_infected[['TreatTime', 'TOD']].min(axis=1).clip(upper=upr_time)
+        - hiv_infected[['eventtime']].max(axis=1).clip(lower=lwr_time)
+    ).clip(lower=0)
+
+
+    # ART duration within the time window
+    hiv_infected['ARTDurationWindow'] = (
+        hiv_infected[['TOD']].min(axis=1).clip(upper=upr_time)
+        - hiv_infected[['TreatTime']].max(axis=1).clip(lower=lwr_time)
+    ).clip(lower=0)
+
+    # Calculate YLD for each stage by using weights
+    hiv_infected['YLD_EarlyStage'] = hiv_infected['EarlyStageDurationWindow'] * 0.15
+    hiv_infected['YLD_LateStage'] = hiv_infected['LateStageDurationWindow'] * 0.55
+    hiv_infected['YLD_ART'] = hiv_infected['ARTDurationWindow'] * 0.2
+
+    hiv_infected['Total_YLD_Window'] = (
+    hiv_infected[['YLD_EarlyStage', 'YLD_LateStage', 'YLD_ART']].sum(axis=1, skipna=True))
+
+    if not hiv_infected.empty:
+        yld_df = hiv_infected.groupby('Gender').agg(
+            Total_YLD_Window=('Total_YLD_Window', 'sum')  # Total cases for each gender
+        ).reset_index()
+
+                # Check for missing genders
+        missing_genders = [gender for gender in [0, 1] if gender not in yld_df['Gender'].values]
+
+        # Add missing genders with NaN values
+        for gender in missing_genders:
+            yld_df = pd.concat([yld_df, pd.DataFrame({'Gender': [gender], 'Total_YLD_Window': [np.nan]})], ignore_index=True)
+
+        # Sort by Gender for readability
+        yld_df = yld_df.sort_values(by='Gender').reset_index(drop=True)
+
+        # Calculate overall deaths
+        yld_all_df = pd.DataFrame({
+            'Gender': ['Total'],
+            'Total_YLD_Window': [yld_df['Total_YLD_Window'].sum()]
+        })
+
+        # Combine stratified and overall prevalence data frames
+        yld_df = pd.concat([yld_df, yld_all_df], ignore_index=True)
+
+    return hiv_infected
+
+def daly_calculator(datalist, timewindow):
+    lwr_time, upr_time = timewindow
+
+    # Population and survival data
+    ptable = datalist['ptable']
+    stable = datalist['sTOD']
+    
+    ptable['InfectTime'] = ptable['InfectTime'].astype(float)
+    ptable['TreatTime'] = ptable['TreatTime'].astype(float)
+    ptable['TOD'] = ptable['TOD'].astype(float)
+    
+    # Merge data to include scheduled time of death
+    ext_ptable = pd.merge(ptable, stable, how='left', on='ID')
+    
+    # Filter for HIV-infected individuals
+    hiv_infected = ext_ptable[ext_ptable['InfectTime'].astype(float) < np.inf]
+
+    # Calculate LYL for those who died of AIDS within the time window otherwise lyl is 0
+    hiv_infected = hiv_infected.copy()
+    hiv_infected['LYL'] = 0  # Default is 0 for individuals still alive
+    hiv_infected.loc[
+        (hiv_infected['AIDSDeath'] == 1) &
+        (hiv_infected['TOD'] >= lwr_time) &
+        (hiv_infected['TOD'] <= upr_time),
+        'LYL'
+    ] = hiv_infected['scheduled_TOD'] - hiv_infected['TOD'].astype(float)
+    
+    
+    # disability calculator
+    # Years living with disability 
+    monitoring_df = datalist['etable'][datalist['etable'].eventname == 'monitoring']
+    monitoring_df = monitoring_df.copy()
+    monitoring_df.loc[:, 'CD4less200'] = monitoring_df['value'] < 200
+    cd4less200 = monitoring_df.query('CD4less200 == True')
+
+    # sort by eventtime, and p1ID
+    cd4less200 = cd4less200.sort_values(by=['eventtime','p1ID'])
+    # first timepoint
+    cd4less200_unique = cd4less200.drop_duplicates(subset='p1ID', keep='first')
+    
+    hiv_infected = pd.merge(hiv_infected, cd4less200_unique[['eventtime','p1ID','CD4less200']], how='left', left_on='ID', right_on='p1ID')
+    
+    # Calculate EarlyStageDurationWindow correctly
+    # this gets the first event that happened after infection (whether treatment, death or cd4 being lower than 200)
+    hiv_infected['EarlyStageDurationWindow'] = (
+        hiv_infected[['eventtime', 'TreatTime', 'TOD']].min(axis=1).clip(upper=upr_time)
+        - hiv_infected[['InfectTime']].max(axis=1).clip(lower=lwr_time)
+    ).clip(lower=0)
+
+
+    # Late-stage duration within the time window
+    hiv_infected['LateStageDurationWindow'] = (
+        hiv_infected[['TreatTime', 'TOD']].min(axis=1).clip(upper=upr_time)
+        - hiv_infected[['eventtime']].max(axis=1).clip(lower=lwr_time)
+    ).clip(lower=0)
+
+
+    # ART duration within the time window
+    hiv_infected['ARTDurationWindow'] = (
+        hiv_infected[['TOD']].min(axis=1).clip(upper=upr_time)
+        - hiv_infected[['TreatTime']].max(axis=1).clip(lower=lwr_time)
+    ).clip(lower=0)
+
+    # Calculate YLD for each stage by using weights
+    hiv_infected['YLD_EarlyStage'] = hiv_infected['EarlyStageDurationWindow'] * 0.15
+    hiv_infected['YLD_LateStage'] = hiv_infected['LateStageDurationWindow'] * 0.55
+    hiv_infected['YLD_ART'] = hiv_infected['ARTDurationWindow'] * 0.2
+
+    hiv_infected['Total_YLD_Window'] = (
+    hiv_infected[['YLD_EarlyStage', 'YLD_LateStage', 'YLD_ART']].sum(axis=1, skipna=True))
+    
+    hiv_infected['daly'] = (
+    hiv_infected[['Total_YLD_Window', 'LYL']].sum(axis=1, skipna=True))
+    
+    if not hiv_infected.empty:
+        daly_df = hiv_infected.groupby('Gender').agg(
+            Total_LYL = ('LYL','sum'),
+            Total_YLD = ('Total_YLD_Window','sum'),
+            Total_DALY=('daly', 'sum')  # Total cases for each gender
+        ).reset_index()
+
+                # Check for missing genders
+        missing_genders = [gender for gender in [0, 1] if gender not in daly_df['Gender'].values]
+
+        # Add missing genders with NaN values
+        for gender in missing_genders:
+            daly_df = pd.concat([daly_df, pd.DataFrame({'Gender': [gender], 'Total_DALY': [np.nan]})], ignore_index=True)
+
+        # Sort by Gender for readability
+        daly_df = daly_df.sort_values(by='Gender').reset_index(drop=True)
+
+        # Calculate overall deaths
+        daly_all_df = pd.DataFrame({
+            'Gender': ['Total'],
+            'Total_LYL': [hiv_infected['LYL'].sum()],
+            'Total_YLD': [hiv_infected['Total_YLD_Window'].sum()],
+            'Total_DALY': [hiv_infected['daly'].sum()]
+        })
+
+        # Combine stratified and overall prevalence data frames
+        daly_df = pd.concat([daly_df, daly_all_df], ignore_index=True)
+
+    
+    return daly_df
