@@ -32,34 +32,33 @@ else:
 
 # the parameters need to be named and not just passed as a vector # loc is lower bound, scale = upper - lower
 
-prior = pyabc.Distribution(hivtransmission_param_f1=pyabc.RV("uniform", 2, 1),
-                           hivtransmission_param_a=pyabc.RV("uniform", -2.18, 0.2),
-                           formation_hazard_agegapry_gap_agescale_man=pyabc.RV("uniform", 0.2, 0.1),
-                           formation_hazard_agegapry_gap_agescale_woman=pyabc.RV("uniform", 0.2, 0.15),
-                           person_agegap_man_dist_normal_mu=pyabc.RV("uniform", -3, 3),
+prior = pyabc.Distribution(hivtransmission_param_f1=pyabc.RV("uniform", 2.5, 0.7),
+                           hivtransmission_param_a=pyabc.RV("uniform", -2.1, 0.25),
+                           formation_hazard_agegapry_gap_agescale_man=pyabc.RV("uniform", 0.2, 0.08),
+                           formation_hazard_agegapry_gap_agescale_woman=pyabc.RV("uniform", 0.23, 0.15),
+                           person_agegap_man_dist_normal_mu=pyabc.RV("uniform", -2.5, 1.5),
                            person_agegap_man_dist_normal_sigma=pyabc.RV("uniform", 3, 1.5),
-                           person_agegap_woman_dist_normal_mu=pyabc.RV("uniform", -2, 2),
-                           person_agegap_woman_dist_normal_sigma=pyabc.RV("uniform", 2, 2),
-                           person_eagerness_man_dist_gamma_a=pyabc.RV("uniform", 0.65, 0.3),
-                           person_eagerness_woman_dist_gamma_a=pyabc.RV("uniform", 0.2, 0.3),
-                           person_eagerness_man_dist_gamma_b=pyabc.RV("uniform", 40, 20),
-                           person_eagerness_woman_dist_gamma_b=pyabc.RV("uniform", 40, 20),
-                           formation_hazard_agegapry_gap_factor_man_woman_exp=pyabc.RV("uniform", -1.8, 1),
-                           formation_hazard_agegapry_baseline=pyabc.RV("uniform", 4, 2),
-                           formation_hazard_agegapry_numrel_man=pyabc.RV("uniform", -0.7, 0.6),
-                           formation_hazard_agegapry_numrel_woman=pyabc.RV("uniform", -0.8, 0.7),
-                           dissolution_alpha_0=pyabc.RV("uniform", -2.55, 0.8),
-                           conception_alpha_base=pyabc.RV("uniform", -3.2, 0.2),
+                           person_agegap_woman_dist_normal_mu=pyabc.RV("uniform", -1.8, 1.5),
+                           person_agegap_woman_dist_normal_sigma=pyabc.RV("uniform", 3, 1.5),
+                           person_eagerness_man_dist_gamma_a=pyabc.RV("uniform", 0.7, 0.15),
+                           person_eagerness_woman_dist_gamma_a=pyabc.RV("uniform", 0.2, 0.15),
+                           person_eagerness_man_dist_gamma_b=pyabc.RV("uniform", 38, 14),
+                           person_eagerness_woman_dist_gamma_b=pyabc.RV("uniform", 42, 14),
+                           formation_hazard_agegapry_gap_factor_man_woman_exp=pyabc.RV("uniform", -1.5, 1),
+                           formation_hazard_agegapry_baseline=pyabc.RV("uniform", 4, 1.5),
+                           formation_hazard_agegapry_numrel_man=pyabc.RV("uniform", -0.7, 0.4),
+                           formation_hazard_agegapry_numrel_woman=pyabc.RV("uniform", -0.7, 0.4),
+                           dissolution_alpha_0=pyabc.RV("uniform", -2.3, 0.3),
+                           conception_alpha_base=pyabc.RV("uniform", -3.05, 0.15),
                            conception_alpha_base_1=pyabc.RV("uniform", 0.4, 0.2),
-                           conception_alpha_base_2=pyabc.RV("uniform", 0.2, 0.2),
-                           diagnosis_baseline_t0=pyabc.RV("uniform", -1.85, 0.2),
-                           diagnosis_baseline_t1=pyabc.RV("uniform", 0.2, 0.15),
-                           diagnosis_baseline_t2=pyabc.RV("uniform", 0.15, 0.1),
-                           diagnosis_baseline_t2_2=pyabc.RV("uniform", 0, 0.1),
-                           diagnosis_baseline_t3=pyabc.RV("uniform", 0.2, 0.15),
-                           diagnosis_baseline_t4=pyabc.RV("uniform", 0.1, 0.2),
-                           diagnosis_baseline_t5=pyabc.RV("uniform", 0.4, 0.4), 
-                           diagnosis_eagernessfactor=pyabc.RV("uniform", 1.012, 0.025)
+                           diagnosis_baseline_t0=pyabc.RV("uniform", -1.85, 0.1),
+                           diagnosis_baseline_t1=pyabc.RV("uniform", 0.2, 0.1),
+                           diagnosis_baseline_t2=pyabc.RV("uniform", 0.1, 0.1),
+                           diagnosis_baseline_t2_2=pyabc.RV("uniform", 0.1, 0.1),
+                           diagnosis_baseline_t3=pyabc.RV("uniform", 0.3, 0.15),
+                           diagnosis_baseline_t4=pyabc.RV("uniform", 0.4, 0.4),
+                           diagnosis_baseline_t5=pyabc.RV("uniform", 0.35, 0.15), 
+                           diagnosis_eagernessfactor=pyabc.RV("uniform", 1.01, 0.02)
                            )
 # Adaptive distance
 scale_log_file = tempfile.mkstemp(suffix=".json")[1]
@@ -70,12 +69,11 @@ distance_adaptive = pyabc.AdaptivePNormDistance(
     scale_log_file=scale_log_file,
 )
 
-
 # create ABC instance
 abc_continued = pyabc.ABCSMC(models=calibration_wrapper_function, 
                    parameter_priors=prior, 
                    distance_function=distance_adaptive,#smape, weighted_distance,pyabc.PNormDistance(p=2),  
-                   sampler=MulticoreEvalParallelSampler(n_procs=128),
+                   sampler=MulticoreEvalParallelSampler(n_procs=80),
                    population_size=30) 
 
 

@@ -16,23 +16,23 @@ def calibration_wrapper_function(parameters = None):
     # Creating cfg list -------------------------------------------------------
     cfg_list = psh.input_params_creator(
     population_eyecap_fraction=0.2,
-    population_simtime=71,  # Until 1 January 2051
-    population_nummen=1000,
-    population_numwomen=1070, #ratio m:f is 1:1.07
+    population_simtime=44,  # Until 1 January 2024
+    population_nummen=3000,
+    population_numwomen=3210, #ratio m:f is 1:1.07
     population_msm="no",
     hivseed_time=8.5,
     hivseed_type="amount",
-    hivseed_amount=15,  # 30,
-    hivseed_age_min=20,
+    hivseed_amount=7,  # 30,
+    hivseed_age_min=19,
     hivseed_age_max=50,
     hivtransmission_param_a=-1.3,
     hivtransmission_param_b=-90,
     hivtransmission_param_c=0.5,
     hivtransmission_param_f1=np.log(2.27),
     hivtransmission_param_f2=np.log(np.log(np.sqrt(2.27)) / np.log(2.27)) / 5,
-    formation_hazard_agegapry_gap_factor_man_age=-0.02,
-    formation_hazard_agegapry_gap_factor_woman_age=-0.02,
-    formation_hazard_agegapry_meanage=-0.03, #-0.025
+    formation_hazard_agegapry_gap_factor_man_age=-0.15, #-0.02,
+    formation_hazard_agegapry_gap_factor_woman_age=-0.15, #-0.02,
+    formation_hazard_agegapry_meanage=-0.04,#-0.03, #-0.025
     formation_hazard_agegapry_gap_factor_man_const=0,
     formation_hazard_agegapry_gap_factor_woman_const=0,
     formation_hazard_agegapry_gap_factor_man_exp=-1,
@@ -48,18 +48,22 @@ def calibration_wrapper_function(parameters = None):
     person_eagerness_man_dist_gamma_b=47.03264158,
     person_eagerness_woman_dist_gamma_b=47.03264158,
     formation_hazard_agegapry_numrel_man= -0.649752699,
-    formation_hazard_agegapry_numrel_woman= -0.61526928)
+    formation_hazard_agegapry_numrel_woman= -0.61526928,
+    mortality_normal_weibull_shape=5,
+    mortality_normal_weibull_scale=65,
+    mortality_normal_weibull_genderdiff=0)
         
     cfg_list["hivtransmission.param.k"] = -1.203
     cfg_list["hivtransmission.param.p"] = -1.6094 #prep effectivenss in preventing HIV (80%, remaining risk ln(0.20))
-            
+    cfg_list["birth.boygirlratio"] = 0.48  
+    
     cfg_list["population.agedistfile"] = "/home/jupyter/who-aids-prop/build/python/eswatini_1980.csv"
     cfg_list['diagnosis.eagernessfactor'] = np.log(1.025)
     cfg_list['diagnosis.pregnancyfactor'] = 0
-    cfg_list['diagnosis.genderfactor'] = -0.07
+    cfg_list['diagnosis.genderfactor'] = 0.07#-0.07
     cfg_list["mortality.aids.survtime.art_e.dist.type"] = "uniform"
-    cfg_list["mortality.aids.survtime.art_e.dist.uniform.min"] =  0#5
-    cfg_list["mortality.aids.survtime.art_e.dist.uniform.max"] = 10# 20 #24
+    cfg_list["mortality.aids.survtime.art_e.dist.uniform.min"] =  5#5
+    cfg_list["mortality.aids.survtime.art_e.dist.uniform.max"] = 20# 20 #24
     
     cfg_list["EventVMMC.enabled"] = "true"
     cfg_list["EventCondom.enabled"] = "true"
@@ -154,7 +158,7 @@ def calibration_wrapper_function(parameters = None):
     cfg_list["monitoring.m_artDist.dist.type"] = "normal"
     # this distribution controls how the spvl of the person drops. its different for people
     cfg_list["monitoring.m_artDist.dist.normal.min"] = 0.35
-    cfg_list["monitoring.m_artDist.dist.normal.max"] = 0.85#0.75
+    cfg_list["monitoring.m_artDist.dist.normal.max"] = 0.65#0.85#0.75
     cfg_list["monitoring.m_artDist.dist.normal.mu"] = 0.5#0.45
     cfg_list["monitoring.m_artDist.dist.normal.sigma"] = 0.3
 
@@ -179,14 +183,14 @@ def calibration_wrapper_function(parameters = None):
     # calibration parameters
     
     cfg_list["hivtransmission.param.f1"] = round(parameters['hivtransmission_param_f1'],8)
-    cfg_list["hivtransmission.param.f2"] = round(math.log(math.log(math.sqrt(parameters['hivtransmission_param_f1'])) / math.log(parameters['hivtransmission_param_f1'])) / 5,8)
+    cfg_list["hivtransmission.param.f2"] = round(0.91 * math.log(math.log(math.sqrt(parameters['hivtransmission_param_f1'])) / math.log(parameters['hivtransmission_param_f1'])) / 5,8) ## Multiply with a constant 0.3 to make the decay slower 
     cfg_list["hivtransmission.param.a"] = round(parameters['hivtransmission_param_a'],8) #+ 0.23 
     cfg_list["formation.hazard.agegapry.gap_agescale_man"] = round(parameters['formation_hazard_agegapry_gap_agescale_man'],8)
     cfg_list["formation.hazard.agegapry.gap_agescale_woman"] = round(parameters['formation_hazard_agegapry_gap_agescale_woman'],8)
-    cfg_list["person.agegap.man.dist.normal.mu"] = round(parameters['person_agegap_man_dist_normal_mu'],8)
-    cfg_list["person.agegap.woman.dist.normal.mu"] = round(parameters['person_agegap_woman_dist_normal_mu'],8)
-    cfg_list["person.agegap.man.dist.normal.sigma"] = round(parameters['person_agegap_man_dist_normal_sigma'],8)
-    cfg_list["person.agegap.woman.dist.normal.sigma"] = round(parameters['person_agegap_woman_dist_normal_sigma'],8)
+    cfg_list["person.agegap.man.dist.normal.mu"] = 0 #round(parameters['person_agegap_man_dist_normal_mu'],8)
+    cfg_list["person.agegap.woman.dist.normal.mu"] = 0 #round(parameters['person_agegap_woman_dist_normal_mu'],8)
+    cfg_list["person.agegap.man.dist.normal.sigma"] = 1 #round(parameters['person_agegap_man_dist_normal_sigma'],8)
+    cfg_list["person.agegap.woman.dist.normal.sigma"] = 1 #round(parameters['person_agegap_woman_dist_normal_sigma'],8)
     cfg_list["person.eagerness.man.dist.gamma.a"] = round(parameters['person_eagerness_man_dist_gamma_a'],8)
     cfg_list["person.eagerness.woman.dist.gamma.a"] = round(parameters['person_eagerness_woman_dist_gamma_a'],8)
     cfg_list["person.eagerness.man.dist.gamma.b"] = round(parameters['person_eagerness_man_dist_gamma_b'],8)
@@ -200,7 +204,7 @@ def calibration_wrapper_function(parameters = None):
     cfg_list["dissolution.alpha_0"] = round(parameters['dissolution_alpha_0'],8)
     cfg_list['diagnosis.eagernessfactor'] = round(math.log(parameters['diagnosis_eagernessfactor']),8)
 
-        # hiv testing configurations
+    # hiv testing configurations
     hiv_testing = {
     "time": 12, #around 1992 
     "diagnosis.baseline":-4
@@ -234,10 +238,10 @@ def calibration_wrapper_function(parameters = None):
 
     art_intro2_2 = {
         "time": 26, #around 2006
-        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'],
+        #"diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'],
         "person.art.accept.threshold.dist.fixed.value": 0.35, #0.7,
-        "mortality.aids.survtime.art_e.dist.uniform.min":0,#15,
-        "mortality.aids.survtime.art_e.dist.uniform.max":20,#30
+        "mortality.aids.survtime.art_e.dist.uniform.min":10,#15,
+        "mortality.aids.survtime.art_e.dist.uniform.max":30,#30
         # "mortality.aids.survtime.art_e.dist.uniform.min":20,
         # "mortality.aids.survtime.art_e.dist.uniform.max":30
     }
@@ -245,34 +249,36 @@ def calibration_wrapper_function(parameters = None):
     art_intro3 = {
         "time": 30, # 2010
         "diagnosis.pregnancyfactor":0.7,#0.5
-        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3'],#  + 0.1 + 0.15,#-0.2,
+        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t3'],#  + 0.1 + 0.15,#-0.2,
         "monitoring.cd4.threshold": 350,
-        "person.art.accept.threshold.dist.fixed.value": 0.25,#0.7,        
-        "monitoring.m_artDist.dist.normal.mu": 0.35,
-        "monitoring.m_artDist.dist.normal.min": 0.15,
-        "monitoring.m_artDist.dist.normal.max":0.55,
-        "mortality.aids.survtime.art_e.dist.uniform.min":10,#25,
+        "person.art.accept.threshold.dist.fixed.value": 0.35,#0.7,        
+        "monitoring.m_artDist.dist.normal.mu": 0.38,
+        "monitoring.m_artDist.dist.normal.min": 0.25,
+        "monitoring.m_artDist.dist.normal.max":0.60,
+        "mortality.aids.survtime.art_e.dist.uniform.min":15,#25,
         "mortality.aids.survtime.art_e.dist.uniform.max":30,#35
     }
 
     art_intro4 = {
         "time": 33.5, #around 2013
-        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'],
+        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + 
+parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'],
         "monitoring.cd4.threshold": 500,
         "person.art.accept.threshold.dist.fixed.value": 0.5,
-        # "conception.alpha_base":  parameters['conception_alpha_base']- parameters['conception_alpha_base_1'] - parameters['conception_alpha_base_2'],
         "EventAGYW.enabled": 'true',
         "diagnosis.AGYWfactor":0.1,#0.5,#1.1
-        "diagnosis.pregnancyfactor":0.9
+        "diagnosis.pregnancyfactor":0.9,
+        "conception.alpha_base": parameters['conception_alpha_base'] - parameters['conception_alpha_base_1']  - parameters['conception_alpha_base_2'] 
     }
 
     art_intro5 = {
         "time": 36.75, #around oct 2016
-        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t2_2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'] + parameters['diagnosis_baseline_t5'],
+        "diagnosis.baseline": parameters['diagnosis_baseline_t0'] + parameters['diagnosis_baseline_t1'] + parameters['diagnosis_baseline_t2'] + parameters['diagnosis_baseline_t3']+ parameters['diagnosis_baseline_t4'] + parameters['diagnosis_baseline_t5'],
         "monitoring.cd4.threshold":100000, 
         "diagnosis.AGYWfactor":0.1,
         "mortality.aids.survtime.art_e.dist.uniform.min":15,#25,
         "mortality.aids.survtime.art_e.dist.uniform.max":40,#35
+       
     }
 
         #condom use
@@ -280,23 +286,23 @@ def calibration_wrapper_function(parameters = None):
             "time": 18, #around 1998
             "EventCondom.enabled": "true",
             "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_1.csv", 
-            "EventCondom.threshold": 0.7,
-            "hivtransmission.threshold": 0.90 #0 # 0.3 #30% relationships using condoms consistently
+            "EventCondom.threshold": 0.75,
+            "hivtransmission.threshold": 0.93 #0 # 0.3 #30% relationships using condoms consistently
         }
 
     condom_intro2 = { 
             "time": 25, 
             "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_2.csv",
-            "EventCondom.threshold": 0.75, 
-            "hivtransmission.threshold": 0.88 #0 # 0.4 #40%relationships using condoms consistently
+            "EventCondom.threshold": 0.8, 
+            "hivtransmission.threshold": 0.90 #0 # 0.4 #40%relationships using condoms consistently
     }
 
     condom_intro3 = { 
             "time": 37, 
             # "hivtransmission.m_condomformationdist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/relationship_condom_use_3.csv",
             "EventCondom.threshold": 0.9,#0.8,
-            "hivtransmission.threshold": 0.90, #0 # 0.3 # 20% relationships using condoms consistently
-            "EventCondom.AGYWthreshold": 0.1
+            "hivtransmission.threshold": 0.93, #0 # 0.3 # 20% relationships using condoms consistently
+            "EventCondom.AGYWthreshold": 0.3
     }
     
     #vmmc
@@ -304,18 +310,18 @@ def calibration_wrapper_function(parameters = None):
     vmmc_intro1 = {
         "time":26.1, #around 2007
         "EventVMMC.enabled": "true",
-        "EventVMMC.threshold": 0.90
+        "EventVMMC.threshold": 0.94
     }
     
     vmmc_intro2 = {
-        "time":33.1, #around 2013
-        "EventVMMC.threshold": 0.80,
+        "time":31.1, #around 2011 (soka uncobe)
+        "EventVMMC.threshold": 0.85,
         # "EventVMMC.m_vmmcscheduleDist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/vmmc_schedule_twocol_0_1.csv"
     }
     
     vmmc_intro3 = {
         "time":35.1, #around 2015
-        "EventVMMC.threshold": 0.71,
+        "EventVMMC.threshold": 0.70,#0.71,
         # "EventVMMC.m_vmmcscheduleDist.dist.discrete.csv.twocol.file": "/home/jupyter/who-aids-prop/build/python/vmmc_schedule_twocol_0_1.csv"
     }
     
@@ -323,25 +329,25 @@ def calibration_wrapper_function(parameters = None):
     prep_intro1 = {
             "time":37.2, #around 2017
             "EventPrep.enabled": "true",
-            "EventPrep.threshold":0.985, #0.87, # threshold for willingness to start prep. coverage is 13%
+            "EventPrep.threshold":0.97, #0.87, # threshold for willingness to start prep. coverage is 13%
             'EventPrepDrop.threshold': 0.001#0.8
         }
     
     prep_intro2 = {
             "time":40.5, #around mid 2020
-            "EventPrep.threshold":0.97, # threshold for willingness to start prep. coverage is 13%
+            "EventPrep.threshold":0.96, # threshold for willingness to start prep. coverage is 13%
             'EventPrepDrop.threshold': 0.001 #0.8
         }
     
     prep_intro3 = {
             "time":42, #around  2023
-            "EventPrep.threshold":0.96, # threshold for willingness to start prep. coverage is 13%
+            "EventPrep.threshold":0.95, # threshold for willingness to start prep. coverage is 13%
             'EventPrepDrop.threshold': 0.001 #0.8
         }
     
-    ART_factual = [hiv_testing, conception_1,#conception_2,
+    ART_factual = [hiv_testing, conception_1,
                    art_intro, art_intro1, art_intro2, art_intro2_2, art_intro3, art_intro4, art_intro5,
-                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,
+                  condom_intro1, condom_intro2, condom_intro3, vmmc_intro1,vmmc_intro2,vmmc_intro3,
                    prep_intro1, prep_intro2, prep_intro3]
 
 

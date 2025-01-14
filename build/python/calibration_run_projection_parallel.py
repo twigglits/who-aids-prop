@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from multiprocessing import Pool, cpu_count
-from calibration_wrapper_function_revised_projections_new import calibration_wrapper_function
+from calibration_wrapper_function_revised_projections_new_best_nov20 import calibration_wrapper_function
 
 def duplicate_rows(df, times):
     return pd.concat([df] * times, ignore_index=True)
@@ -42,7 +42,7 @@ def simpact_parallel(model=calibration_wrapper_function,
 
 # Example usage:
 if __name__ == "__main__":
-    result = simpact_parallel(input_csv='Calibration/data/posterior_distributions_single.csv', 
+    result = simpact_parallel(input_csv='Calibration/data/posterior_distributions.csv', 
                               n_cluster=80, 
                               repeat=1)
     print(result)
