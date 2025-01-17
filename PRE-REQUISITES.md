@@ -62,7 +62,7 @@ sudo apt-get install libgsl-dev
 sudo apt-get install libtiff-dev
 ```
 
-Building SimpactCyan from Source (NOT WORKING FULLY):
+Building SimpactCyan from Source:
 
 Now we have to: 
 2.1 Clone the project into your home directory.
@@ -77,7 +77,7 @@ make -j 4
 
 That's it, you've now built the project from source. For troubleshooting check out the code for building the package from source in `install-R.sh`.
 
-2.5 Build Debian package (WORKING)
+2.5 Build Debian package:
 
 execute the following python file:
 ```bash
