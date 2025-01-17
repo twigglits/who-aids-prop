@@ -1,9 +1,6 @@
 #!/bin/bash
 
-# set your home directory here
-$home_directory_name = $USER   #set your home directory here
-
-mkdir -p /home/$home_directory_name/simpactcyan/build
+mkdir -p /home/$USER/simpactcyan/build
 cd /home/$USER/simpactcyan/build
 
 cmake ..
