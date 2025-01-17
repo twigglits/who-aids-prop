@@ -151,19 +151,16 @@ have [CMake](https://cmake.org) (can be installed using the `cmake` package).
     will show a usage message.
     
  5. Then we need to add this to one of our paths specified on the $PATH variable.
-```
-ln -s /home/$USER/simpactcyan/build/simpact-cyan-release /usr/local/bin/simpact-cyan-release
 
-```
+         ln -s /home/$USER/simpactcyan/build/simpact-cyan-release /usr/local/bin/simpact-cyan-release
 
-
-```
- 5. To make sure that this version is used from within an R session, execute
+ 6. To make sure that this version is used from within an R session, execute
     the following commands **before** loading the `RSimpactCyan` package:
 
-        Sys.setenv(PATH=paste("/home/me/simpactcyan/build",Sys.getenv("PATH"),sep=":"))
-        Sys.setenv(PYTHONPATH="/home/me/simpactcyan/python")
-        Sys.setenv(SIMPACT_DATA_DIR="/home/me/simpactcyan/data/")
+         Sys.setenv(PATH=paste("/home/me/simpactcyan/build",Sys.getenv("PATH"),sep=":"))
+         Sys.setenv(PYTHONPATH="/home/me/simpactcyan/python")
+         Sys.setenv(SIMPACT_DATA_DIR="/home/me/simpactcyan/data/")
+
 
     The first line makes sure that the `RSimpactCyan` will be able to locate the
     compiled executables. The second line makes sure that the Python module 
@@ -177,9 +174,9 @@ ln -s /home/$USER/simpactcyan/build/simpact-cyan-release /usr/local/bin/simpact-
 
     If you then use e.g. the `simpact.run` command, the newly compiled versions
     are used.
-```
 
- 6. The previous step allows you to run the new executables from within R, 
+
+7. The previous step allows you to run the new executables from within R, 
     but to debug the code this is not the most convenient way to run the 
     program. Instead, first create a configuration file using e.g. the
     `dryrun` option of  `simpact.run`. You can then just run the executable
