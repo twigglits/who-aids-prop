@@ -152,12 +152,10 @@ have [CMake](https://cmake.org) (can be installed using the `cmake` package).
     
  5. Then we need to add this to one of our paths specified on the $PATH variable.
 ```
-ln -s /home/jupyter/who-aids-prop/build/simpact-cyan-release /usr/local/bin/simpact-cyan-release
+ln -s /home/$USER/simpactcyan/build/simpact-cyan-release /usr/local/bin/simpact-cyan-release
 
 ```
 
-
-## Currently NOT WORKING(tested on Ubuntu 22.04):
 
 ```
  5. To make sure that this version is used from within an R session, execute
@@ -318,5 +316,5 @@ as well, with some obvious changes to the commands.
 
 Events, Harzards and other functions are found in the following path:
 ```
-/home/jupyter/who-aids-prop/src/program-common
+./simpactcyan/src/program-common
 ```
